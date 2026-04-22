@@ -412,6 +412,7 @@
                   "pages": [
                     "langsmith/evaluators",
                     "langsmith/attach-user-feedback",
+                    "langsmith/presigned-feedback-tokens",
                     {
                       "group": "Set up online evaluators",
                       "pages": [
