@@ -24,6 +24,8 @@ import SubagentBasicPy from '/snippets/subagent-basic-py.mdx';
 import SubagentBasicJs from '/snippets/subagent-basic-js.mdx';
 import SandboxBasicPy from '/snippets/deepagents-sandbox-basic-py.mdx';
 import SandboxBasicJs from '/snippets/deepagents-sandbox-basic-js.mdx';
+import CreateDeepAgentConfigOptionsPy from '/snippets/create-deep-agent-config-options-py.mdx';
+import CreateDeepAgentConfigOptionsJs from '/snippets/create-deep-agent-config-options-js.mdx';
 
 `create_deep_agent` has the following core configuration options:
 
@@ -40,22 +42,7 @@ import SandboxBasicJs from '/snippets/deepagents-sandbox-basic-js.mdx';
 - [Skills](#skills)
 - [Memory](#memory)
 
-```python
-create_deep_agent(
-    model: str | BaseChatModel | None = None,
-    tools: Sequence[BaseTool | Callable | dict[str, Any]] | None = None,
-    *,
-    system_prompt: str | SystemMessage | None = None,
-    middleware: Sequence[AgentMiddleware] = (),
-    subagents: Sequence[SubAgent | CompiledSubAgent | AsyncSubAgent] | None = None,
-    skills: list[str] | None = None,
-    memory: list[str] | None = None,
-    response_format: ResponseFormat[ResponseT] | type[ResponseT] | dict[str, Any] | None = None,
-    backend: BackendProtocol | BackendFactory | None = None,
-    interrupt_on: dict[str, bool | InterruptOnConfig] | None = None,
-    ...
-) -> CompiledStateGraph
-```
+<CreateDeepAgentConfigOptionsPy />
 
 For the full parameter list, see the [`create_deep_agent`](https://reference.langchain.com/python/deepagents/graph/create_deep_agent) API reference.
 

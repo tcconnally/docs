@@ -24,6 +24,8 @@ import SubagentBasicPy from '/snippets/subagent-basic-py.mdx';
 import SubagentBasicJs from '/snippets/subagent-basic-js.mdx';
 import SandboxBasicPy from '/snippets/deepagents-sandbox-basic-py.mdx';
 import SandboxBasicJs from '/snippets/deepagents-sandbox-basic-js.mdx';
+import CreateDeepAgentConfigOptionsPy from '/snippets/create-deep-agent-config-options-py.mdx';
+import CreateDeepAgentConfigOptionsJs from '/snippets/create-deep-agent-config-options-js.mdx';
 
 
 
@@ -42,23 +44,9 @@ import SandboxBasicJs from '/snippets/deepagents-sandbox-basic-js.mdx';
 
 
 
-```typescript
-const agent = createDeepAgent({
-  model?: BaseLanguageModel | string,
-  tools?: TTools | StructuredTool[],
-  systemPrompt?: string | SystemMessage,
-  middleware?: TMiddleware,
-  subagents?: TSubagents,
-  responseFormat?: TResponse,
-  backend?: AnyBackendProtocol | ((config) => AnyBackendProtocol),
-  interruptOn?: Record<string, boolean | InterruptOnConfig>,
-  memory?: string[],
-  skills?: string[],
-  ...
-});
-```
+<CreateDeepAgentConfigOptionsJs />
 
-For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/agent/createDeepAgent) API reference.
+For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/types/CreateDeepAgentParams) API reference.
 
 
 ## Model
