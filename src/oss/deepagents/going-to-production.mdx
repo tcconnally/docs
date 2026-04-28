@@ -5,6 +5,12 @@ description: Take your deep agent to production with persistent memory, sandboxe
 
 This guide covers considerations for taking a deep agent from a local prototype to a production deployment. It walks through scoping memory, configuring execution environments, adding guardrails, and connecting a frontend.
 
+A deep agent has two layers:
+
+- **Harness**: the prompts, tools, skills, subagents, memory policies, and middleware that shape agent behavior.
+- **Runtime**: the durable execution, persistence, auth, observability, streaming, scheduling, and sandbox infrastructure that keeps the agent reliable in production.
+
+`deepagents deploy` packages the harness and deploys it on the [LangSmith Deployment runtime](/langsmith/deployment), so you can focus on agent behavior without rebuilding production infrastructure.
 
 ## Overview
 
@@ -16,8 +22,9 @@ In production, there are a few primitives that determine how information is shar
 - **Assistant**: a configured agent instance. Memory and files can be tied to one assistant or shared across all of them.
 
 This page covers:
+
 - **[LangSmith Deployments](#langsmith-deployments)**: managed infrastructure with auth, webhooks, and cron
-- **[Production considerations](#production-considerations)**: multi-tenancy, authentication, credentials, async, and durability
+- **[Production considerations](#production-considerations)**: multi-tenancy, authentication, credentials, async, durability, streaming, human oversight, and scheduled work
 - **[Memory](#memory)**: persist information across conversations
 - **[Execution environment](#execution-environment)**: file storage and code execution
 - **[Guardrails](#guardrails)**: rate limiting, error handling, and data privacy
@@ -175,6 +182,25 @@ Checkpointing also enables:
 <Tip>
 [LangSmith Deployments](/langsmith/deployment) configure a persistent checkpointer automatically. If you are self-hosting, see [persistence](/oss/langgraph/persistence) for setup instructions.
 </Tip>
+
+### Human oversight
+
+Use human-in-the-loop when the agent needs approval for a consequential action or needs an answer it cannot infer safely. In LangGraph, `interrupt()` pauses execution and surfaces a JSON-serializable payload to the caller. A later `Command(resume=...)` resumes the run, and the resume value becomes the return value of the original interrupt call.
+
+Because interrupts write a checkpoint before pausing, the server can release workers and wait indefinitely. This supports approval gates, draft review loops, clarifying questions, and parallel branches that each need human input. See [human-in-the-loop](/langsmith/add-human-in-the-loop) for Agent Server examples.
+
+### Real-time interaction
+
+Production chat UIs need to keep users informed while the agent works and define how to handle a second message sent during an active run.
+
+- **Streaming** sends tokens, state updates, or custom events as they happen. Thread streaming can reconnect with `Last-Event-ID` so clients can recover from dropped connections without missing events. See [streaming](/langsmith/streaming).
+- **Double-texting** controls concurrent messages on the same thread. Use `enqueue` for safe sequential processing, `reject` to refuse overlapping input, `interrupt` to stop the current run and continue from the current state, or `rollback` to discard the in-progress run and start from the new input. See [double-texting](/langsmith/double-texting).
+
+### Scheduled jobs
+
+Agents often need to run without a user request, such as nightly research, daily briefings, ticket triage, or monitoring loops. [Cron jobs](/langsmith/cron-jobs) run on the same Agent Server runtime as interactive runs, so scheduled work gets the same durability, tracing, auth, and retry behavior.
+
+Use stateful cron jobs when the schedule should append to an existing thread and preserve history. Use stateless cron jobs when each execution should start from a fresh thread; set the thread cleanup behavior based on whether you need to inspect results later.
 
 ## Memory
 

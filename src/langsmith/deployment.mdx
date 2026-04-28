@@ -79,9 +79,20 @@ Authentication, encryption, custom routes, and short- and long-term memory store
 
 ## Capabilities
 
+A production agent needs more than prompts, tools, and skills. LangSmith Deployment provides the runtime infrastructure beneath the agent harness so long-running runs can survive deploys, wait for people, stream progress, and stay observable.
 
-
-
+| Production requirement | Runtime capability | Learn more |
+| --- | --- | --- |
+| Reliability | Durable execution with checkpoints and a managed task queue | [Agent Server runtime architecture](/langsmith/agent-server#runtime-architecture) |
+| Short-term and long-term memory | Thread checkpoints and a persistent store | [Agent Server persistence](/langsmith/agent-server#persistence) |
+| Guardrails | Middleware that wraps model and tool calls | [Custom middleware](/langsmith/custom-middleware) |
+| Multi-tenancy | Authentication, authorization handlers, Agent Auth, and RBAC | [Auth and access control](/langsmith/auth) |
+| Human oversight | Interrupt and resume workflows | [Human-in-the-loop](/langsmith/add-human-in-the-loop) |
+| Real-time interaction | Streaming and double-texting strategies | [Streaming](/langsmith/streaming) |
+| Observability | Tracing, online evaluations, and time travel | [Observability](/langsmith/observability) |
+| Code execution | Sandboxes and sandbox auth proxy | [Sandboxes](/langsmith/sandboxes) |
+| Integrations | MCP, A2A, and webhooks | [MCP endpoint](/langsmith/server-mcp) |
+| Scheduled jobs | Stateful and stateless cron jobs | [Cron jobs](/langsmith/cron-jobs) |
 
 ### Studio
 

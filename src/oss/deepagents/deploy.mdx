@@ -31,7 +31,9 @@ Deep Agents Deploy takes your agent configuration and deploys it as a [LangSmith
 
 ## What you're deploying
 
-`deepagents deploy` packages your agent configuration and deploys it as a [LangSmith Deployment](/langsmith/deployment). You configure your agent with a few parameters:
+`deepagents deploy` packages your agent configuration and deploys it as a [LangSmith Deployment](/langsmith/deployment). The command bundles the agent harness—prompts, skills, subagents, MCP servers, memory templates, and sandbox configuration—and runs it on the LangSmith Deployment runtime for durable execution, streaming, human-in-the-loop, auth, observability, cron, and open protocol endpoints.
+
+You configure your agent with a few parameters:
 
 | Parameter | Description |
 | --- | --- |
@@ -71,7 +73,7 @@ By default, `deepagents deploy` looks for `deepagents.toml` in the current direc
 deepagents deploy --config path/to/deepagents.toml
 ```
 
-`deepagents deploy` fully rebuils and creates a new revision on every invocation. Use `deepagents dev` for local iteration.
+`deepagents deploy` fully rebuilds and creates a new revision on every invocation. Use `deepagents dev` for local iteration.
 
 ### `deepagents init`
 
