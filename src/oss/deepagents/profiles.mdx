@@ -37,8 +37,8 @@ register_harness_profile(
     Replace the base Deep Agents system prompt (`CUSTOM` in [Prompt assembly](/oss/deepagents/customization#prompt-assembly)).
 </ResponseField>
 
-<ResponseField name="system_prompt_suffix" type="string">
-    Append text to the assembled base prompt (`SUFFIX` in [Prompt assembly](/oss/deepagents/customization#prompt-assembly)); applied to the main agent, declarative subagents, and the auto-added general-purpose subagent.
+<ResponseField name="system_prompt_suffix" type="string | Callable[[ProfileSuffixContext], string | None]">
+    Append text to the assembled base prompt (`SUFFIX` in [Prompt assembly](/oss/deepagents/customization#prompt-assembly)); applied to the main agent, declarative subagents, and the auto-added general-purpose subagent. Use the callable form for [conditional suffix segments](/oss/deepagents/customization#conditional-suffix-segments) that depend on the final middleware stack.
 </ResponseField>
 
 <ResponseField name="tool_description_overrides" type="Mapping[str, str]">
@@ -140,7 +140,7 @@ register_provider_profile(
 
 ## Load profiles from config files
 
-For YAML/JSON-backed workflows, use `HarnessProfileConfig`. It mirrors the declarative subset of `HarnessProfile` (prompt text, tool-description overrides, excluded tools and middleware, general-purpose subagent edits) and owns `to_dict` / `from_dict`. Runtime-only state — middleware instances, factories, and class-form `excluded_middleware` entries — stays on `HarnessProfile`.
+For YAML/JSON-backed workflows, use `HarnessProfileConfig`. It mirrors the declarative subset of `HarnessProfile` (literal prompt text, tool-description overrides, excluded tools and middleware, general-purpose subagent edits) and owns `to_dict` / `from_dict`. Runtime-only state — middleware instances, factories, callable `system_prompt_suffix` resolvers, and class-form `excluded_middleware` entries — stays on `HarnessProfile`.
 
 `register_harness_profile` accepts either type, so config-backed callers don't need a manual conversion step:
 

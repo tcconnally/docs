@@ -295,6 +295,30 @@ agent = create_deep_agent(
     Passing a `SystemMessage` (rather than a string) triggers a different concatenation path: the right-hand assembly (`BASE`-or-`CUSTOM` plus any `SUFFIX`) is appended as an additional text content block onto the message's existing `content_blocks`. The same logical ordering applies (caller blocks first), and any `cache_control` markers on the caller's blocks are preserved — useful for placing explicit Anthropic prompt-cache breakpoints.
 </Note>
 
+### Conditional suffix segments
+
+Pass a callable `system_prompt_suffix` when some suffix copy only makes sense if a middleware survives profile assembly. Deep Agents evaluates the callable after `excluded_middleware` filters the stack, so the returned text can track the final middleware classes instead of naming missing tools.
+
+This is the pattern used by the built-in Codex profile: plan-hygiene guidance is only appended when `TodoListMiddleware` is still present, because that middleware provides `write_todos`.
+
+```python
+from langchain.agents.middleware import TodoListMiddleware
+
+from deepagents import HarnessProfile, ProfileSuffixContext
+
+
+def codex_suffix(ctx: ProfileSuffixContext) -> str:
+    suffix = "Use tools efficiently."
+    if TodoListMiddleware in ctx:
+        suffix += "\n\nBefore finishing, reconcile TODOs with `write_todos`."
+    return suffix
+
+
+profile = HarnessProfile(system_prompt_suffix=codex_suffix)
+```
+
+Callable suffixes are runtime-only. `HarnessProfileConfig.system_prompt_suffix` stays `str | None` because config files cannot serialize Python callables.
+
 <AccordionGroup>
     <Accordion title="Subagent prompts">
         The same overlay rules apply to declarative [subagents](/oss/deepagents/subagents) — each subagent re-runs profile resolution against **its own model**, then applies the resolved profile's `base_system_prompt` / `system_prompt_suffix` to its authored `system_prompt`. The subagent's `system_prompt` plays the `BASE` role; `CUSTOM` and `SUFFIX` come from the profile that matches the subagent's model (which may differ from the main agent's profile).
