@@ -985,6 +985,7 @@
             {
               "group": "Additional resources",
               "pages": [
+                "langsmith/fleet/features",
                 "langsmith/fleet/access-and-oversight",
                 "langsmith/fleet/pricing-faq",
                 "langsmith/fleet/self-hosted-link"
