@@ -140,7 +140,7 @@ await runPipeline();
 <TraceablePipelineKt />
 </CodeGroup>
 
-In the [UI](https://smith.langchain.com), you'll find a `run_pipeline` trace with `format_prompt`, `invoke_llm`, and `parse_output` as nested child runs.
+In the [UI](https://smith.langchain.com?utm_source=docs&utm_medium=cta&utm_campaign=langsmith-signup&utm_content=langsmith-annotate-code), you'll find a `run_pipeline` trace with `format_prompt`, `invoke_llm`, and `parse_output` as nested child runs.
 
 <Note>
 When you wrap a sync function with `traceable` (e.g., `formatPrompt` in the previous example), use the `await` keyword when calling it to ensure the trace is logged correctly.
