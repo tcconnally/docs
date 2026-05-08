@@ -5,12 +5,16 @@ description: Cap weekly LLM spend on evaluators with an organization-wide defaul
 keywords: ["evaluator spend", "spend limit", "evaluator budget", "evaluator cost", "weekly limit", "evaluator monitoring", "stop evaluator", "pause evaluator", "run rule limit"]
 ---
 
-Cap weekly LLM spend per evaluator so a runaway evaluator cannot blow your budget. LangSmith tracks evaluator spend in a rolling 7-day window and lets organization admins set a weekly cap on each evaluator's [attachments](/langsmith/evaluation-concepts#attachments), the projects and datasets the evaluator runs on. The cap can be a single organization-wide default or a custom override on a specific attachment.
+Cap weekly LLM spend per evaluator to prevent a single evaluator from exceeding your budget. LangSmith tracks evaluator spend in a rolling 7-day window and lets [organization admins](/langsmith/rbac#organization-admin) set a weekly cap on each evaluator's [attachments](/langsmith/evaluation-concepts#attachments), the projects and datasets the evaluator runs on. The cap can be a single organization-wide default or a custom override on a specific attachment.
 
-LangSmith offers cost controls at three levels: [per-trace and per-model cost tracking](/langsmith/cost-tracking), [tracing usage limits](/langsmith/administration-overview#usage-limits), and weekly evaluator spend caps. This page covers the third.
+This guide shows you how to view and configure weekly evaluator spend caps.
+
+<Tip>
+LangSmith also offers [per-trace and per-model cost tracking](/langsmith/cost-tracking) and [tracing usage limits](/langsmith/administration-overview#usage-limits) for cost control.
+</Tip>
 
 <Warning>
-Spend limits only enforce against runs whose model has [pricing configured](/langsmith/cost-tracking#create-a-new-or-modify-an-existing-model-price-entry) in LangSmith. Verify model pricing before relying on a limit, otherwise a runaway evaluator on an un-priced model will continue without enforcement.
+Spend limits only enforce against runs whose model has [pricing configured](/langsmith/cost-tracking#create-a-new-or-modify-an-existing-model-price-entry) in LangSmith. Verify model pricing before relying on a limit, otherwise a single evaluator on an un-priced model will continue without enforcement.
 </Warning>
 
 <Note>
@@ -44,7 +48,7 @@ The agent and the trace are unaffected. Only the evaluator stops producing score
 
 ## View evaluator spend
 
-Spend appears in three places.
+You can find spend in the following UI locations:
 
 ### Evaluators page dashboard
 

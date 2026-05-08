@@ -215,7 +215,7 @@ This section covers how data retention works and how it's priced in LangSmith.
 #### Why retention matters
 
 * **Privacy**: Many data privacy regulations, such as GDPR in Europe or CCPA in California, require organizations to delete personal data once it's no longer necessary for the purposes for which it was collected. Setting retention periods aids in compliance with such regulations.
-* **Cost**: LangSmith charges less for traces that have low data retention. For more information, learn how to [enfore spend limits](/langsmith/billing#enforce-spend-limits).
+* **Cost**: LangSmith charges less for traces that have low data retention. For more information, learn how to [enforce spend limits](/langsmith/billing#enforce-spend-limits).
 
 #### How it works
 
@@ -376,7 +376,7 @@ If that is the case, we would like to discuss your needs more specifically. Plea
 
 ### Usage limits
 
-LangSmith lets you configure usage limits on tracing. Note that these are *usage* limits, not *spend* limits, which mean they let you limit the quantity of occurrences of some event rather than the total amount you will spend. For *spend* limits on evaluator runs specifically, refer to [Track and limit evaluator spend](/langsmith/evaluator-spend).
+LangSmith lets you configure usage limits on tracing. Note that these are *usage* limits, not *spend* limits, which mean they let you limit the quantity of occurrences of some event rather than the total amount you will spend.
 
 LangSmith lets you set two different monthly limits, mirroring our Billable Metrics discussed in the aforementioned data retention guide:
 
@@ -384,6 +384,8 @@ LangSmith lets you set two different monthly limits, mirroring our Billable Metr
 * Extended data retention traces limit
 
 These let you limit the number of total traces, and extended data retention traces respectively.
+
+<Note>For *spend* limits on evaluator runs specifically, refer to [Track and limit evaluator spend](/langsmith/evaluator-spend).</Note>
 
 #### Properties of usage limiting
 
