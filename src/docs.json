@@ -985,13 +985,14 @@
                 "langsmith/fleet/webhooks",
                 "langsmith/fleet/auth-format",
                 {
-                  "group": "Managed Deep Agents API",
+                  "group": "Headless Fleet API",
                   "pages": [
-                    "langsmith/fleet/managed-deep-agents-api-ref"
+                    "langsmith/fleet/headless-fleet-api-ref",
+                    "langsmith/fleet/headless-fleet-quickstart"
                   ],
                   "openapi": {
-                    "source": "langsmith/fleet/managed-deep-agents-openapi.json",
-                    "directory": "langsmith/fleet/managed-deep-agents-api"
+                    "source": "langsmith/fleet/headless-fleet-openapi.json",
+                    "directory": "langsmith/fleet/headless-fleet-api"
                   }
                  }
               ]

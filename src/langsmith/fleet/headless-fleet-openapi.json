@@ -1,0 +1,5104 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "contact": {},
+        "description": "Headless Fleet API. Agents, integrations, auth providers/sessions/tokens, skills, triggers, trigger templates, and threads.",
+        "title": "Fleet API",
+        "version": "v1"
+    },
+    "paths": {
+        "/v1/fleet/agents": {
+            "get": {
+                "description": "List the agents you have access to. Use `next_cursor` from the response to page through results.",
+                "parameters": [
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/agents.ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List agents",
+                "tags": [
+                    "agents"
+                ]
+            },
+            "post": {
+                "description": "Create an agent, optionally seeded with an initial file tree. The write is atomic — validation runs before any persistence. The full file tree is omitted from the response by default; pass `?include=files` to include it.",
+                "parameters": [
+                    {
+                        "description": "Comma-separated includes. Supported: files",
+                        "in": "query",
+                        "name": "include",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/agents.CreateAgentRequest"
+                            }
+                        }
+                    },
+                    "description": "Agent metadata, config, and optional file tree",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/agents.CreateAgentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create an agent",
+                "tags": [
+                    "agents"
+                ]
+            }
+        },
+        "/v1/fleet/agents/count": {
+            "post": {
+                "description": "Count agents matching the provided filters.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/agents.CountAgentsRequest"
+                            }
+                        }
+                    },
+                    "description": "Filters",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.CountResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Count agents",
+                "tags": [
+                    "agents"
+                ]
+            }
+        },
+        "/v1/fleet/agents/search": {
+            "post": {
+                "description": "Search agents by metadata, graph ID, or name. Use `next_cursor` from the response to page through results.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/agents.SearchRequest"
+                            }
+                        }
+                    },
+                    "description": "Search filters and pagination",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/agents.ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Search agents",
+                "tags": [
+                    "agents"
+                ]
+            }
+        },
+        "/v1/fleet/agents/{agent_id}": {
+            "delete": {
+                "description": "Delete an agent and its file tree.",
+                "parameters": [
+                    {
+                        "description": "Agent ID",
+                        "in": "path",
+                        "name": "agent_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete an agent",
+                "tags": [
+                    "agents"
+                ]
+            },
+            "get": {
+                "description": "Get an agent by ID.",
+                "parameters": [
+                    {
+                        "description": "Agent ID",
+                        "in": "path",
+                        "name": "agent_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/agents.Agent"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get an agent",
+                "tags": [
+                    "agents"
+                ]
+            },
+            "patch": {
+                "description": "Update an agent. All fields are optional; omitted fields are unchanged. Provided top-level fields replace the existing value in full. Entries under `files` are created or replaced by path; paths listed in `deleted_paths` are removed. The call is atomic — on validation failure no changes are applied. The file tree is omitted from the response by default; pass `?include=files` to include it.",
+                "parameters": [
+                    {
+                        "description": "Agent ID",
+                        "in": "path",
+                        "name": "agent_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Comma-separated includes. Supported: files",
+                        "in": "query",
+                        "name": "include",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/agents.UpdateAgentRequest"
+                            }
+                        }
+                    },
+                    "description": "Sparse update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/agents.UpdateAgentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update an agent",
+                "tags": [
+                    "agents"
+                ]
+            }
+        },
+        "/v1/fleet/threads": {
+            "post": {
+                "description": "Create a thread to hold a conversation. Subsequent runs are started on it via `POST /v1/fleet/threads/{thread_id}/runs`.",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create thread",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/count": {
+            "post": {
+                "description": "Count threads matching the provided filters.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/threads.CountRequest"
+                            }
+                        }
+                    },
+                    "description": "Filters",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.CountResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Count threads",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/search": {
+            "post": {
+                "description": "Search threads by metadata, status, or state values. Use `next_cursor` from the response to page through results.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/threads.SearchRequest"
+                            }
+                        }
+                    },
+                    "description": "Search filters and pagination",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/threads.ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Search threads",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}": {
+            "delete": {
+                "description": "Delete a thread and its state.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete thread",
+                "tags": [
+                    "threads"
+                ]
+            },
+            "get": {
+                "description": "Get a thread by ID.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/threads.Thread"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get thread",
+                "tags": [
+                    "threads"
+                ]
+            },
+            "patch": {
+                "description": "Update a thread. All fields are optional; omitted fields are unchanged.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/threads.UpdateRequest"
+                            }
+                        }
+                    },
+                    "description": "Sparse update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/threads.Thread"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update thread",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}/resolve-interrupt": {
+            "post": {
+                "description": "Resume a thread paused for human interrupt without sending new input. Execution continues from where it stopped.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Resolve an interrupted thread",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}/runs": {
+            "post": {
+                "description": "Start a run on a thread. The request body must include `agent_id` to identify the agent to execute.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create thread run",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}/runs/stream": {
+            "post": {
+                "description": "Start a run on a thread and stream output as Server-Sent Events. The connection stays open until the run completes; the client is responsible for closing it. The request body must include `agent_id`.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/runs.StreamRequest"
+                            }
+                        }
+                    },
+                    "description": "Run configuration",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "SSE stream of run events. Each event is `id: <n>\\nevent: <name>\\ndata: <json>\\n\\n`.\n",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Stream thread run",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}/state": {
+            "get": {
+                "description": "Get the latest state (most recent checkpoint) for a thread.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Include subgraph states in the response",
+                        "in": "query",
+                        "name": "subgraphs",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/threads.ThreadState"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get thread state",
+                "tags": [
+                    "threads"
+                ]
+            },
+            "post": {
+                "description": "Add or update state on a thread. Optionally targets a specific checkpoint, and can attribute the update to a named node via `as_node`.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/threads.UpdateStateRequest"
+                            }
+                        }
+                    },
+                    "description": "State update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/threads.UpdateStateResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update thread state",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/threads/{thread_id}/stream": {
+            "get": {
+                "description": "Join the live event stream for a thread. The stream emits events from each run executed on the thread sequentially and remains open until the client disconnects. Pass `Last-Event-ID` to resume from a known event.",
+                "parameters": [
+                    {
+                        "description": "Thread ID",
+                        "in": "path",
+                        "name": "thread_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "ID of the last event received. Pass to resume from that point; pass `-` to resume from the beginning.",
+                        "in": "header",
+                        "name": "Last-Event-ID",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Stream modes to subscribe to. Comma-separated. Supported: lifecycle, run_modes, state_update",
+                        "in": "query",
+                        "name": "stream_modes",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SSE stream of thread events. Each event is `id: <n>\\nevent: <name>\\ndata: <json>\\n\\n`.\n",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "text/event-stream": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Join thread stream",
+                "tags": [
+                    "threads"
+                ]
+            }
+        },
+        "/v1/fleet/auth-providers": {
+            "get": {
+                "description": "List the OAuth providers configured for your organization.",
+                "parameters": [
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.ListProvidersResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List OAuth providers",
+                "tags": [
+                    "auth-providers"
+                ]
+            },
+            "post": {
+                "description": "Register an OAuth provider for your organization. Users can then start authorization sessions against it via `POST /v1/fleet/auth-sessions`.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.CreateProviderRequest"
+                            }
+                        }
+                    },
+                    "description": "Provider configuration",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Provider"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Register an OAuth provider",
+                "tags": [
+                    "auth-providers"
+                ]
+            }
+        },
+        "/v1/fleet/auth-providers/discover": {
+            "post": {
+                "description": "Discover an OAuth provider's metadata from an MCP server URL and register it for your organization in one step.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.DiscoverProviderRequest"
+                            }
+                        }
+                    },
+                    "description": "Discovery payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Provider"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Discover and register an OAuth provider",
+                "tags": [
+                    "auth-providers"
+                ]
+            }
+        },
+        "/v1/fleet/auth-providers/{provider_id}": {
+            "delete": {
+                "description": "Delete an OAuth provider. Existing tokens issued under it are revoked.",
+                "parameters": [
+                    {
+                        "description": "Provider ID",
+                        "in": "path",
+                        "name": "provider_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete an OAuth provider",
+                "tags": [
+                    "auth-providers"
+                ]
+            },
+            "get": {
+                "description": "Get an OAuth provider by ID.",
+                "parameters": [
+                    {
+                        "description": "Provider ID",
+                        "in": "path",
+                        "name": "provider_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Provider"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get an OAuth provider",
+                "tags": [
+                    "auth-providers"
+                ]
+            },
+            "patch": {
+                "description": "Update an OAuth provider. Sent fields replace stored values; absent fields are unchanged.",
+                "parameters": [
+                    {
+                        "description": "Provider ID",
+                        "in": "path",
+                        "name": "provider_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.UpdateProviderRequest"
+                            }
+                        }
+                    },
+                    "description": "Sparse update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Provider"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update an OAuth provider",
+                "tags": [
+                    "auth-providers"
+                ]
+            }
+        },
+        "/v1/fleet/auth-sessions": {
+            "post": {
+                "description": "Start an OAuth flow. If the user is already authorized, returns a completed session referencing the existing token. Otherwise returns a pending session with a verification URL the user must visit to finish authorization.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.CreateSessionRequest"
+                            }
+                        }
+                    },
+                    "description": "Authorization session request",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Session"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Start an authorization session",
+                "tags": [
+                    "auth-sessions"
+                ]
+            }
+        },
+        "/v1/fleet/auth-sessions/{session_id}": {
+            "get": {
+                "description": "Get the status of an in-flight authorization session. Poll until `status` is `completed`, or the session expires.",
+                "parameters": [
+                    {
+                        "description": "Authorization session ID",
+                        "in": "path",
+                        "name": "session_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Session"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get an authorization session",
+                "tags": [
+                    "auth-sessions"
+                ]
+            }
+        },
+        "/v1/fleet/auth-tokens": {
+            "get": {
+                "description": "List your active connection tokens. Optionally filter by `provider_id` or `agent_id`.",
+                "parameters": [
+                    {
+                        "description": "Filter by provider ID",
+                        "in": "query",
+                        "name": "provider_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filter by agent ID",
+                        "in": "query",
+                        "name": "agent_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.ListTokensResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List your connection tokens",
+                "tags": [
+                    "auth-tokens"
+                ]
+            }
+        },
+        "/v1/fleet/auth-tokens/revoke": {
+            "post": {
+                "description": "Revoke connection tokens matching a filter. `provider_id` is required to prevent accidental mass revocation.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.RevokeTokensRequest"
+                            }
+                        }
+                    },
+                    "description": "Token revocation filter",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Revoke connection tokens by filter",
+                "tags": [
+                    "auth-tokens"
+                ]
+            }
+        },
+        "/v1/fleet/auth-tokens/{token_id}": {
+            "delete": {
+                "description": "Revoke a connection token by ID. The user is disconnected from the service it authorized.",
+                "parameters": [
+                    {
+                        "description": "Token ID",
+                        "in": "path",
+                        "name": "token_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Revoke a connection token",
+                "tags": [
+                    "auth-tokens"
+                ]
+            },
+            "patch": {
+                "description": "Update a connection token. Sent fields replace stored values; absent fields are unchanged.",
+                "parameters": [
+                    {
+                        "description": "Token ID",
+                        "in": "path",
+                        "name": "token_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/auth.UpdateTokenRequest"
+                            }
+                        }
+                    },
+                    "description": "Token metadata update",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/auth.Token"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update a connection token",
+                "tags": [
+                    "auth-tokens"
+                ]
+            }
+        },
+        "/v1/fleet/integrations": {
+            "get": {
+                "description": "List the integrations available to your workspace. Filter by `source` (for example `langchain` or `custom`).",
+                "parameters": [
+                    {
+                        "description": "Filter by source (e.g. langchain, custom)",
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/integrations.ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List integrations",
+                "tags": [
+                    "integrations"
+                ]
+            },
+            "post": {
+                "description": "Create a custom integration in your workspace.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/integrations.CreateRequest"
+                            }
+                        }
+                    },
+                    "description": "Integration to create",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/integrations.Integration"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create a custom integration",
+                "tags": [
+                    "integrations"
+                ]
+            }
+        },
+        "/v1/fleet/integrations/{integration_id}": {
+            "delete": {
+                "description": "Delete a custom integration.",
+                "parameters": [
+                    {
+                        "description": "Integration ID",
+                        "in": "path",
+                        "name": "integration_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete a custom integration",
+                "tags": [
+                    "integrations"
+                ]
+            },
+            "get": {
+                "description": "Get an integration by ID.",
+                "parameters": [
+                    {
+                        "description": "Integration ID",
+                        "in": "path",
+                        "name": "integration_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/integrations.Integration"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get an integration",
+                "tags": [
+                    "integrations"
+                ]
+            },
+            "patch": {
+                "description": "Update a custom integration. The `url` field is immutable; sent fields replace stored values, absent fields are unchanged.",
+                "parameters": [
+                    {
+                        "description": "Integration ID",
+                        "in": "path",
+                        "name": "integration_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/integrations.UpdateRequest"
+                            }
+                        }
+                    },
+                    "description": "Fields to update",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/integrations.Integration"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update a custom integration",
+                "tags": [
+                    "integrations"
+                ]
+            }
+        },
+        "/v1/fleet/integrations/{integration_id}/auth-methods": {
+            "put": {
+                "description": "Replace the integration's full list of supported auth methods. Any method present today but absent from the request is removed.",
+                "parameters": [
+                    {
+                        "description": "Integration ID",
+                        "in": "path",
+                        "name": "integration_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/integrations.ReplaceAuthMethodsRequest"
+                            }
+                        }
+                    },
+                    "description": "Auth methods to set",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/integrations.Integration"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Replace integration auth methods",
+                "tags": [
+                    "integrations"
+                ]
+            }
+        },
+        "/v1/fleet/skills": {
+            "get": {
+                "description": "List the skills in your workspace. Use `next_cursor` from the response to page through results.",
+                "parameters": [
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/skills.ListResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List skills",
+                "tags": [
+                    "skills"
+                ]
+            },
+            "post": {
+                "description": "Create a skill in your workspace with the supplied file tree. The call is atomic — if the file commit fails, no skill is created.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/skills.CreateSkillRequest"
+                            }
+                        }
+                    },
+                    "description": "Skill name and initial file tree",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/skills.Skill"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create a skill",
+                "tags": [
+                    "skills"
+                ]
+            }
+        },
+        "/v1/fleet/skills/{skill_id}": {
+            "delete": {
+                "description": "Delete a skill and all its files.",
+                "parameters": [
+                    {
+                        "description": "Skill ID",
+                        "in": "path",
+                        "name": "skill_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete a skill",
+                "tags": [
+                    "skills"
+                ]
+            },
+            "get": {
+                "description": "Get a skill by ID, including its full file tree.",
+                "parameters": [
+                    {
+                        "description": "Skill ID",
+                        "in": "path",
+                        "name": "skill_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/skills.Skill"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get a skill",
+                "tags": [
+                    "skills"
+                ]
+            },
+            "put": {
+                "description": "Replace a skill's file tree in full. Any file present today but absent from the request body is deleted. The call is atomic — on validation failure no changes are applied.",
+                "parameters": [
+                    {
+                        "description": "Skill ID",
+                        "in": "path",
+                        "name": "skill_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/skills.ReplaceSkillRequest"
+                            }
+                        }
+                    },
+                    "description": "Full skill payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/skills.Skill"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Replace a skill",
+                "tags": [
+                    "skills"
+                ]
+            }
+        },
+        "/v1/fleet/trigger-templates": {
+            "get": {
+                "description": "List the trigger templates available to your workspace. Use `next_cursor` from the response to page through results.",
+                "parameters": [
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.ListTemplatesResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List trigger templates",
+                "tags": [
+                    "trigger-templates"
+                ]
+            }
+        },
+        "/v1/fleet/trigger-templates/{template_id}": {
+            "get": {
+                "description": "Get a trigger template by ID.",
+                "parameters": [
+                    {
+                        "description": "Template ID",
+                        "in": "path",
+                        "name": "template_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.TriggerTemplate"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get a trigger template",
+                "tags": [
+                    "trigger-templates"
+                ]
+            }
+        },
+        "/v1/fleet/triggers": {
+            "get": {
+                "description": "List triggers in your workspace. Use the optional `agent_id` and `template_id` filters to narrow results. Use `next_cursor` from the response to page through results.",
+                "parameters": [
+                    {
+                        "description": "Filter by agent ID",
+                        "in": "query",
+                        "name": "agent_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Filter by template ID",
+                        "in": "query",
+                        "name": "template_id",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Items per page (default 20, max 100)",
+                        "in": "query",
+                        "name": "page_size",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "description": "Opaque pagination cursor",
+                        "in": "query",
+                        "name": "cursor",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.ListTriggersResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "List triggers",
+                "tags": [
+                    "triggers"
+                ]
+            },
+            "post": {
+                "description": "Create a trigger and bind it to an agent. The agent association is fixed at create time; to point a trigger at a different agent, delete and recreate.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/triggers.CreateTriggerRequest"
+                            }
+                        }
+                    },
+                    "description": "Trigger payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.Trigger"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Create a trigger",
+                "tags": [
+                    "triggers"
+                ]
+            }
+        },
+        "/v1/fleet/triggers/{trigger_id}": {
+            "delete": {
+                "description": "Delete a trigger.",
+                "parameters": [
+                    {
+                        "description": "Trigger ID",
+                        "in": "path",
+                        "name": "trigger_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Delete a trigger",
+                "tags": [
+                    "triggers"
+                ]
+            },
+            "get": {
+                "description": "Get a trigger by ID.",
+                "parameters": [
+                    {
+                        "description": "Trigger ID",
+                        "in": "path",
+                        "name": "trigger_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.Trigger"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Get a trigger",
+                "tags": [
+                    "triggers"
+                ]
+            },
+            "patch": {
+                "description": "Update a trigger. All fields are optional; omitted fields are unchanged. The `template_id` and `agent_id` are immutable — to change them, delete and recreate.",
+                "parameters": [
+                    {
+                        "description": "Trigger ID",
+                        "in": "path",
+                        "name": "trigger_id",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/triggers.UpdateTriggerRequest"
+                            }
+                        }
+                    },
+                    "description": "Sparse update payload",
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/triggers.Trigger"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/fleet.ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "API_Key": []
+                    },
+                    {
+                        "Tenant_ID": []
+                    },
+                    {
+                        "Bearer_Auth": []
+                    }
+                ],
+                "summary": "Update a trigger",
+                "tags": [
+                    "triggers"
+                ]
+            }
+        }
+    },
+    "tags": [
+        {
+            "description": "An agent is a configured graph with its own files, configuration, and metadata.",
+            "name": "agents"
+        },
+        {
+            "description": "An OAuth provider defines how a third-party service authorizes connections on behalf of your users.",
+            "name": "auth-providers"
+        },
+        {
+            "description": "An auth session is an in-flight OAuth flow that connects an end user to a provider.",
+            "name": "auth-sessions"
+        },
+        {
+            "description": "A connection token represents a user's authorized access to a third-party service.",
+            "name": "auth-tokens"
+        },
+        {
+            "description": "An integration is a third-party service available to your workspace, with one or more supported auth methods.",
+            "name": "integrations"
+        },
+        {
+            "description": "A skill is a reusable, versioned bundle of files that agents can load at runtime.",
+            "name": "skills"
+        },
+        {
+            "description": "A thread holds the accumulated state of a conversation across one or more runs.",
+            "name": "threads"
+        },
+        {
+            "description": "A trigger template defines a kind of trigger available to your workspace (cron, webhook, Slack bot, etc.).",
+            "name": "trigger-templates"
+        },
+        {
+            "description": "A trigger fires an agent in response to an event — a schedule, an inbound message, or a webhook.",
+            "name": "triggers"
+        }
+    ],
+    "servers": [
+        {
+            "url": "/"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "agents.Agent": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.AgentConfig": {
+                "properties": {
+                    "configurable": {
+                        "$ref": "#/components/schemas/agents.AgentConfigurable"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.AgentConfigurable": {
+                "properties": {
+                    "backend_type": {
+                        "type": "string"
+                    },
+                    "llm_model_config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "sandbox_proxy_profile_ids": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "triggers_paused": {
+                        "type": "boolean"
+                    },
+                    "user_email": {
+                        "type": "string"
+                    },
+                    "user_name": {
+                        "type": "string"
+                    },
+                    "user_timezone": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.AgentMetadata": {
+                "properties": {
+                    "agent_type": {
+                        "type": "string"
+                    },
+                    "agent_version": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "icon_color": {
+                        "type": "string"
+                    },
+                    "shared_read_users": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "shared_run_users": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "shared_update_users": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "tenant_access_level": {
+                        "type": "string"
+                    },
+                    "visibility_scope": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.CountAgentsRequest": {
+                "properties": {
+                    "graph_id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.CreateAgentRequest": {
+                "properties": {
+                    "config": {
+                        "$ref": "#/components/schemas/agents.AgentConfig"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/agents.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "graph_id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/agents.AgentMetadata"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.CreateAgentResponse": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "commit_hash": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "$ref": "#/components/schemas/agents.AgentConfig"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/agents.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "graph_id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/agents.AgentMetadata"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner_id": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.FileEntry": {
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.ListResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/agents.Agent"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.SearchRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "graph_id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "page_size": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.UpdateAgentRequest": {
+                "properties": {
+                    "config": {
+                        "$ref": "#/components/schemas/agents.AgentConfig"
+                    },
+                    "deleted_paths": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/agents.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/agents.AgentMetadata"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "agents.UpdateAgentResponse": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "commit_hash": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "$ref": "#/components/schemas/agents.AgentConfig"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/agents.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "graph_id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/agents.AgentMetadata"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "owner_id": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.CountRequest": {
+                "properties": {
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "status": {
+                        "enum": [
+                            "idle",
+                            "busy",
+                            "interrupted",
+                            "error"
+                        ],
+                        "type": "string"
+                    },
+                    "values": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.ListResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/threads.Thread"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.SearchRequest": {
+                "properties": {
+                    "cursor": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "page_size": {
+                        "type": "integer"
+                    },
+                    "status": {
+                        "enum": [
+                            "idle",
+                            "busy",
+                            "interrupted",
+                            "error"
+                        ],
+                        "type": "string"
+                    },
+                    "values": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.Thread": {
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "interrupts": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "status": {
+                        "enum": [
+                            "idle",
+                            "busy",
+                            "interrupted",
+                            "error"
+                        ],
+                        "type": "string"
+                    },
+                    "thread_id": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "values": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.ThreadState": {
+                "properties": {
+                    "checkpoint": {
+                        "$ref": "#/components/schemas/runs.CheckpointConfig"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "next": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "parent_checkpoint": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "tasks": {
+                        "items": {
+                            "additionalProperties": {},
+                            "type": "object"
+                        },
+                        "type": "array"
+                    },
+                    "values": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.UpdateRequest": {
+                "properties": {
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "ttl": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.UpdateStateRequest": {
+                "properties": {
+                    "as_node": {
+                        "type": "string"
+                    },
+                    "checkpoint": {
+                        "$ref": "#/components/schemas/runs.CheckpointConfig"
+                    },
+                    "values": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "threads.UpdateStateResponse": {
+                "properties": {
+                    "checkpoint": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "runs.CheckpointConfig": {
+                "properties": {
+                    "checkpoint_id": {
+                        "type": "string"
+                    },
+                    "checkpoint_map": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "checkpoint_ns": {
+                        "type": "string"
+                    },
+                    "thread_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "runs.StreamRequest": {
+                "properties": {
+                    "after_seconds": {
+                        "type": "number"
+                    },
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "checkpoint": {
+                        "$ref": "#/components/schemas/runs.CheckpointConfig"
+                    },
+                    "command": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "context": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "durability": {
+                        "enum": [
+                            "sync",
+                            "async",
+                            "exit"
+                        ],
+                        "type": "string"
+                    },
+                    "feedback_keys": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "if_not_exists": {
+                        "enum": [
+                            "create",
+                            "reject"
+                        ],
+                        "type": "string"
+                    },
+                    "input": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "interrupt_after": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "interrupt_before": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "multitask_strategy": {
+                        "enum": [
+                            "reject",
+                            "rollback",
+                            "interrupt",
+                            "enqueue"
+                        ],
+                        "type": "string"
+                    },
+                    "on_disconnect": {
+                        "enum": [
+                            "cancel",
+                            "continue"
+                        ],
+                        "type": "string"
+                    },
+                    "stream_mode": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "stream_resumable": {
+                        "type": "boolean"
+                    },
+                    "stream_subgraphs": {
+                        "type": "boolean"
+                    },
+                    "webhook": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "agent_id"
+                ],
+                "type": "object"
+            },
+            "auth.CreateProviderRequest": {
+                "properties": {
+                    "auth_url": {
+                        "type": "string"
+                    },
+                    "client_id": {
+                        "type": "string"
+                    },
+                    "client_secret": {
+                        "type": "string"
+                    },
+                    "code_challenge_method": {
+                        "enum": [
+                            "S256"
+                        ],
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string"
+                    },
+                    "provider_type": {
+                        "enum": [
+                            "microsoft",
+                            "salesforce",
+                            "slack"
+                        ],
+                        "type": "string"
+                    },
+                    "token_endpoint_auth_method": {
+                        "enum": [
+                            "none",
+                            "client_secret_basic",
+                            "client_secret_post"
+                        ],
+                        "type": "string"
+                    },
+                    "token_url": {
+                        "type": "string"
+                    },
+                    "uses_pkce": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "auth_url",
+                    "client_id",
+                    "name",
+                    "provider_id",
+                    "token_url"
+                ],
+                "type": "object"
+            },
+            "auth.CreateSessionRequest": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "force_new": {
+                        "type": "boolean"
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "ls_user_id": {
+                        "type": "string"
+                    },
+                    "provider": {
+                        "type": "string"
+                    },
+                    "scopes": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "token_id": {
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider",
+                    "scopes"
+                ],
+                "type": "object"
+            },
+            "auth.DiscoverProviderRequest": {
+                "properties": {
+                    "mcp_server_url": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "mcp_server_url",
+                    "name",
+                    "provider_id"
+                ],
+                "type": "object"
+            },
+            "auth.ListProvidersResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/auth.Provider"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.ListTokensResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/auth.Token"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.Provider": {
+                "properties": {
+                    "auth_url": {
+                        "type": "string"
+                    },
+                    "client_id": {
+                        "type": "string"
+                    },
+                    "code_challenge_method": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_dynamic_client": {
+                        "type": "boolean"
+                    },
+                    "mcp_server_url": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string"
+                    },
+                    "provider_type": {
+                        "type": "string"
+                    },
+                    "token_endpoint_auth_method": {
+                        "type": "string"
+                    },
+                    "token_url": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "uses_pkce": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.RevokeTokensRequest": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "provider_id"
+                ],
+                "type": "object"
+            },
+            "auth.Session": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "status": {
+                        "enum": [
+                            "completed",
+                            "pending",
+                            "connection_required",
+                            "token_expired",
+                            "timeout",
+                            "not_found"
+                        ],
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "user_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.Token": {
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "expires_at": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "provider_account_label": {
+                        "type": "string"
+                    },
+                    "provider_id": {
+                        "type": "string"
+                    },
+                    "scopes": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.UpdateProviderRequest": {
+                "properties": {
+                    "auth_url": {
+                        "type": "string"
+                    },
+                    "client_id": {
+                        "type": "string"
+                    },
+                    "client_secret": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "token_url": {
+                        "type": "string"
+                    },
+                    "uses_pkce": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "auth.UpdateTokenRequest": {
+                "properties": {
+                    "is_default": {
+                        "type": "boolean"
+                    },
+                    "provider_account_label": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "fleet.CountResponse": {
+                "properties": {
+                    "count": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "fleet.ErrorResponse": {
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "detail": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.AuthMethod": {
+                "properties": {
+                    "provider_match": {
+                        "$ref": "#/components/schemas/integrations.ProviderMatch"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/integrations.AuthType"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.AuthType": {
+                "enum": [
+                    "oauth2",
+                    "headers",
+                    "api_key",
+                    "none"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "AuthTypeOAuth2",
+                    "AuthTypeHeaders",
+                    "AuthTypeAPIKey",
+                    "AuthTypeNone"
+                ]
+            },
+            "integrations.CreateRequest": {
+                "properties": {
+                    "category": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "icon_url": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "url"
+                ],
+                "type": "object"
+            },
+            "integrations.Integration": {
+                "properties": {
+                    "auth_methods": {
+                        "items": {
+                            "$ref": "#/components/schemas/integrations.AuthMethod"
+                        },
+                        "type": "array"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "icon_url": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "transport": {
+                        "$ref": "#/components/schemas/integrations.Transport"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.ListResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/integrations.Integration"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.MatchBy": {
+                "enum": [
+                    "kind",
+                    "id"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "MatchByKind",
+                    "MatchByID"
+                ]
+            },
+            "integrations.ProviderMatch": {
+                "properties": {
+                    "by": {
+                        "$ref": "#/components/schemas/integrations.MatchBy"
+                    },
+                    "value": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.ReplaceAuthMethodsRequest": {
+                "properties": {
+                    "auth_methods": {
+                        "items": {
+                            "$ref": "#/components/schemas/integrations.AuthMethod"
+                        },
+                        "type": "array"
+                    }
+                },
+                "type": "object"
+            },
+            "integrations.Transport": {
+                "enum": [
+                    "mcp_http"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "TransportMCPHTTP"
+                ]
+            },
+            "integrations.UpdateRequest": {
+                "properties": {
+                    "category": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "icon_url": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.CreateSkillRequest": {
+                "properties": {
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/skills.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.FileEntry": {
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.ListResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/skills.Skill"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.ReplaceSkillRequest": {
+                "properties": {
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/skills.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.Skill": {
+                "properties": {
+                    "commit_hash": {
+                        "type": "string"
+                    },
+                    "commit_id": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "files": {
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/skills.FileEntry"
+                        },
+                        "type": "object"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "owners": {
+                        "items": {
+                            "$ref": "#/components/schemas/skills.SkillOwner"
+                        },
+                        "type": "array"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "skills.SkillOwner": {
+                "properties": {
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "full_name": {
+                        "type": "string"
+                    },
+                    "identity_id": {
+                        "type": "string"
+                    },
+                    "ls_user_id": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "triggers.CreateTriggerRequest": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "enum": [
+                            "active",
+                            "paused",
+                            "draft"
+                        ],
+                        "type": "string"
+                    },
+                    "template_id": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "agent_id",
+                    "config",
+                    "template_id"
+                ],
+                "type": "object"
+            },
+            "triggers.ListTemplatesResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/triggers.TriggerTemplate"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "triggers.ListTriggersResponse": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/triggers.Trigger"
+                        },
+                        "type": "array"
+                    },
+                    "next_cursor": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "triggers.Trigger": {
+                "properties": {
+                    "agent_id": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "enum": [
+                            "active",
+                            "paused",
+                            "draft"
+                        ],
+                        "type": "string"
+                    },
+                    "template_id": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "triggers.TriggerTemplate": {
+                "properties": {
+                    "config_schema": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "integration": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "triggers.UpdateTriggerRequest": {
+                "properties": {
+                    "config": {
+                        "additionalProperties": {},
+                        "type": "object"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "enum": [
+                            "active",
+                            "paused",
+                            "draft"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    }
+}
