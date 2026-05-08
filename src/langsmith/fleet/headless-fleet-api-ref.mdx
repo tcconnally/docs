@@ -4,120 +4,40 @@ sidebarTitle: Overview
 description: "Reference for the Headless Fleet API for programmatic access to agents, threads, integrations, auth, skills, and triggers in LangSmith Fleet."
 ---
 
-The Headless Fleet API is the programmatic foundation for shipping production agents on LangSmith. Use it to OEM agents into your SaaS, build customer-facing agent products, or run internal tools on Fleet's runtime, while keeping control of your model, sandbox, memory, and identity.
+The Headless Fleet API is the programmatic interface to LangSmith Fleet. Use it to build custom UIs, integrate Fleet into existing applications, or manage agents from code. For example, you can build:
 
-## What you can build
-
-- Customer-facing agent products embedded in your existing SaaS, with your branding and your auth.
-- Internal tools and admin consoles that wrap Fleet for your own engineers and operators.
+- Agent products embedded in your existing application, with your own branding and authentication.
+- Internal tools and admin consoles for your engineers and operators.
 - Agent provisioning pipelines driven from infrastructure-as-code or CI.
 
-## Why Headless Fleet
+<Card title="Quickstart" icon="rocket" href="/langsmith/fleet/headless-fleet-quickstart">
+  Authenticate, create your first agent, and run it from code.
+</Card>
 
-- **Bring your own model.** Use any model from any provider. No lock-in to a single vendor.
-- **Bring your own sandbox.** Plug in Daytona, Modal, Runloop, LangSmith Sandboxes, or your own.
-- **Open standards.** Agents are defined with [AGENTS.md](https://agents.md/) and [Agent Skills](https://agentskills.io/), and exposed over MCP, A2A, and Agent Protocol.
-- **You own your memory.** Memory is stored in standard files and stays in your databases when you self-host LangSmith.
+<Info>
+  [Fleet](/langsmith/fleet) is the no-code product for building and running agents from a hosted UI. The Headless Fleet API exposes the same underlying platform as a set of REST endpoints. Resources created through Fleet are available through the API, and resources created through the API appear in the Fleet UI.
+</Info>
 
-## Get started
+Browse the full API reference in the **Headless Fleet API** section in the sidebar, or see the endpoint groups below:
 
-<CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/langsmith/fleet/headless-fleet-quickstart">
-    Authenticate, create your first agent, and run it from code.
-  </Card>
-  <Card title="Make your first request" icon="terminal" href="#make-your-first-request">
-    List agents in your workspace with a five-line curl.
-  </Card>
-</CardGroup>
-
-## Headless Fleet vs. Fleet
-
-[Fleet](/langsmith/fleet) is the no-code product for building and running agents from a hosted UI. The Headless Fleet API exposes the same underlying platform as a set of REST endpoints. Agents, threads, skills, triggers, and integrations created through Fleet are available through the API, and resources created through the API appear in the Fleet UI.
-
-## Status
-
-<Warning>**Stub pending confirmation from engineering.** Replace placeholders below before publishing.</Warning>
-
-The Headless Fleet API is currently in `{RELEASE_STATUS}`. `{Description of support level, feature-flag requirements, and breaking-change policy.}`
+- [Agents](/langsmith/fleet/headless-fleet-api/agents): Configured graphs with their own files, configuration, and metadata
+- [Threads](/langsmith/fleet/headless-fleet-api/threads): Accumulated state of a conversation across one or more runs
+- [Skills](/langsmith/fleet/headless-fleet-api/skills): Reusable, versioned bundles of files that agents can load at runtime
+- [Integrations](/langsmith/fleet/headless-fleet-api/integrations): Third-party services available to your workspace, with one or more supported auth methods
+- [Auth providers](/langsmith/fleet/headless-fleet-api/auth-providers): OAuth providers that authorize connections on behalf of your users
+- [Auth sessions](/langsmith/fleet/headless-fleet-api/auth-sessions): In-flight OAuth flows that connect an end user to a provider
+- [Auth tokens](/langsmith/fleet/headless-fleet-api/auth-tokens): Connection tokens representing a user's authorized access to a third-party service
+- [Triggers](/langsmith/fleet/headless-fleet-api/triggers): Events that fire an agent on a schedule, an inbound message, or a webhook
+- [Trigger templates](/langsmith/fleet/headless-fleet-api/trigger-templates): Kinds of triggers available to your workspace, such as cron, webhook, and Slack bot
 
 ## Base URL
 
+<Warning>**Stub pending confirmation from engineering.** Replace placeholders below before publishing.</Warning>
+
 The Headless Fleet API is served at `{BASE_URL}`. All endpoints are prefixed with `/v1/fleet`.
+
+<Note>The Headless Fleet API is currently in `{RELEASE_STATUS}`. `{Description of support level, feature-flag requirements, and breaking-change policy.}`</Note>
 
 ## Authentication
 
-Authentication is required for all Headless Fleet API requests. Include your LangSmith API key in the `{HEADER_NAME}` header on every request.
-
-## Make your first request
-
-The following request lists agents in your workspace:
-
-```shell
-curl --request GET \
-  --url {BASE_URL}/v1/fleet/agents \
-  --header '{HEADER_NAME}: LANGSMITH_API_KEY'
-```
-
-A successful response returns a paginated list:
-
-```json
-{
-  "items": [
-    { "id": "agt_...", "name": "My agent", "status": "active" }
-  ],
-  "next_cursor": null
-}
-```
-
-Pass `next_cursor` as the `cursor` query parameter to fetch the next page. Use `page_size` to control the page size.
-
-## Endpoint groups
-
-### Core resources
-
-<CardGroup cols={3}>
-  <Card title="Agents" href="/langsmith/fleet/headless-fleet-api/agents">
-    Configured graphs with their own files, configuration, and metadata.
-  </Card>
-  <Card title="Threads" href="/langsmith/fleet/headless-fleet-api/threads">
-    Accumulated state of a conversation across one or more runs.
-  </Card>
-  <Card title="Skills" href="/langsmith/fleet/headless-fleet-api/skills">
-    Reusable, versioned bundles of files that agents can load at runtime.
-  </Card>
-</CardGroup>
-
-### Auth and integrations
-
-<CardGroup cols={2}>
-  <Card title="Integrations" href="/langsmith/fleet/headless-fleet-api/integrations">
-    Third-party services available to your workspace, with one or more supported auth methods.
-  </Card>
-  <Card title="Auth providers" href="/langsmith/fleet/headless-fleet-api/auth-providers">
-    OAuth providers that authorize connections on behalf of your users.
-  </Card>
-  <Card title="Auth sessions" href="/langsmith/fleet/headless-fleet-api/auth-sessions">
-    In-flight OAuth flows that connect an end user to a provider.
-  </Card>
-  <Card title="Auth tokens" href="/langsmith/fleet/headless-fleet-api/auth-tokens">
-    Connection tokens representing a user's authorized access to a third-party service.
-  </Card>
-</CardGroup>
-
-### Triggers
-
-<CardGroup cols={2}>
-  <Card title="Triggers" href="/langsmith/fleet/headless-fleet-api/triggers">
-    Events that fire an agent on a schedule, an inbound message, or a webhook.
-  </Card>
-  <Card title="Trigger templates" href="/langsmith/fleet/headless-fleet-api/trigger-templates">
-    Kinds of triggers available to your workspace, such as cron, webhook, and Slack bot.
-  </Card>
-</CardGroup>
-
-## Related
-
-- [Fleet overview](/langsmith/fleet)
-- [Fleet quickstart](/langsmith/fleet/quickstart)
-- [Fleet essentials](/langsmith/fleet/essentials)
-- [LangSmith Deployment](/langsmith/deployment)
+Authentication is required for all Headless Fleet API requests. Include your LangSmith API key in the `{HEADER_NAME}` header on every request. To create one, follow the [Create an API key](/langsmith/create-account-api-key) guide.

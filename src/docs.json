@@ -989,19 +989,19 @@
                 "langsmith/fleet/code",
                 "langsmith/fleet/mcp-framework",
                 "langsmith/fleet/webhooks",
-                "langsmith/fleet/auth-format",
-                {
-                  "group": "Headless Fleet API",
-                  "pages": [
-                    "langsmith/fleet/headless-fleet-api-ref",
-                    "langsmith/fleet/headless-fleet-quickstart"
-                  ],
-                  "openapi": {
-                    "source": "langsmith/fleet/headless-fleet-openapi.json",
-                    "directory": "langsmith/fleet/headless-fleet-api"
-                  }
-                 }
+                "langsmith/fleet/auth-format"
               ]
+            },
+            {
+              "group": "Headless Fleet API",
+              "pages": [
+                "langsmith/fleet/headless-fleet-api-ref",
+                "langsmith/fleet/headless-fleet-quickstart"
+              ],
+              "openapi": {
+                "source": "langsmith/fleet/headless-fleet-openapi.json",
+                "directory": "langsmith/fleet/headless-fleet-api"
+              }
             },
             {
               "group": "Additional resources",
