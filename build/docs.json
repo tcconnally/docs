@@ -818,6 +818,7 @@
                     {
                       "group": "Setup guides",
                       "pages": [
+                        "langsmith/self-host-dependency-versions",
                         "langsmith/kubernetes",
                         "langsmith/deploy-self-hosted-full-platform",
                         {
