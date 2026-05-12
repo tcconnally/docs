@@ -70,6 +70,7 @@ Use the **Deep Agents SDK** when you want to build agents that can:
 - **Manage large amounts of context** through file system tools and [summarization](/oss/javascript/deepagents/context-engineering#summarization)
 - **Swap filesystem backends** to use in-memory state, local disk, durable stores, [sandboxes](/oss/javascript/deepagents/sandboxes), or [your own custom backend](/oss/javascript/deepagents/backends)
 - **Execute shell commands** via the `execute` tool when using a [sandbox backend](/oss/javascript/deepagents/sandboxes)
+- **Run interpreter code** with [interpreters](/oss/javascript/deepagents/interpreters) for tool composition, subagent orchestration, and structured data transformations
 - **Delegate work** to specialized subagents for context isolation
 - **Persist memory** across conversations and threads
 - **Control filesystem access** with declarative [permission rules](/oss/javascript/deepagents/permissions) that restrict which files agents can read or write
@@ -91,6 +92,9 @@ For building simpler agents, consider using LangChain's [`createAgent`](/oss/jav
 </Card>
 <Card title="Shell execution" icon="terminal">
     When using a [sandbox backend](/oss/javascript/deepagents/sandboxes), agents get an `execute` tool to run shell commands for tests, builds, git operations, and system tasks. Sandbox backends provide isolation so agents can execute code without compromising your host system.
+</Card>
+<Card title="Interpreters" icon="code">
+    Add an [interpreter](/oss/javascript/deepagents/interpreters) to run JavaScript in an in-memory runtime. Interpreters let agents compose tools programmatically, orchestrate subagents, and transform structured data without a full shell environment.
 </Card>
 <Card title="Pluggable filesystem backends" icon="plug">
     The virtual filesystem is powered by [pluggable backends](/oss/javascript/deepagents/backends) that you can swap to fit your use case. Choose from in-memory state, local disk, LangGraph store for cross-thread persistence, [sandboxes](/oss/javascript/deepagents/sandboxes) for isolated code execution (Modal, Daytona, Deno), or combine multiple backends with composite routing. You can also implement your own custom backend.
@@ -130,6 +134,9 @@ For building simpler agents, consider using LangChain's [`createAgent`](/oss/jav
     </Card>
     <Card title="Backends" icon="plug" href="/oss/javascript/deepagents/backends">
         Choose and configure pluggable filesystem backends
+    </Card>
+    <Card title="Interpreters" icon="code" href="/oss/javascript/deepagents/interpreters">
+        Compose tools and transform data in QuickJS
     </Card>
     <Card title="Permissions" icon="lock" href="/oss/javascript/deepagents/permissions">
         Control filesystem access with permission rules
