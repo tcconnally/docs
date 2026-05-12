@@ -424,6 +424,44 @@ Failure provenance is checkpointed. If the graph is interrupted or the process c
 
 If a node wraps a subgraph and the subgraph raises an unhandled exception, that exception surfaces to the parent node. If the parent node has an `error_handler`, the handler fires with the subgraph's exception in `error.error`.
 
+## Graph-wide defaults
+
+<Note>
+Requires `langgraph>=1.2`.
+</Note>
+
+Use @[`set_node_defaults`] on @[`StateGraph`] to configure retry, timeout, cache, and error-handler policies once for every node in the graph. Per-node values passed to @[`add_node`] always override the defaults, and the defaults are applied at `compile()` time:
+
+```python
+from langgraph.types import RetryPolicy, TimeoutPolicy
+
+graph = (
+    StateGraph(State)
+    .set_node_defaults(  # [!code highlight]
+        retry_policy=RetryPolicy(max_attempts=3),
+        error_handler=my_fallback_handler,
+        timeout=TimeoutPolicy(run_timeout=30),
+    )
+    .add_node("a", node_a)
+    .add_node("b", node_b, retry_policy=custom_retry)  # overrides default
+    .add_edge(START, "a")
+    .compile()
+)
+```
+
+`set_node_defaults` is a fluent builder method that returns the same @[`StateGraph`], so it chains naturally with `add_node`, `add_edge`, and `compile`. Defaults are not inherited by subgraphs.
+
+### Supported defaults
+
+| `set_node_defaults` kwarg | Fallback for `add_node` kwarg | Applies to error-handler nodes? |
+| --- | --- | --- |
+| `retry_policy` | `retry_policy` | Yes—a stuck handler is retried like any other node. |
+| `timeout` | `timeout` | Yes—a stuck handler is cancelled like any other node. |
+| `cache_policy` | `cache_policy` | No—caching handler results is unsafe. |
+| `error_handler` | `error_handler` | No—handlers must never catch themselves. |
+
+If the default `error_handler` itself raises, the run fails. The default handler is never invoked on error-handler nodes, so handler failures cannot recurse.
+
 ## Functional API
 
 The same `timeout=` and `retry_policy=` parameters are available on `@task` and `@entrypoint` in the functional API:
