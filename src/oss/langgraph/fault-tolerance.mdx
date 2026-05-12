@@ -424,6 +424,66 @@ Failure provenance is checkpointed. If the graph is interrupted or the process c
 
 If a node wraps a subgraph and the subgraph raises an unhandled exception, that exception surfaces to the parent node. If the parent node has an `error_handler`, the handler fires with the subgraph's exception in `error.error`.
 
+## Graph-wide defaults
+
+<Note>
+Requires `langgraph>=1.2`, currently in alpha.
+</Note>
+
+Setting the same `retry_policy`, `timeout`, `cache_policy`, or `error_handler` on every @[`add_node`] call gets repetitive. Use @[`StateGraph.set_node_defaults`] to declare these once for the whole graph. Per-node values passed to `add_node` always take precedence, and defaults are applied at @[`StateGraph.compile`] time:
+
+```python
+from langgraph.errors import NodeError
+from langgraph.graph import StateGraph, START
+from langgraph.types import Command, RetryPolicy, TimeoutPolicy
+
+def fallback_handler(state: State, error: NodeError) -> Command:
+    return Command(update={"status": f"recovered from {error.node}"}, goto="finalize")
+
+graph = (
+    StateGraph(State)
+    .set_node_defaults(
+        retry_policy=RetryPolicy(max_attempts=3),
+        timeout=TimeoutPolicy(run_timeout=30),
+        error_handler=fallback_handler,
+    )
+    .add_node("a", node_a)
+    .add_node("b", node_b, retry_policy=RetryPolicy(max_attempts=5))  # overrides default
+    .add_node("finalize", finalize)
+    .add_edge(START, "a")
+    .compile()
+)
+```
+
+In this graph, `node_a` inherits all three defaults, `node_b` uses its own `retry_policy` but inherits the default `timeout` and `error_handler`, and `finalize` inherits all three but is only reached via the handler's `Command(goto=...)`.
+
+### What applies to error-handler nodes
+
+`retry_policy` and `timeout` defaults apply to **every** node, including error-handler nodes — a stuck or transiently failing handler should be retried or cancelled like any other node. `cache_policy` and `error_handler` defaults apply only to **regular** nodes:
+
+| `set_node_defaults()` kwarg | Falls back for `add_node(...)` kwarg | Applies to error-handler nodes? |
+|---|---|---|
+| `retry_policy` | `retry_policy` | Yes |
+| `timeout` | `timeout` | Yes |
+| `cache_policy` | `cache_policy` | No — caching a handler result is unsafe because the input (failed-node state) may differ across failures even when the cache key matches |
+| `error_handler` | `error_handler` | No — handlers must never catch themselves |
+
+If a handler raises, the run fails. The default handler is never invoked to recover another handler.
+
+### Precedence
+
+For each node, the value used at compile time is:
+
+1. The value passed to `add_node(..., retry_policy=...)` (or `cache_policy=`, `error_handler=`, `timeout=`), if any.
+2. Otherwise, the corresponding value from `set_node_defaults(...)`, if any.
+3. Otherwise, no policy.
+
+`set_node_defaults()` is chainable and can be called before or after `add_node` — defaults are not applied until `compile()`.
+
+<Warning>
+Defaults set via `set_node_defaults()` are **not** inherited by subgraphs. Set defaults on each `StateGraph` you build, or pass the policies directly to nodes that wrap subgraphs.
+</Warning>
+
 ## Functional API
 
 The same `timeout=` and `retry_policy=` parameters are available on `@task` and `@entrypoint` in the functional API:

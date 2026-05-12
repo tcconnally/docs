@@ -292,6 +292,7 @@ LINK_MAPS: list[LinkMap] = [
             "get_state": "langgraph/graphs/#langgraph.graph.state.CompiledStateGraph.get_state",
             "StateGraph": "langgraph/graph/state/StateGraph",
             "StateGraph.compile": "langgraph/graph/state/StateGraph/compile",
+            "StateGraph.set_node_defaults": "langgraph/graph/state/StateGraph/set_node_defaults",
             "add_edge": "langgraph/pregel/_draw/add_edge",
             "add_conditional_edges": "langgraph/graph/state/StateGraph/add_conditional_edges",
             "add_node": "langgraph/graph/state/StateGraph/add_node",
