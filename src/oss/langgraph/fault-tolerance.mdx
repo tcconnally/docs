@@ -416,7 +416,7 @@ Failure provenance is checkpointed. If the graph is interrupted or the process c
 
 The handler transition is atomic at the superstep boundary. When the original node fails, its error write is committed to the checkpoint and the handler is scheduled as a new task in the same step. There is no window in which the runtime considers both "the original node still needs to run" and "the handler is running" simultaneously. On resume from a checkpoint, the runtime knows the original node is done (errored) and schedules only the handler; the failing node is never re-executed once the error-handling phase has begun.
 
-Handler crashes resume safely too. If the handler itself raises and a checkpointer is configured, resuming the run re-schedules the handler, not the original failing node. Once a run enters the recovery phase, it stays there.
+Handler crashes resume safely too. If the handler itself raises—or the host process crashes mid-handler—and a checkpointer is configured, resuming the run re-schedules the handler, not the original failing node. Once a run enters the recovery phase, it stays there.
 
 ### Behavior with `interrupt()`
 
