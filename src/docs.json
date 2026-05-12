@@ -231,6 +231,7 @@
                         "langsmith/sandbox-snapshots",
                         "langsmith/sandbox-service-urls",
                         "langsmith/sandbox-auth-proxy",
+                        "langsmith/sandbox-permissions",
                         "langsmith/sandbox-cli",
                         "langsmith/sandbox-sdk"
                       ]
@@ -593,6 +594,7 @@
                   "pages": [
                     "langsmith/annotation-queues",
                     "langsmith/annotation-queues-sdk",
+                    "langsmith/assertions",
                     "langsmith/set-up-feedback-criteria",
                     "langsmith/annotate-traces-inline",
                     "langsmith/audit-evaluator-scores"
@@ -816,6 +818,7 @@
                     {
                       "group": "Setup guides",
                       "pages": [
+                        "langsmith/self-host-dependency-versions",
                         "langsmith/kubernetes",
                         "langsmith/deploy-self-hosted-full-platform",
                         {
@@ -869,7 +872,8 @@
                       "pages": [
                         "langsmith/export-backend",
                         "langsmith/langsmith-collector",
-                        "langsmith/observability-stack"
+                        "langsmith/observability-stack",
+                        "langsmith/self-hosted-mission-control"
                       ]
                     },
                     {
@@ -887,7 +891,7 @@
                   ]
                 },
                 {
-                  "group": "Hybrid (deprecated)",
+                  "group": "Hybrid",
                   "pages": [
                     "langsmith/hybrid",
                     "langsmith/deploy-hybrid"
@@ -1089,6 +1093,9 @@
                       "group": "Command line interface",
                       "pages": [
                         "oss/python/deepagents/cli/overview",
+                        "oss/python/deepagents/cli/memory-and-skills",
+                        "oss/python/deepagents/cli/remote-sandboxes",
+                        "oss/python/deepagents/cli/subagents",
                         "oss/python/deepagents/cli/providers",
                         "oss/python/deepagents/cli/configuration",
                         "oss/python/deepagents/cli/mcp-tools",
@@ -1533,6 +1540,9 @@
                       "group": "Command line interface",
                       "pages": [
                         "oss/javascript/deepagents/cli/overview",
+                        "oss/javascript/deepagents/cli/memory-and-skills",
+                        "oss/javascript/deepagents/cli/remote-sandboxes",
+                        "oss/javascript/deepagents/cli/subagents",
                         "oss/javascript/deepagents/cli/providers",
                         "oss/javascript/deepagents/cli/configuration",
                         "oss/javascript/deepagents/cli/mcp-tools",
