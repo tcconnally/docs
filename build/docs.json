@@ -639,6 +639,14 @@
                   ]
                 },
                 {
+                  "group": "Context engineering",
+                  "pages": [
+                    "langsmith/use-the-context-hub",
+                    "langsmith/manage-contexts-sdk",
+                    "langsmith/context-engineering-concepts"
+                  ]
+                },
+                {
                   "group": "Tutorials",
                   "pages": [
                     "langsmith/optimize-classifier",
