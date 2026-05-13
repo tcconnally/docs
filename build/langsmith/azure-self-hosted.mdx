@@ -67,6 +67,12 @@ We recommend using Azure's managed services to provide a scalable, secure, and r
 
 ![Architecture diagram showing Azure relations to LangSmith services](/langsmith/images/azure-architecture-self-hosted.png)
 
+The in-cluster LangSmith services (frontend, backend, queue, platform backend, Playground, ACE, and optionally the LangSmith Deployment control/data plane) ship as a **single Helm release** from the [`langchain/langsmith` chart](https://github.com/langchain-ai/helm/tree/main/charts/langsmith). Azure managed services (AKS, PostgreSQL, Managed Redis, Blob Storage, Key Vault, and ingress) are provisioned separately as standard Azure resources using your own infrastructure tooling (Terraform, ARM templates, or the Azure portal) before you install LangSmith.
+
+**Installation order:** provision Azure infrastructure → provision or subscribe to ClickHouse → configure Entra ID and Workload Identity → run `helm upgrade --install`. LangSmith Deployment, Fleet, Insights, and Polly are enabled through the same Helm release, not as separate installs.
+
+**Compliance surface:** one application review for the LangSmith chart and its container images, plus standard Azure service reviews for each managed resource. ClickHouse Cloud adds one third-party SaaS review.
+
 - **Client interfaces**: Users interact with LangSmith via a web browser or the LangChain SDK. All traffic terminates at an [Azure Load Balancer](https://azure.microsoft.com/en-us/products/load-balancer/) and is routed to the frontend (NGINX) within the [AKS](https://azure.microsoft.com/en-us/products/kubernetes-service/) cluster before being routed to another service within the cluster if necessary.
 - **Storage services**: The platform requires persistent storage for traces, metadata and caching. On Azure the recommended services are:
     - <Icon icon="database" /> **[Azure Database for PostgreSQL (Flexible Server)](https://azure.microsoft.com/en-us/products/postgresql/)** for transactional data (e.g., runs, projects). Azure's high-availability options provision a standby replica in another zone; data is synchronously committed to both primary and standby servers. LangSmith requires PostgreSQL version 14 or higher.
