@@ -106,6 +106,19 @@ function Pipeline() {
 }
 ```
 
+`useStream` is available for React, Vue, Svelte, and Angular in v1 of each package:
+
+```ts
+import { useStream } from "@langchain/react";   // React
+import { useStream } from "@langchain/vue";      // Vue
+import { useStream } from "@langchain/svelte";   // Svelte
+import { useStream } from "@langchain/angular";  // Angular
+```
+
+import RequiresUseStreamServer from '/snippets/oss/requires-usestream-server.mdx';
+
+<RequiresUseStreamServer />
+
 ## Patterns
 
 <CardGroup cols={2}>

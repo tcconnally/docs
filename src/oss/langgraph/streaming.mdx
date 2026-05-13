@@ -1028,7 +1028,7 @@ for await (const [mode, chunk] of await graph.stream(
 
 #### Use tool progress in React with `useStream`
 
-The `useStream` hook from `@langchain/langgraph-sdk/react` exposes a `toolProgress` array when you include `"tools"` in your stream modes. Each entry is a `ToolProgress` object that tracks the current state of a running tool:
+The `useStream` hook from `@langchain/react` exposes a `toolProgress` array when you include `"tools"` in your stream modes. Each entry is a `ToolProgress` object that tracks the current state of a running tool:
 
 | Field | Description |
 |-------|-------------|
@@ -1041,7 +1041,7 @@ The `useStream` hook from `@langchain/langgraph-sdk/react` exposes a `toolProgre
 | `error` | The error, set on `on_tool_error` |
 
 ```typescript
-import { useStream } from "@langchain/langgraph-sdk/react";
+import { useStream } from "@langchain/react";
 
 function Chat() {
   const stream = useStream({
@@ -1162,7 +1162,7 @@ export const agent = createAgent({
 **React component with progress cards:**
 
 ```typescript
-import { useStream } from "@langchain/langgraph-sdk/react";
+import { useStream } from "@langchain/react";
 
 function TravelPlanner() {
   const stream = useStream<typeof agent>({

@@ -110,7 +110,7 @@ function Chat() {
 
 </CodeGroup>
 
-`useStream` is available for React, Vue, Svelte, and Angular:
+`useStream` is available for React, Vue, Svelte, and Angular in v1 of each package:
 
 ```ts
 import { useStream } from "@langchain/react";   // React
@@ -118,6 +118,12 @@ import { useStream } from "@langchain/vue";      // Vue
 import { useStream } from "@langchain/svelte";   // Svelte
 import { useStream } from "@langchain/angular";  // Angular
 ```
+
+import RequiresUseStreamServer from '/snippets/oss/requires-usestream-server.mdx';
+
+<RequiresUseStreamServer />
+
+For what's new in the v1 hook—selector hooks, always-on root projections, Suspense, multimodal media, pluggable transports—see [What's new in LangGraph v1: Frontend SDK enhancements](/oss/releases/langgraph-v1#frontend-sdk-enhancements).
 
 ## Patterns
 

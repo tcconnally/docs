@@ -99,19 +99,46 @@ The low-level `toLangGraphEventStream` helper has been removed. Streaming respon
 
 See the [migration guide](/oss/migrate/langgraph-v1#event-stream-encoding) for more information.
 
-### Custom transports in `useStream`
+### `useStream` v1 in `@langchain/{react,vue,svelte,angular}`
 
-The React `useStream` hook now supports pluggable transports so you can have more control over the network layer without changing UI code.
+`@langchain/react`, `@langchain/vue`, `@langchain/svelte`, and `@langchain/angular` v1 rebuild `useStream` on a v2-native streaming protocol. The hook moved out of `@langchain/langgraph-sdk/react` and into framework-specific packages, and most of the new surface area ships as companion selector hooks (or framework-equivalent composables/injectables) that subscribe only while a component is mounted.
 
-```typescript
-const stream = useStream({
-  transport: new FetchStreamTransport({
+<Note>
+v1 is a breaking release. The new protocol requires `langgraph-api>=0.9.0rc1` on the server and bundles `@langchain/langgraph-sdk>=1.9.0` as a dependency (installed automatically). If you can't upgrade the server yet, pin to the pre-v1 release of your frontend package (`@langchain/react@0.3`, `@langchain/vue@0.4`, `@langchain/svelte@0.4`, or `@langchain/angular@0.4`).
+</Note>
+
+Highlights:
+
+- **Always-on root projections.** `values`, `messages`, `toolCalls`, and `interrupts` are live on the root return without extra wiring or stream-mode configuration.
+- **Selector hooks for namespaced data.** `useChannel`, `useExtension`, `useMessageMetadata`, `useSubmissionQueue`, and per-subagent selectors open ref-counted subscriptions on mount and release them on unmount, so namespaced data only streams to components that need it.
+- **Automatic re-attach.** The session-based transport reconnects on remount; no more `reconnectOnMount` / `joinStream` dance.
+- **Multimodal media streams.** Built-in assembly for audio, images, video, and files via `useAudioPlayer`, `useVideoPlayer`, `useMediaURL`, and matching selectors.
+- **Suspense and Error Boundary integration.** `useSuspenseStream` hands the initial hydration phase to `<Suspense>` and surfaces non-streaming errors to Error Boundaries.
+- **Pluggable transports.** Implement `AgentServerAdapter` to route streaming traffic over a custom backend, WebSocket, or proxy without changing UI code.
+- **Strongly typed agent inference.** `useStream<typeof agent>()` unwraps state, tool calls, and subagent state maps directly from the agent's type, including custom state keys and headless tools.
+
+```tsx
+import {
+  useStream,
+  useSubmissionQueue,
+  useSuspenseStream,
+} from "@langchain/react";
+
+function Chat() {
+  const stream = useStream<typeof agent>({
     apiUrl: "http://localhost:2024",
-  }),
-});
+    assistantId: "agent",
+  });
+
+  // Always-on projections from the root.
+  const { messages, toolCalls, interrupts } = stream;
+
+  // Scoped selector — opens a subscription only while this component is mounted.
+  const queue = useSubmissionQueue(stream);
+}
 ```
 
-Learn how to integrate and customize the hook: [Integrate LangGraph into your React application](/oss/langgraph/ui).
+Vue exposes the same data through composables (`provideStream`, `useStreamContext`, selector composables); Angular ships matching helpers (`injectStream`, `provideStream`, `injectProjection`, selector injectables). See the [LangChain frontend overview](/oss/langchain/frontend/overview) for end-to-end patterns and the per-framework package README for the full surface.
 
 ## Reporting issues
 
