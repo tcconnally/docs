@@ -1,0 +1,227 @@
+---
+title: Multimodal content
+description: Send images, audio, video, and documents to deep agents, and return rich content blocks from tools
+---
+
+Deep Agents pass multimodal content through the same `messages` pipeline as plain text. Anything LangChain's chat models accept as input or return as output works end-to-end: images, audio, video, and PDFs flow through user messages, the virtual filesystem, and tool results unchanged.
+
+This page covers:
+
+- [Sending multimodal user input](#multimodal-user-input) to a deep agent
+- [Reading multimodal files](#reading-multimodal-files-from-the-filesystem) with `read_file`
+- [Returning multimodal content from tools](#returning-multimodal-content-from-tools)
+- [Interleaving text and media](#interleave-text-and-media-in-a-single-tool-call) in a single tool call
+- [Provider and model compatibility](#provider-and-model-compatibility)
+
+<Tip>
+LangChain defines the standard content blocks used throughout this page (images, audio, video, file). See [Multimodal](/oss/langchain/messages#multimodal) in the messages guide for the canonical schema.
+</Tip>
+
+## Multimodal user input
+
+Pass multimodal data the same way you would with any other LangChain agent: as a list of [content blocks](/oss/langchain/messages#content) on a user message.
+
+:::python
+```python
+from deepagents import create_deep_agent
+
+agent = create_deep_agent(model="google_genai:gemini-3.1-pro-preview")
+
+agent.invoke({
+    "messages": [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "What's in this image?"},
+                {"type": "image", "url": "https://example.com/cat.png"},
+            ],
+        }
+    ]
+})
+```
+:::
+
+:::js
+```typescript
+import { createDeepAgent } from "deepagents";
+
+const agent = await createDeepAgent({
+  model: "google_genai:gemini-3.1-pro-preview",
+});
+
+await agent.invoke({
+  messages: [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "What's in this image?" },
+        { type: "image", source_type: "url", url: "https://example.com/cat.png" },
+      ],
+    },
+  ],
+});
+```
+:::
+
+The same shape works for `image`, `audio`, `video`, and `file` blocks, with `url`, `base64`, or provider-managed `file_id` sources. See the [messages reference](/oss/langchain/messages#multimodal) for the full schema and per-modality examples.
+
+## Reading multimodal files from the filesystem
+
+The built-in `read_file` tool returns native [multimodal content blocks](/oss/langchain/messages#multimodal) when it detects a non-text file extension. The agent receives the bytes inline as part of the tool message—no manual encoding required—and any backend (state, filesystem, store, sandbox, composite) supports this.
+
+<Accordion title="Supported file extensions">
+The classifier is based on Google's [Gemini multimodal API](https://ai.google.dev/gemini-api/docs/image-understanding) supported formats:
+
+| Type | Extensions |
+| ---- | ---------- |
+| Image | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.heic`, `.heif` |
+| Video | `.mp4`, `.mpeg`, `.mov`, `.avi`, `.flv`, `.mpg`, `.webm`, `.wmv`, `.3gpp` |
+| Audio | `.wav`, `.mp3`, `.aiff`, `.aac`, `.ogg`, `.flac` |
+| File  | `.pdf`, `.ppt`, `.pptx` |
+
+Any extension not in this map is treated as plain text. Not every provider accepts every format—check the [provider integration page](/oss/integrations/providers) for your model's supported MIME types.
+</Accordion>
+
+When the agent calls `read_file("/screenshots/error.png")`, the resulting tool message contains an `ImageContentBlock`, which the model then sees alongside text in the conversation. This works for files the agent wrote earlier in the run, files seeded into a sandbox, or files persisted across threads via a [composite backend](/oss/deepagents/backends#compositebackend-router).
+
+<Note>
+Pagination (`offset`/`limit`) on `read_file` only applies to text files. Binary files are always read in full.
+</Note>
+
+## Returning multimodal content from tools
+
+Tools can return text, structured data, or multimodal content blocks. Return a list of content blocks—mixed text and media is supported—and Deep Agents forwards them as the `ToolMessage`'s content. See [Tool return values](/oss/langchain/tools#tool-return-values) for the LangChain-side reference.
+
+:::python
+```python
+import base64
+from pathlib import Path
+
+from deepagents import create_deep_agent
+from langchain.tools import tool
+
+@tool
+def render_chart(metric: str) -> list[dict]:
+    """Render a chart for the given metric and return it as an image."""
+    png_bytes = generate_chart(metric)  # your plotting code
+    return [
+        {"type": "text", "text": f"Chart for {metric}:"},
+        {
+            "type": "image",
+            "base64": base64.b64encode(png_bytes).decode(),
+            "mime_type": "image/png",
+        },
+    ]
+
+agent = create_deep_agent(
+    model="google_genai:gemini-3.1-pro-preview",
+    tools=[render_chart],
+)
+```
+:::
+
+:::js
+```typescript
+import { createDeepAgent } from "deepagents";
+import { tool } from "langchain";
+import { z } from "zod";
+
+const renderChart = tool(
+  async ({ metric }) => {
+    const pngBytes = await generateChart(metric);
+    return [
+      { type: "text", text: `Chart for ${metric}:` },
+      {
+        type: "image",
+        source_type: "base64",
+        data: Buffer.from(pngBytes).toString("base64"),
+        mime_type: "image/png",
+      },
+    ];
+  },
+  {
+    name: "render_chart",
+    description: "Render a chart for the given metric and return it as an image.",
+    schema: z.object({ metric: z.string() }),
+  },
+);
+
+const agent = await createDeepAgent({
+  model: "google_genai:gemini-3.1-pro-preview",
+  tools: [renderChart],
+});
+```
+:::
+
+<Note>
+`audio` and `video` blocks are not part of LangChain's default `ToolMessage` content-block allow list. If you return them as a plain list, the framework will JSON-stringify the result. Build and return a fully-constructed @[`ToolMessage`] with `content_blocks=[…]` to bypass that check:
+
+:::python
+```python
+from langchain.tools import tool, ToolRuntime
+from langchain_core.messages import ToolMessage
+
+@tool
+def fetch_recording(call_id: str, runtime: ToolRuntime) -> ToolMessage:
+    """Fetch a call recording and return it as an audio block."""
+    audio_b64 = fetch_audio(call_id)
+    return ToolMessage(
+        content_blocks=[
+            {"type": "text", "text": f"Recording for {call_id}:"},
+            {"type": "audio", "base64": audio_b64, "mime_type": "audio/wav"},
+        ],
+        tool_call_id=runtime.tool_call_id,
+        name="fetch_recording",
+    )
+```
+:::
+</Note>
+
+### Interleave text and media in a single tool call
+
+Each item in the returned list is appended in order, so you can intersperse explanatory text with media blocks however you like:
+
+:::python
+```python
+@tool
+def diff_screenshots(before_path: str, after_path: str) -> list[dict]:
+    """Return a side-by-side diff of two screenshots."""
+    return [
+        {"type": "text", "text": "Before:"},
+        {"type": "image", "base64": _b64(before_path), "mime_type": "image/png"},
+        {"type": "text", "text": "After:"},
+        {"type": "image", "base64": _b64(after_path), "mime_type": "image/png"},
+        {"type": "text", "text": "Notice the regression in the top-right panel."},
+    ]
+```
+:::
+
+The model sees the blocks in this order—identical to interleaving content in a [`HumanMessage`](/oss/langchain/messages#humanmessage).
+
+## Multimodal output from the agent
+
+When a model generates multimodal output—for example, an image-generation model returning `ImageContentBlock`—the resulting `AIMessage` carries those blocks unchanged. Read them from `message.content_blocks` (Python) or `message.content_blocks` (JS) and route them however your application needs (write to a file, stream to a UI, persist as an artifact).
+
+See the [models guide](/oss/langchain/models#multimodal) for details on which providers can generate multimodal content and how to enable it.
+
+## Multimodal content and context compression
+
+Multimodal content blocks survive [tool-result offloading](/oss/deepagents/context-engineering#offloading): when a tool message exceeds the eviction threshold, only its text payload is moved to disk—`image`, `audio`, `video`, and `file` blocks remain inline so the model never loses visual or audio context. See [Context compression](/oss/deepagents/context-engineering#context-compression) for the full eviction flow.
+
+## Provider and model compatibility
+
+Multimodal support is gated by the underlying chat model, not by Deep Agents. Image input has the broadest coverage today; audio and video support varies by provider and frequently by model within a provider.
+
+Before relying on a modality:
+
+1. Check the provider's [chat model integration page](/oss/integrations/providers) for supported MIME types.
+2. Verify your model accepts the chosen content block by sending a one-off invocation outside the agent.
+3. Watch for size limits—some providers cap inline base64 payloads and require uploads or `file_id` references for larger media.
+
+## Related
+
+- [Messages — Multimodal](/oss/langchain/messages#multimodal) — content block schema for `image`, `audio`, `video`, and `file`
+- [Tools — Tool return values](/oss/langchain/tools#tool-return-values) — returning strings, objects, content blocks, and `Command`
+- [Models — Multimodal](/oss/langchain/models#multimodal) — chat model multimodal capabilities and generated output
+- [Backends](/oss/deepagents/backends) — where multimodal files live across threads
+- [Context engineering](/oss/deepagents/context-engineering) — how multimodal blocks interact with compression

@@ -321,6 +321,8 @@ The following techniques are the built-in mechanisms to ensure the context passe
   </Card>
 </CardGroup>
 
+Both mechanisms are implemented as middleware and ship enabled by default. You can tune their thresholds, replace them with custom middleware, or rewrite the message history yourself in any custom middleware—see [Replace or customize compression](#replace-or-customize-compression) below.
+
 ### Offloading
 
 Deep Agents use the [built-in filesystem tools](/oss/deepagents/harness#virtual-filesystem-access) to automatically offload content and to search and retrieve that offloaded content as needed.
@@ -429,6 +431,90 @@ Enabling this feature does not disable the default summarization action at 85% o
 See the @[`SummarizationToolMiddleware`] API reference for details.
 
 :::
+
+### Replace or customize compression
+
+Compression in Deep Agents is implemented entirely through [middleware](/oss/langchain/middleware), not a hard-coded code path. That means every layer is opt-out, tunable, or replaceable:
+
+:::python
+| Layer | Built-in middleware | What it does | How to change it |
+|---|---|---|---|
+| Tool-result eviction | @[`FilesystemMiddleware`] (offloading) | Writes tool messages over the threshold to the filesystem and replaces them with a preview + file path | Tune `tool_token_limit_before_evict`, or [exclude the middleware](/oss/deepagents/customization#middleware) and write your own |
+| Old-message summarization | @[`SummarizationMiddleware`] (auto) | Summarizes older messages once total tokens cross the trigger | Pass your own instance to `middleware=` with custom `trigger`, `keep`, `summary_prompt`, or `token_counter` |
+| On-demand summarization | @[`SummarizationToolMiddleware`] (optional) | Adds a `compact_conversation` tool the agent (or a human) can call between tasks | Add via @[`create_summarization_tool_middleware`] |
+:::
+
+:::js
+| Layer | Built-in middleware | What it does | How to change it |
+|---|---|---|---|
+| Tool-result eviction | @[`FilesystemMiddleware`] (offloading) | Writes tool messages over the threshold to the filesystem and replaces them with a preview + file path | Configure eviction thresholds, or [exclude the middleware](/oss/deepagents/customization#middleware) and write your own |
+| Old-message summarization | @[`SummarizationMiddleware`] (auto) | Summarizes older messages once total tokens cross the trigger | Pass your own instance to `middleware` with custom `trigger`, `keep`, `summaryPrompt`, or `tokenCounter` |
+| On-demand summarization | @[`SummarizationToolMiddleware`] (optional) | Adds a `compact_conversation` tool the agent (or a human) can call between tasks | Add via @[`createSummarizationMiddleware`] |
+:::
+
+To swap defaults, register a replacement middleware with the same hook signature. To turn a layer off, pass `excluded_middleware={"SummarizationMiddleware"}` (or `"FilesystemMiddleware"`) when creating the agent—see [Customization](/oss/deepagents/customization#middleware).
+
+:::python
+```python
+from deepagents import create_deep_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware.summarization import SummarizationMiddleware
+
+agent = create_deep_agent(
+    model="google_genai:gemini-3.1-pro-preview",
+    middleware=[
+        SummarizationMiddleware(  # [!code highlight]
+            model="google_genai:gemini-3.1-pro-preview",  # [!code highlight]
+            backend=StateBackend(),  # [!code highlight]
+            trigger=("fraction", 0.7),  # compress earlier  # [!code highlight]
+            keep=("messages", 12),  # always retain the last 12 messages  # [!code highlight]
+        ),  # [!code highlight]
+    ],
+)
+```
+:::
+
+#### Rewrite the chat history yourself
+
+Custom middleware can inspect, filter, or rewrite the message list passed to the model on every step using the [`wrap_model_call`](/oss/langchain/middleware/custom#wrap-model-call) hook (`wrapModelCall` in TypeScript). Override `request.messages` with whatever transformation you want—drop intermediate tool calls, redact tokens, replay only the most recent turn, or splice in retrieved memories.
+
+:::python
+```python
+from langchain.agents.middleware import wrap_model_call, ModelRequest
+from langchain_core.messages import HumanMessage
+
+@wrap_model_call
+def keep_only_last_user_turn(request: ModelRequest, handler):
+    """Drop everything but the most recent user turn (system message is preserved separately)."""
+    last_user = next(
+        (m for m in reversed(request.messages) if isinstance(m, HumanMessage)),
+        None,
+    )
+    new_messages = [last_user] if last_user is not None else []
+    return handler(request.override(messages=new_messages))  # [!code highlight]
+```
+:::
+
+:::js
+```typescript
+import { createMiddleware } from "langchain";
+
+const keepOnlyLastUserTurn = createMiddleware({
+  name: "KeepOnlyLastUserTurn",
+  wrapModelCall: async (request, handler) => {
+    const lastUser = [...request.messages].reverse().find((m) => m.getType() === "human");
+    const messages = lastUser ? [lastUser] : [];
+    return handler({ ...request, messages });  // [!code highlight]
+  },
+});
+```
+:::
+
+The same hook is how @[`SummarizationMiddleware`] itself decides what to drop and replace with a summary—any pattern it can express, custom middleware can too. See [Custom middleware](/oss/langchain/middleware/custom) for the full hook reference.
+
+<Warning>
+Rewriting messages bypasses the safety nets that the built-in middleware provides—make sure you preserve the most recent tool-call/tool-result pair so the model has the context it needs to continue.
+</Warning>
 
 ## Context isolation with subagents
 

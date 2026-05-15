@@ -709,6 +709,7 @@ You can choose different return values for your tools:
 
 - Return a `string` for human-readable results.
 - Return an `object` for structured results the model should parse.
+- Return a list of [content blocks](#return-multimodal-content) for multimodal output such as images, audio, video, or PDFs.
 - Return a `Command` with optional message when you need to write to state.
 
 #### Return a string
@@ -758,6 +759,92 @@ Behavior:
 - Like string returns, this does not directly update graph state.
 
 Use this when downstream reasoning benefits from explicit fields instead of free-form text.
+
+#### Return multimodal content
+
+Return a list of [content blocks](/oss/langchain/messages#multimodal) when your tool produces images, audio, video, PDFs, or a mix of text and media. Each block is appended to the resulting `ToolMessage` in order, so you can interleave text and media in a single tool call.
+
+:::python
+```python
+import base64
+
+from langchain.tools import tool
+
+@tool
+def render_chart(metric: str) -> list[dict]:
+    """Render a chart for the given metric and return it as text plus an image."""
+    png_bytes = generate_chart(metric)
+    return [
+        {"type": "text", "text": f"Chart for {metric}:"},
+        {
+            "type": "image",
+            "base64": base64.b64encode(png_bytes).decode(),
+            "mime_type": "image/png",
+        },
+    ]
+```
+:::
+
+:::js
+```typescript
+import { tool } from "langchain";
+import { z } from "zod";
+
+const renderChart = tool(
+  async ({ metric }: { metric: string }) => {
+    const pngBytes = await generateChart(metric);
+    return [
+      { type: "text", text: `Chart for ${metric}:` },
+      {
+        type: "image",
+        source_type: "base64",
+        data: Buffer.from(pngBytes).toString("base64"),
+        mime_type: "image/png",
+      },
+    ];
+  },
+  {
+    name: "render_chart",
+    description: "Render a chart for the given metric and return it as an image.",
+    schema: z.object({ metric: z.string() }),
+  },
+);
+```
+:::
+
+Behavior:
+
+- Each block is forwarded to the model as part of the `ToolMessage` content.
+- Supported block types include `text`, `image`, `image_url`, `json`, `document`, `file`, `search_result`, and `custom_tool_call_output`.
+- Multiple blocks of the same or different types can be mixed in a single response—provider permitting, the model sees them in the order you return them.
+
+Use this when the tool output is naturally visual or includes both narration and media (for example, rendered charts, screenshots with captions, or extracted PDF pages).
+
+<Note>
+`audio` and `video` blocks are not in the default `ToolMessage` allow list. Returning them as a plain list causes them to be JSON-stringified. To send audio or video back to the model, construct a @[`ToolMessage`] explicitly with `content_blocks=[…]`:
+
+:::python
+```python
+from langchain.tools import tool, ToolRuntime
+from langchain_core.messages import ToolMessage
+
+@tool
+def fetch_recording(call_id: str, runtime: ToolRuntime) -> ToolMessage:
+    """Fetch a call recording and return it as an audio content block."""
+    audio_b64 = fetch_audio(call_id)
+    return ToolMessage(
+        content_blocks=[
+            {"type": "text", "text": f"Recording for {call_id}:"},
+            {"type": "audio", "base64": audio_b64, "mime_type": "audio/wav"},
+        ],
+        tool_call_id=runtime.tool_call_id,
+        name="fetch_recording",
+    )
+```
+:::
+
+Provider support varies—check the [model integration page](/oss/integrations/providers) before relying on audio or video tool returns.
+</Note>
 
 #### Return a Command
 

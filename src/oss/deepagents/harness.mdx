@@ -52,6 +52,8 @@ The backends support the following file system operations:
 | [Audio](/oss/langchain/messages#multimodal) | `.wav`, `.mp3`, `.aiff`, `.aac`, `.ogg`, `.flac` |
 | [File](/oss/langchain/messages#multimodal) | `.pdf`, `.ppt`, `.pptx` |
 
+See [Multimodal content](/oss/deepagents/multimodal) for end-to-end examples covering user input, `read_file`, and multimodal tool returns.
+
 </Accordion>
 
 <Accordion title="Running without the default filesystem tools" icon="ban">
@@ -124,7 +126,7 @@ The harness manages context so deep agents can handle long-running tasks within 
 
 **How it works:**
 - **Input context** — System prompt, memory, skills, and tool prompts shape what the agent knows at startup
-- **Compression** — Built-in offloading and summarization keep context within window limits as tasks progress
+- **[Compression](/oss/deepagents/context-engineering#context-compression)** — Built-in offloading and summarization keep context within window limits as tasks progress, and you can replace either layer with custom middleware
 - **Isolation** — Subagents quarantine heavy work and return only results (see [Task delegation](#task-delegation-subagents))
 - **Long-term memory** — Persistent storage across threads via the virtual filesystem
 
@@ -133,7 +135,7 @@ The harness manages context so deep agents can handle long-running tasks within 
 - Keeps the most relevant information in scope without manual trimming
 - Reduces token usage through automatic summarization and offloading
 
-For configuration details, see [Context engineering](/oss/deepagents/context-engineering).
+For configuration details, see [Context engineering](/oss/deepagents/context-engineering). For how to tune, replace, or rewrite compression yourself, see [Replace or customize compression](/oss/deepagents/context-engineering#replace-or-customize-compression).
 
 ## Code execution
 
