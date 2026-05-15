@@ -4,7 +4,7 @@ sidebarTitle: Deploy other frameworks
 description: Deploy agents built with Claude Agent SDK, Strands, CrewAI, AutoGen, Google ADK, and other frameworks to LangSmith Deployment.
 ---
 
-LangSmith Deployment runs any framework. For agents not built on LangChain or LangGraph, wrap your existing agent with the [LangGraph Functional API](/oss/langgraph/functional-api) and deploy it the same way you would deploy a LangGraph application.
+LangSmith Deployment runs any framework. For agents not built on Deep Agents, LangChain, or LangGraph, wrap your existing agent with the [LangGraph Functional API](/oss/langgraph/functional-api) and deploy it the same way you would deploy a LangGraph application.
 
 <Tip>
 For new builds, consider [Deep Agents](/oss/deepagents/overview), an open-source harness for agents that plan, use tools, delegate to subagents, and work over long horizons. Deep Agents deploy directly to LangSmith Deployment, with [Managed Deep Agents](/langsmith/deploy-managed-deep-agent) available for a fully hosted runtime.
@@ -12,34 +12,34 @@ For new builds, consider [Deep Agents](/oss/deepagents/overview), an open-source
 
 ## Supported frameworks
 
-The Functional API works with any Python or JavaScript agent. The frameworks below have worked examples on this page:
+The Functional API works with any Python or JavaScript agent. The following frameworks have examples in the [deployment walkthrough](#general-deployment-pattern):
 
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-    <a href="#claude-agent-sdk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/claude.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/claude.svg" alt="" />
         <span className="font-semibold">Claude Agent SDK</span>
     </a>
 
-    <a href="#strands-agents" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/bedrock.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/bedrock.svg" alt="" />
         <span className="font-semibold">Strands Agents</span>
     </a>
 
-    <a href="#crewai" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/crewai.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/crewai.svg" alt="" />
         <span className="font-semibold">CrewAI</span>
     </a>
 
-    <a href="#autogen" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/autogen.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/autogen.svg" alt="" />
         <span className="font-semibold">AutoGen</span>
     </a>
 
-    <a href="#google-adk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/googleadk.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/googleadk.svg" alt="" />
         <span className="font-semibold">Google ADK</span>
@@ -52,7 +52,7 @@ The Functional API works with any Python or JavaScript agent. The frameworks bel
 </div>
 
 <Note>
-Don't see your framework? The Functional API accepts any callable, so you can apply the same pattern shown below to any agent library. Wrap your agent's entrypoint with `@task` and `@entrypoint`, then deploy.
+Don't see your framework? The Functional API accepts any callable, so you can apply the same pattern shown in the following examples to any agent library. Wrap your agent's entrypoint with `@task` and `@entrypoint`, then deploy.
 </Note>
 
 ## Why the Functional API?
@@ -70,36 +70,68 @@ It uses two key building blocks:
 
 ## General deployment pattern
 
-Regardless of framework, the steps are the same:
+Regardless of framework, follow the same steps. Choose your stack in the tabs inside each step and combine the snippets in one module (for example `agent.py`). Other frameworks follow the same pattern.
 
 <Steps>
-<Step title="Define your agent">
-Build your agent using the framework of your choice, exactly as you would outside of LangSmith.
-</Step>
-<Step title="Wrap with the Functional API">
-Expose your agent through an `@entrypoint`-decorated function. Inside, use `@task` for the unit of work that calls into the framework.
-</Step>
-<Step title="Configure tracing">
-Forward the framework's native traces to LangSmith. Most frameworks emit OpenTelemetry, which LangSmith ingests directly.
-</Step>
-<Step title="Deploy">
-Add a `langgraph.json` file pointing at your entrypoint, then follow [Deploy to cloud](/langsmith/deploy-to-cloud) or [Deploy standalone](/langsmith/deploy-standalone-server).
-</Step>
-</Steps>
+<Step title="Set up prerequisites">
 
-The sections below provide framework-specific examples.
+Install Python dependencies and configure credentials for your provider.
 
-## Claude Agent SDK
+<Tabs>
+<Tab title="Claude Agent SDK">
 
-Deploy a [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview) agent by wrapping `ClaudeSDKClient` calls in a Functional API entrypoint.
-
-### Prerequisites
+For [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview) install:
 
 * Python 3.10+
 * Dependencies: `pip install claude-agent-sdk langgraph langsmith`
 * `ANTHROPIC_API_KEY` set in your environment
 
-### Define the agent
+</Tab>
+<Tab title="Strands Agents">
+
+For [Strands Agents](https://strandsagents.com/latest/documentation/docs/) install:
+
+* Python 3.9+
+* Dependencies: `pip install strands-agents strands-agents-tools langgraph "langsmith[strands-agents]"`
+* AWS credentials in your environment
+
+</Tab>
+<Tab title="CrewAI">
+
+For [CrewAI](https://docs.crewai.com/) install:
+
+* Python 3.10+
+* Dependencies: `pip install crewai langgraph langsmith opentelemetry-instrumentation-crewai opentelemetry-instrumentation-openai`
+* LLM provider credentials in your environment (for example `OPENAI_API_KEY` if you use OpenAI-backed models)
+
+</Tab>
+<Tab title="AutoGen">
+
+For [AutoGen](https://microsoft.github.io/autogen/) install:
+
+* Python 3.10+
+* Dependencies: `pip install autogen-agentchat autogen-ext langgraph langsmith opentelemetry-instrumentation-openai`
+* `OPENAI_API_KEY` (or your model provider credentials) set in your environment
+
+</Tab>
+<Tab title="Google ADK">
+
+For [Google Agent Development Kit](https://google.github.io/adk-docs/) install:
+
+* Python 3.10+
+* Dependencies: `pip install langgraph langsmith[google-adk]`
+* Google Generative AI credentials in your environment (see [Trace Google ADK applications](/langsmith/trace-with-google-adk) for API key setup)
+
+</Tab>
+</Tabs>
+
+</Step>
+<Step title="Define your agent">
+
+Build your agent using the framework of your choice, exactly as you would outside of LangSmith.
+
+<Tabs>
+<Tab title="Claude Agent SDK">
 
 ```python
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
@@ -110,11 +142,72 @@ options = ClaudeAgentOptions(
 )
 ```
 
-### Wrap with the Functional API
+</Tab>
+<Tab title="Strands Agents">
+
+```python
+from strands import Agent
+from strands_tools import file_read, file_write, journal, python_repl, shell
+
+agent = Agent(
+    tools=[file_read, file_write, python_repl, shell, journal],
+    system_prompt="You are an Expert Software Developer Assistant specializing in web frameworks. Your task is to analyze project structures and identify mappings.",
+    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+)
+```
+
+</Tab>
+<Tab title="CrewAI">
+
+```python
+from crewai import Agent, Crew, Task
+
+researcher = Agent(role="Researcher", goal="Research a topic", backstory="Expert researcher.")
+crew = Crew(
+    agents=[researcher],
+    tasks=[Task(description="{topic}", agent=researcher, expected_output="A short report.")],
+)
+```
+
+</Tab>
+<Tab title="AutoGen">
+
+```python
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+
+assistant = AssistantAgent(
+    name="assistant",
+    model_client=OpenAIChatCompletionClient(model="gpt-4o"),
+)
+```
+
+</Tab>
+<Tab title="Google ADK">
+
+```python
+from google.adk.agents import Agent
+from google.adk.runners import InMemoryRunner
+
+adk_agent = Agent(name="assistant", model="gemini-2.0-flash", instruction="You are a helpful assistant.")
+runner = InMemoryRunner(agent=adk_agent, app_name="my-app")
+```
+
+</Tab>
+</Tabs>
+
+</Step>
+<Step title="Wrap with the Functional API">
+
+Expose your agent through an `@entrypoint`-decorated function. Inside, use `@task` for the unit of work that calls into the framework.
+
+<Tabs>
+<Tab title="Claude Agent SDK">
 
 ```python
 import operator
 
+from claude_agent_sdk import ClaudeSDKClient
 from langgraph.func import entrypoint, task
 
 @task
@@ -138,42 +231,8 @@ async def workflow(messages: list[dict], previous: list[dict]):
     )
 ```
 
-### Configure tracing
-
-Use the LangSmith Claude Agent SDK integration to forward traces:
-
-```python
-from langsmith.integrations.claude_agent_sdk import configure_claude_agent_sdk
-
-configure_claude_agent_sdk()
-```
-
-For full setup details, see [Trace Claude Agent SDK applications](/langsmith/trace-claude-agent-sdk).
-
-## Strands Agents
-
-Deploy a [Strands Agent](https://strandsagents.com/latest/documentation/docs/) by wrapping it in a Functional API entrypoint.
-
-### Prerequisites
-
-* Python 3.9+
-* Dependencies: `pip install strands-agents strands-agents-tools langgraph`
-* AWS credentials in your environment
-
-### Define the agent
-
-```python
-from strands import Agent
-from strands_tools import file_read, file_write, journal, python_repl, shell
-
-agent = Agent(
-    tools=[file_read, file_write, python_repl, shell, journal],
-    system_prompt="You are an Expert Software Developer Assistant specializing in web frameworks. Your task is to analyze project structures and identify mappings.",
-    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-)
-```
-
-### Wrap with the Functional API
+</Tab>
+<Tab title="Strands Agents">
 
 ```python
 import operator
@@ -193,52 +252,13 @@ def workflow(messages: list[Message], previous: list[Message]):
     return entrypoint.final(value=response, save=operator.add(messages, response))
 ```
 
-### Configure tracing with OpenTelemetry
-
-Set the following environment variables:
-
-```bash
-# Turn off LangSmith default tracing, as we want to only trace with OpenTelemetry
-LANGSMITH_TRACING=false
-
-OTEL_EXPORTER_OTLP_ENDPOINT="https://api.smith.langchain.com/otel/"
-
-OTEL_EXPORTER_OTLP_HEADERS="x-api-key=your-langsmith-api-key,Langsmith-Project=your-tracing-project-name"
-```
-
-<Note>
-If you're [self-hosting LangSmith](/langsmith/self-hosted), replace the `OTEL_EXPORTER_OTLP_ENDPOINT` endpoint with your LangSmith API endpoint and append `/api/v1/otel`. For example: `OTEL_EXPORTER_OTLP_ENDPOINT="https://ai-company.com/api/v1/otel"`
-</Note>
-
-<Note>
-Strands' OTel tracing contains synchronous code. In this case, you may need to set `BG_JOB_ISOLATED_LOOPS=true` to execute background runs in an isolated event loop separate from the serving API event loop. This only prevents health-check failures; the synchronous tracing code still degrades throughput and tail latency under load. See [`BG_JOB_ISOLATED_LOOPS`](/langsmith/env-var#bg_job_isolated_loops) for recommended async alternatives.
-</Note>
-
-In your main agent, set up the following:
-
-```python
-from strands.telemetry import StrandsTelemetry
-
-strands_telemetry = StrandsTelemetry()
-strands_telemetry.setup_otlp_exporter()
-strands_telemetry.setup_meter()
-```
-
-## CrewAI
-
-[CrewAI](https://docs.crewai.com/) crews follow the same pattern: define your crew, then expose `crew.kickoff()` from a Functional API entrypoint.
+</Tab>
+<Tab title="CrewAI">
 
 ```python
 import operator
 
-from crewai import Agent, Crew, Task
 from langgraph.func import entrypoint, task
-
-researcher = Agent(role="Researcher", goal="Research a topic", backstory="Expert researcher.")
-crew = Crew(
-    agents=[researcher],
-    tasks=[Task(description="{topic}", agent=researcher, expected_output="A short report.")],
-)
 
 @task
 def run_crew(topic: str) -> str:
@@ -252,23 +272,13 @@ def workflow(messages: list[dict], previous: list[dict]):
     return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
 ```
 
-For tracing setup, see [Trace CrewAI](/langsmith/trace-with-crewai).
-
-## AutoGen
-
-For [AutoGen](https://microsoft.github.io/autogen/), wrap your `AssistantAgent` (or team) invocation in a `@task`:
+</Tab>
+<Tab title="AutoGen">
 
 ```python
 import operator
 
-from autogen_agentchat.agents import AssistantAgent
-from autogen_ext.models.openai import OpenAIChatCompletionClient
 from langgraph.func import entrypoint, task
-
-assistant = AssistantAgent(
-    name="assistant",
-    model_client=OpenAIChatCompletionClient(model="gpt-4o"),
-)
 
 @task
 async def invoke_autogen(prompt: str) -> str:
@@ -283,22 +293,14 @@ async def workflow(messages: list[dict], previous: list[dict]):
     return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
 ```
 
-For tracing setup, see [Trace AutoGen](/langsmith/trace-with-autogen).
-
-## Google ADK
-
-For the [Google Agent Development Kit](https://google.github.io/adk-docs/), call the ADK runner from inside a `@task`:
+</Tab>
+<Tab title="Google ADK">
 
 ```python
 import operator
 
-from google.adk.agents import Agent
-from google.adk.runners import InMemoryRunner
 from google.genai import types
 from langgraph.func import entrypoint, task
-
-adk_agent = Agent(name="assistant", model="gemini-2.0-flash", instruction="You are a helpful assistant.")
-runner = InMemoryRunner(agent=adk_agent, app_name="my-app")
 
 @task
 async def invoke_adk(prompt: str) -> str:
@@ -318,11 +320,148 @@ async def workflow(messages: list[dict], previous: list[dict]):
     return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
 ```
 
-For tracing setup, see [Trace Google ADK](/langsmith/trace-with-google-adk).
+</Tab>
+</Tabs>
 
-## Prepare for deployment
+</Step>
+<Step title="Configure tracing">
 
-Once you have an entrypoint, create the following file structure:
+Forward the framework's native traces to LangSmith. Most frameworks emit OpenTelemetry, which LangSmith ingests directly.
+
+<Tabs>
+<Tab title="Claude Agent SDK">
+
+Use the LangSmith Claude Agent SDK integration to forward traces:
+
+```python
+from langsmith.integrations.claude_agent_sdk import configure_claude_agent_sdk
+
+configure_claude_agent_sdk()
+```
+
+For full setup details, see [Trace Claude Agent SDK applications](/langsmith/trace-claude-agent-sdk).
+
+</Tab>
+<Tab title="Strands Agents">
+
+Use the LangSmith Strands Agents integration to forward traces. Set your [LangSmith API key](/langsmith/create-account-api-key) and project name. If you use Amazon Bedrock as the model provider, also configure AWS credentials with your preferred AWS authentication method.
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.smith.langchain.com/otel/v1/traces
+export OTEL_EXPORTER_OTLP_HEADERS="x-api-key=<your_langsmith_api_key>,Langsmith-Project=<your_project_name>"
+
+# Required when using Amazon Bedrock.
+export AWS_REGION=<your_aws_region>
+```
+
+<Note>
+If you're [self-hosting LangSmith](/langsmith/self-hosted), replace the `OTEL_EXPORTER_OTLP_ENDPOINT` value with your LangSmith API base URL and the OTLP traces path your deployment expects. See [Trace Strands Agents applications](/langsmith/trace-with-strands-agents) for exporter options.
+</Note>
+
+<Note>
+Strands' OTel tracing contains synchronous code. In this case, you may need to set `BG_JOB_ISOLATED_LOOPS=true` to execute background runs in an isolated event loop separate from the serving API event loop. This only prevents health-check failures; the synchronous tracing code still degrades throughput and tail latency under load. See [`BG_JOB_ISOLATED_LOOPS`](/langsmith/env-var#bg_job_isolated_loops) for recommended async alternatives.
+</Note>
+
+Call `setup_langsmith_telemetry()` once at application startup before creating or invoking agents:
+
+```python
+from langsmith.integrations.strands_agents import setup_langsmith_telemetry
+
+setup_langsmith_telemetry()
+```
+
+For full setup details, see [Trace Strands Agents applications](/langsmith/trace-with-strands-agents).
+
+</Tab>
+<Tab title="CrewAI">
+
+Use OpenTelemetry to forward CrewAI traces to LangSmith. Set your [API keys](/langsmith/create-account-api-key) and project name:
+
+```bash
+export LANGSMITH_API_KEY=<your_langsmith_api_key>
+export LANGSMITH_PROJECT=<your_project_name>
+export OPENAI_API_KEY=<your_openai_api_key>
+```
+
+Register the LangSmith span processor with the CrewAI and OpenAI instrumentors:
+
+```python
+from langsmith.integrations.otel import OtelSpanProcessor
+from opentelemetry import trace
+from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+
+# Get or create tracer provider
+current_provider = trace.get_tracer_provider()
+if isinstance(current_provider, TracerProvider):
+    tracer_provider = current_provider
+else:
+    tracer_provider = TracerProvider()
+    trace.set_tracer_provider(tracer_provider)
+
+# Add OtelSpanProcessor to the tracer provider
+tracer_provider.add_span_processor(OtelSpanProcessor())
+
+# Instrument CrewAI and OpenAI
+CrewAIInstrumentor().instrument(tracer_provider=tracer_provider)
+OpenAIInstrumentor().instrument(tracer_provider=tracer_provider)
+```
+
+For full setup details, see [Trace CrewAI applications](/langsmith/trace-with-crewai).
+
+</Tab>
+<Tab title="AutoGen">
+
+Use OpenTelemetry to forward AutoGen traces to LangSmith. Set your [API keys](/langsmith/create-account-api-key) and project name:
+
+```bash
+export LANGSMITH_API_KEY=<your_langsmith_api_key>
+export LANGSMITH_PROJECT=<your_project_name>
+export OPENAI_API_KEY=<your_openai_api_key>
+```
+
+Register the LangSmith span processor with the OpenAI instrumentor:
+
+```python
+from langsmith.integrations.otel import OtelSpanProcessor
+from opentelemetry import trace
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+
+# Set up tracer provider
+tracer_provider = TracerProvider()
+tracer_provider.add_span_processor(OtelSpanProcessor())
+trace.set_tracer_provider(tracer_provider)
+
+# Instrument OpenAI calls
+OpenAIInstrumentor().instrument()
+```
+
+For full setup details, see [Trace AutoGen applications](/langsmith/trace-with-autogen).
+
+</Tab>
+<Tab title="Google ADK">
+
+Use the LangSmith Google ADK integration to forward traces:
+
+```python
+from langsmith.integrations.google_adk import configure_google_adk
+
+configure_google_adk(
+    project_name="my-adk-project",  # Optional: defaults to LANGSMITH_PROJECT env var
+)
+```
+
+For full setup details, see [Trace Google ADK applications](/langsmith/trace-with-google-adk).
+
+</Tab>
+</Tabs>
+
+</Step>
+<Step title="Deploy">
+
+Add a `langgraph.json` file pointing at your entrypoint. Use a layout like the following:
 
 ```
 my-agent/
@@ -331,4 +470,7 @@ my-agent/
 └── langgraph.json    # LangGraph configuration
 ```
 
-Then follow the [Deploy to cloud](/langsmith/deploy-to-cloud) guide.
+Then follow [Deploy to cloud](/langsmith/deploy-to-cloud) or [Deploy standalone](/langsmith/deploy-standalone-server).
+
+</Step>
+</Steps>
