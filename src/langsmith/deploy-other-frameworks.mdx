@@ -1,59 +1,189 @@
 ---
 title: Deploy other frameworks
-sidebarTitle: Deploy other frameworks (e.g., Strands, CrewAI)
-description: Deploy agents built with Strands, CrewAI, or other frameworks to LangSmith using the LangGraph Functional API.
+sidebarTitle: Deploy other frameworks
+description: Deploy agents built with Claude Agent SDK, Strands, CrewAI, AutoGen, Google ADK, and other frameworks to LangSmith Deployment.
 ---
-This guide shows you how to use [Functional API](/oss/langgraph/functional-api) to deploy a [Strands Agent](https://strandsagents.com/latest/documentation/docs/) on [LangSmith Deployment](/langsmith/deployment) and set up tracing for [LangSmith Observability](/langsmith/observability). You can follow the same approach with other frameworks like CrewAI and AutoGen.
 
-To deploy Google ADK agents, refer to [Deploy Google ADK agents](/langsmith/deploy-google-adk).
+LangSmith Deployment runs any framework. For agents not built on LangChain or LangGraph, wrap your existing agent with the [LangGraph Functional API](/oss/langgraph/functional-api) and deploy it the same way you would deploy a LangGraph application.
 
-Using Functional API and deploying to LangSmith Deployment provides several benefits:
+<Tip>
+For new builds, consider [Deep Agents](/oss/deepagents/overview), an open-source harness for agents that plan, use tools, delegate to subagents, and work over long horizons. Deep Agents deploy directly to LangSmith Deployment, with [Managed Deep Agents](/langsmith/deploy-managed-deep-agent) available for a fully hosted runtime.
+</Tip>
 
-* Production deployment: Deploy your integrated solution to [LangSmith Deployment](/langsmith/deployment) for scalable production use.
-* Enhanced features: With Functional API, you can integrate your existing agents with [persistence](/oss/langgraph/persistence), [streaming](/langsmith/streaming), [short and long-term memory](/oss/concepts/memory) and more, with minimal changes to your existing code.
-* Multi-agent systems: Build [multi-agent systems](/oss/langchain/multi-agent) where individual agents are built with different frameworks.
+## Supported frameworks
 
-## Prerequisites
+The Functional API works with any Python or JavaScript agent. The frameworks below have worked examples on this page:
 
-* Python 3.9+
-* Dependencies: `pip install strands-agents strands-agents-tools langgraph`
-* AWS Credentials in your environment
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+    <a href="#claude-agent-sdk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/claude.svg" alt="" />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/claude.svg" alt="" />
+        <span className="font-semibold">Claude Agent SDK</span>
+    </a>
 
-## 1. Define strands agent
+    <a href="#strands-agents" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/bedrock.svg" alt="" />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/bedrock.svg" alt="" />
+        <span className="font-semibold">Strands Agents</span>
+    </a>
 
-Create a Strands Agent with prebuilt tools.
+    <a href="#crewai" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/crewai.svg" alt="" />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/crewai.svg" alt="" />
+        <span className="font-semibold">CrewAI</span>
+    </a>
 
-```python
-from strands import Agent
-from strands_tools import file_read, file_write, python_repl, shell, journal
+    <a href="#autogen" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/autogen.svg" alt="" />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/autogen.svg" alt="" />
+        <span className="font-semibold">AutoGen</span>
+    </a>
 
-agent = Agent(
-        tools=[file_read, file_write, python_repl, shell, journal],
-        system_prompt="You are an Expert Software Developer Assistant specializing in web frameworks. Your task is to analyze project structures and identify mappings.",
-        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-    )
-```
+    <a href="#google-adk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/googleadk.svg" alt="" />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/googleadk.svg" alt="" />
+        <span className="font-semibold">Google ADK</span>
+    </a>
 
-## 2. Use Functional API to deploy on LangSmith Deployment
+    <a href="/oss/deepagents/overview" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="w-5 h-5" src="/images/brand/docs-favicon.png" alt="" />
+        <span className="font-semibold">Deep Agents</span>
+    </a>
+</div>
 
-[Functional API](/oss/langgraph/functional-api) allows you to integrate and deploy with frameworks other than LangChain. Functional API also provides the additional benefit to leverage other key features—persistence, memory, human-in-the-loop, and streaming—coupled with your existing agent, with minimal changes to your existing code.
+<Note>
+Don't see your framework? The Functional API accepts any callable, so you can apply the same pattern shown below to any agent library. Wrap your agent's entrypoint with `@task` and `@entrypoint`, then deploy.
+</Note>
+
+## Why the Functional API?
+
+The [Functional API](/oss/langgraph/functional-api) lets you integrate and deploy agents built with frameworks other than LangChain. Deploying to LangSmith provides:
+
+* Production deployment: Run your agent on [LangSmith Deployment](/langsmith/deployment) with horizontal scaling, durable execution, and 30+ endpoints including MCP, A2A, and Agent Protocol.
+* Enhanced features: Add [persistence](/oss/langgraph/persistence), [streaming](/langsmith/streaming), [short and long-term memory](/oss/concepts/memory), and [human-in-the-loop](/langsmith/add-human-in-the-loop) to your existing agent with minimal code changes.
+* Multi-agent systems: Compose [multi-agent systems](/oss/langchain/multi-agent) where individual agents are built with different frameworks.
 
 It uses two key building blocks:
 
-* **@[`@entrypoint`]**: Marks a function as the starting point of a workflow, encapsulating logic and managing execution flow, including handling long-running tasks and interrupts.
-* **@[`@task`]**: Represents a discrete unit of work, such as an API call or data processing step, that can be executed asynchronously within an entrypoint. Tasks return a future-like object that can be awaited or resolved synchronously.
+* @[`@entrypoint`]: Marks a function as the starting point of a workflow, encapsulating logic and managing execution flow, including handling long-running tasks and interrupts.
+* @[`@task`]: Represents a discrete unit of work, such as an API call or data processing step, that can be executed asynchronously within an entrypoint. Tasks return a future-like object that can be awaited or resolved synchronously.
+
+## General deployment pattern
+
+Regardless of framework, the steps are the same:
+
+<Steps>
+<Step title="Define your agent">
+Build your agent using the framework of your choice, exactly as you would outside of LangSmith.
+</Step>
+<Step title="Wrap with the Functional API">
+Expose your agent through an `@entrypoint`-decorated function. Inside, use `@task` for the unit of work that calls into the framework.
+</Step>
+<Step title="Configure tracing">
+Forward the framework's native traces to LangSmith. Most frameworks emit OpenTelemetry, which LangSmith ingests directly.
+</Step>
+<Step title="Deploy">
+Add a `langgraph.json` file pointing at your entrypoint, then follow [Deploy to cloud](/langsmith/deploy-to-cloud) or [Deploy standalone](/langsmith/deploy-standalone-server).
+</Step>
+</Steps>
+
+The sections below provide framework-specific examples.
+
+## Claude Agent SDK
+
+Deploy a [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview) agent by wrapping `ClaudeSDKClient` calls in a Functional API entrypoint.
+
+### Prerequisites
+
+* Python 3.10+
+* Dependencies: `pip install claude-agent-sdk langgraph langsmith`
+* `ANTHROPIC_API_KEY` set in your environment
+
+### Define the agent
 
 ```python
-from strands.types.content import Message
+from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
+
+options = ClaudeAgentOptions(
+    model="claude-sonnet-4-5-20250929",
+    system_prompt="You are a helpful assistant.",
+)
+```
+
+### Wrap with the Functional API
+
+```python
+import operator
 
 from langgraph.func import entrypoint, task
+
+@task
+async def invoke_claude(prompt: str) -> str:
+    async with ClaudeSDKClient(options=options) as client:
+        await client.query(prompt)
+        chunks: list[str] = []
+        async for message in client.receive_response():
+            chunks.append(str(message))
+        return "\n".join(chunks)
+
+@entrypoint()
+async def workflow(messages: list[dict], previous: list[dict]):
+    history = operator.add(previous or [], messages)
+    prompt = history[-1]["content"]
+    response = await invoke_claude(prompt)
+    new_message = {"role": "assistant", "content": response}
+    return entrypoint.final(
+        value=[new_message],
+        save=operator.add(history, [new_message]),
+    )
+```
+
+### Configure tracing
+
+Use the LangSmith Claude Agent SDK integration to forward traces:
+
+```python
+from langsmith.integrations.claude_agent_sdk import configure_claude_agent_sdk
+
+configure_claude_agent_sdk()
+```
+
+For full setup details, see [Trace Claude Agent SDK applications](/langsmith/trace-claude-agent-sdk).
+
+## Strands Agents
+
+Deploy a [Strands Agent](https://strandsagents.com/latest/documentation/docs/) by wrapping it in a Functional API entrypoint.
+
+### Prerequisites
+
+* Python 3.9+
+* Dependencies: `pip install strands-agents strands-agents-tools langgraph`
+* AWS credentials in your environment
+
+### Define the agent
+
+```python
+from strands import Agent
+from strands_tools import file_read, file_write, journal, python_repl, shell
+
+agent = Agent(
+    tools=[file_read, file_write, python_repl, shell, journal],
+    system_prompt="You are an Expert Software Developer Assistant specializing in web frameworks. Your task is to analyze project structures and identify mappings.",
+    model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+)
+```
+
+### Wrap with the Functional API
+
+```python
 import operator
+
+from langgraph.func import entrypoint, task
+from strands.types.content import Message
 
 @task
 def invoke_strands(messages: list[Message]):
-    # run the agent with existing messages; can invoke with the final message with messages[-1]
     result = agent(messages)
-    # return the resulting message
     return [result.message]
 
 @entrypoint()
@@ -63,25 +193,25 @@ def workflow(messages: list[Message], previous: list[Message]):
     return entrypoint.final(value=response, save=operator.add(messages, response))
 ```
 
-## 3. Set up tracing with OpenTelemetry
+### Configure tracing with OpenTelemetry
 
-In your environment variables, set up the following:
+Set the following environment variables:
 
-```python
+```bash
 # Turn off LangSmith default tracing, as we want to only trace with OpenTelemetry
 LANGSMITH_TRACING=false
 
-OTEL_EXPORTER_OTLP_ENDPOINT = "https://api.smith.langchain.com/otel/"
+OTEL_EXPORTER_OTLP_ENDPOINT="https://api.smith.langchain.com/otel/"
 
-OTEL_EXPORTER_OTLP_HEADERS = "x-api-key=your-langsmith-api-key,Langsmith-Project=your-tracing-project-name"
+OTEL_EXPORTER_OTLP_HEADERS="x-api-key=your-langsmith-api-key,Langsmith-Project=your-tracing-project-name"
 ```
 
 <Note>
-If you're [self-hosting LangSmith](/langsmith/self-hosted), replace the  `OTEL_EXPORTER_OTLP_ENDPOINT` endpoint with your LangSmith API endpoint and append `/api/v1/otel`. For example: `OTEL_EXPORTER_OTLP_ENDPOINT = "https://ai-company.com/api/v1/otel"`
+If you're [self-hosting LangSmith](/langsmith/self-hosted), replace the `OTEL_EXPORTER_OTLP_ENDPOINT` endpoint with your LangSmith API endpoint and append `/api/v1/otel`. For example: `OTEL_EXPORTER_OTLP_ENDPOINT="https://ai-company.com/api/v1/otel"`
 </Note>
 
 <Note>
-Strand's OTel tracing contains synchronous code. In this case, you may need to set `BG_JOB_ISOLATED_LOOPS=true` to execute background runs in an isolated event loop separate from the serving API event loop. This only prevents health-check failures; the synchronous tracing code still degrades throughput and tail latency under load. See [`BG_JOB_ISOLATED_LOOPS`](/langsmith/env-var-cloud) for recommended async alternatives.
+Strands' OTel tracing contains synchronous code. In this case, you may need to set `BG_JOB_ISOLATED_LOOPS=true` to execute background runs in an isolated event loop separate from the serving API event loop. This only prevents health-check failures; the synchronous tracing code still degrades throughput and tail latency under load. See [`BG_JOB_ISOLATED_LOOPS`](/langsmith/env-var#bg_job_isolated_loops) for recommended async alternatives.
 </Note>
 
 In your main agent, set up the following:
@@ -94,15 +224,111 @@ strands_telemetry.setup_otlp_exporter()
 strands_telemetry.setup_meter()
 ```
 
-## 4. Prepare for deployment
+## CrewAI
 
-From here, to deploy to LangSmith, create a file structure like the following:
+[CrewAI](https://docs.crewai.com/) crews follow the same pattern: define your crew, then expose `crew.kickoff()` from a Functional API entrypoint.
+
+```python
+import operator
+
+from crewai import Agent, Crew, Task
+from langgraph.func import entrypoint, task
+
+researcher = Agent(role="Researcher", goal="Research a topic", backstory="Expert researcher.")
+crew = Crew(
+    agents=[researcher],
+    tasks=[Task(description="{topic}", agent=researcher, expected_output="A short report.")],
+)
+
+@task
+def run_crew(topic: str) -> str:
+    return str(crew.kickoff(inputs={"topic": topic}))
+
+@entrypoint()
+def workflow(messages: list[dict], previous: list[dict]):
+    history = operator.add(previous or [], messages)
+    response = run_crew(history[-1]["content"]).result()
+    new_message = {"role": "assistant", "content": response}
+    return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
+```
+
+For tracing setup, see [Trace CrewAI](/langsmith/trace-with-crewai).
+
+## AutoGen
+
+For [AutoGen](https://microsoft.github.io/autogen/), wrap your `AssistantAgent` (or team) invocation in a `@task`:
+
+```python
+import operator
+
+from autogen_agentchat.agents import AssistantAgent
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from langgraph.func import entrypoint, task
+
+assistant = AssistantAgent(
+    name="assistant",
+    model_client=OpenAIChatCompletionClient(model="gpt-4o"),
+)
+
+@task
+async def invoke_autogen(prompt: str) -> str:
+    result = await assistant.run(task=prompt)
+    return result.messages[-1].content
+
+@entrypoint()
+async def workflow(messages: list[dict], previous: list[dict]):
+    history = operator.add(previous or [], messages)
+    response = await invoke_autogen(history[-1]["content"])
+    new_message = {"role": "assistant", "content": response}
+    return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
+```
+
+For tracing setup, see [Trace AutoGen](/langsmith/trace-with-autogen).
+
+## Google ADK
+
+For the [Google Agent Development Kit](https://google.github.io/adk-docs/), call the ADK runner from inside a `@task`:
+
+```python
+import operator
+
+from google.adk.agents import Agent
+from google.adk.runners import InMemoryRunner
+from google.genai import types
+from langgraph.func import entrypoint, task
+
+adk_agent = Agent(name="assistant", model="gemini-2.0-flash", instruction="You are a helpful assistant.")
+runner = InMemoryRunner(agent=adk_agent, app_name="my-app")
+
+@task
+async def invoke_adk(prompt: str) -> str:
+    session = await runner.session_service.create_session(app_name="my-app", user_id="user")
+    content = types.Content(role="user", parts=[types.Part.from_text(text=prompt)])
+    response = ""
+    async for event in runner.run_async(user_id="user", session_id=session.id, new_message=content):
+        if event.is_final_response() and event.content:
+            response = event.content.parts[0].text
+    return response
+
+@entrypoint()
+async def workflow(messages: list[dict], previous: list[dict]):
+    history = operator.add(previous or [], messages)
+    response = await invoke_adk(history[-1]["content"])
+    new_message = {"role": "assistant", "content": response}
+    return entrypoint.final(value=[new_message], save=operator.add(history, [new_message]))
+```
+
+For tracing setup, see [Trace Google ADK](/langsmith/trace-with-google-adk).
+
+## Prepare for deployment
+
+Once you have an entrypoint, create the following file structure:
 
 ```
-my-strands-agent/
-├── agent.py          # Your main agent code
+my-agent/
+├── agent.py          # Your entrypoint code
 ├── requirements.txt  # Python dependencies
-└── langgraph.json   # LangGraph configuration
+└── langgraph.json    # LangGraph configuration
 ```
 
-To deploy your agent, follow the [Deploy to cloud](/langsmith/deploy-to-cloud) guide.
+Then follow the [Deploy to cloud](/langsmith/deploy-to-cloud) guide.
