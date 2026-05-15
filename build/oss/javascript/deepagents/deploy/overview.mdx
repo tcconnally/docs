@@ -209,10 +209,6 @@ For information on how to authenticate, see [Authentication](#authentication).
 
 ### `[frontend]`
 
-<Note>
-    Frontend deployment requires `deepagents-cli>=0.0.43`.
-</Note>
-
 Optionally enable `[frontend]` to ship a prebuilt React chat UI alongside your agent on the same deployment. The frontend is mounted at `/app` on your deployment URL; your LangGraph API stays at the root (`/threads`, `/runs`, `/assistants`). The frontend provides:
 
 - Streaming chat with the agent
@@ -345,7 +341,7 @@ The deployed server exposes:
 - [**Human-in-the-loop**](/oss/javascript/deepagents/human-in-the-loop): approval gates for sensitive actions
 - [**Memory**](/oss/javascript/deepagents/memory): short-term and long-term memory access
 
-## User Memory
+## User memory
 
 User memory gives each user their own writable `AGENTS.md` that persists across conversations. This is the CLI's built-in equivalent of the user-scoped memory pattern described in [Going to production: Memory](/oss/javascript/deepagents/going-to-production#memory). To enable it, create a `user/` directory at your project root:
 
@@ -564,6 +560,6 @@ enabled = true
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
 </Callout>
 <Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/deploy.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/deploy/overview.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>
