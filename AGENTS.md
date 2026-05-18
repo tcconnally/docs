@@ -1,6 +1,7 @@
 > **Keep in sync:** `AGENTS.md` and `CLAUDE.md` contain identical guidelines. If you update one, update the other.
 
 # LangChain Documentation Guidelines
+<!-- last verified: 2026-05-18 -->
 
 Documentation for LangChain products hosted on Mintlify. These guidelines apply to manually authored content under `src/`—not Mintlify `build/` output.
 
