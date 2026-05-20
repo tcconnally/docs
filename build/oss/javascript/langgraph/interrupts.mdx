@@ -2,6 +2,13 @@
 title: Interrupts
 ---
 
+import LanggraphInterruptsResumeV2Py from '/snippets/code-samples/langgraph-interrupts-resume-v2-py.mdx';
+import LanggraphInterruptsMultiplePy from '/snippets/code-samples/langgraph-interrupts-multiple-py.mdx';
+import LanggraphInterruptsHitlStreamPy from '/snippets/code-samples/langgraph-interrupts-hitl-stream-py.mdx';
+import LanggraphInterruptsApprovalPy from '/snippets/code-samples/langgraph-interrupts-approval-py.mdx';
+import LanggraphInterruptsReviewPy from '/snippets/code-samples/langgraph-interrupts-review-py.mdx';
+import LanggraphInterruptsValidatePy from '/snippets/code-samples/langgraph-interrupts-validate-py.mdx';
+
 Interrupts allow you to pause graph execution at specific points and wait for external input before continuing. This enables human-in-the-loop patterns where you need external input to proceed. When an interrupt is triggered, LangGraph saves the graph state using its [persistence](/oss/javascript/langgraph/persistence) layer and waits indefinitely until you resume execution.
 
 Interrupts work by calling the `interrupt()` function at any point in your graph nodes. The function accepts any JSON-serializable value which is surfaced to the caller. When you're ready to continue, you resume execution by re-invoking the graph using `Command`, which then becomes the return value of the `interrupt()` call from inside the node.
@@ -44,7 +51,9 @@ When you call [`interrupt`](https://reference.langchain.com/javascript/langchain
 
 1. **Graph execution gets suspended** at the exact point where [`interrupt`](https://reference.langchain.com/javascript/langchain-langgraph/index/interrupt) is called
 2. **State is saved** using the checkpointer so execution can be resumed later, In production, this should be a persistent checkpointer (e.g. backed by a database)
+
 3. **Value is returned** to the caller under `__interrupt__`; it can be any JSON-serializable value (string, object, array, etc.)
+
 4. **Graph waits indefinitely** until you resume execution with a response
 5. **Response is passed back** into the node when you resume, becoming the return value of the `interrupt()` call
 
@@ -101,7 +110,7 @@ The key thing that interrupts unlock is the ability to pause execution and wait 
 
 When building interactive agents with human-in-the-loop workflows, you can stream both message chunks and node updates simultaneously to provide real-time feedback while handling interrupts.
 
-Use multiple stream modes (`"messages"` and `"updates"`) with `subgraphs=True` (if subgraphs are present) to:
+Use multiple stream modes (`"messages"`, `"updates"`, and `"values"`) with `subgraphs=True` (if subgraphs are present) to:
 - Stream AI responses in real-time as they're generated
 - Detect when the graph encounters an interrupt
 - Handle user input and resume execution seamlessly
