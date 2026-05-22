@@ -7,7 +7,16 @@ description: Build agents that can plan, use subagents, and leverage file system
 The easiest way to start building agents and applications powered by LLMs—with built-in capabilities for task planning, file systems for context management, subagent-spawning, and long-term memory.
 You can use deep agents for any task, including complex, multi-step tasks.
 
-We think of `deepagents` as an ["agent harness"](/oss/concepts/products#agent-harnesses-like-the-deep-agents-sdk). It is the same core tool calling loop as other agent frameworks, but with built-in tools and capabilities.
+We think of `deepagents` as an ["agent harness"](/oss/concepts/products#agent-harnesses-like-the-deep-agents-sdk). It is the same core tool calling loop as other agent frameworks, but with built-in tools and capabilities organized into four components:
+
+| Component | What it provides |
+|-----------|-----------------|
+| **[Execution environment](/oss/deepagents/harness#execution-environment)** | Virtual filesystem, optional sandbox, and REPL (interpreter) |
+| **[Context management](/oss/deepagents/harness#context-management)** | Skills, memory, summarization, context offloading, and prompt caching |
+| **[Delegation](/oss/deepagents/harness#delegation)** | Subagent spawning and task planning |
+| **[Steering](/oss/deepagents/harness#steering)** | Human-in-the-loop approval and interrupts |
+
+See [Harness capabilities](/oss/deepagents/harness) for a full breakdown of each component.
 
 <Tip>
   The [LangSmith Engine](/langsmith/engine) detects issues in your Deep Agents traces and proposes fixes. You can open a pull request with the proposed fix directly from the Engine tab.
