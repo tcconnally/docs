@@ -76,7 +76,7 @@ Two levers configure the harness:
 
 ## Execution environment
 
-Tools are the agent's primary interface to the world—any function, API, or database query becomes an action the model can call. The filesystem gives the agent persistent working storage across turns. When the agent needs to execute code, a sandbox provides host isolation; a QuickJS interpreter provides a lighter alternative for data transformation and programmatic tool orchestration.
+The execution environment is where the agent takes action. Tools give the model a set of callable actions—any function, API, or database query. The filesystem extends those actions across turns, letting the agent read, write, and organize files as it works. Sandboxes and interpreters add code execution: sandboxes for isolated shell access, a QuickJS interpreter for lightweight in-process scripting.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
@@ -110,11 +110,11 @@ agent = create_agent(
 
 ## Context management
 
-Long-running agents accumulate context they no longer need and eventually hit token limits. Context management controls what goes into the model's context window at each turn—compressing history that's no longer needed, loading instructions that are always relevant, surfacing domain knowledge only when the current task calls for it, and reusing cached static sections to reduce cost.
+As an agent runs, context accumulates—history, tool results, intermediate steps—and eventually overflows the context window. Context management attacks this at multiple levels: summarization compresses and offloads growing history before overflow hits; memory loads persistent instructions at the start of each session so knowledge carries across runs without re-stating it each time; skills use progressive disclosure so domain knowledge loads only when the task calls for it, avoiding context rot from irrelevant content sitting in the window throughout the run.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **History compression**—prevents overflow on long runs | @[`SummarizationMiddleware`] | ✓ |
+| **History compression**—compresses history and offloads large results | @[`SummarizationMiddleware`] | ✓ |
 | **Agent-triggered summarization**—agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
 | **Persistent memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
 | **On-demand skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
