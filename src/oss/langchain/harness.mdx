@@ -104,7 +104,22 @@ agent = create_agent(
 
 :::
 
+:::js
 
+```typescript
+import { createAgent } from "langchain";
+import { FilesystemMiddleware, StateBackend } from "deepagents";
+
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-6",
+  tools: [search, fetchUrl],
+  middleware: [
+    new FilesystemMiddleware({ backend: new StateBackend() }),
+  ],
+});
+```
+
+:::
 
 ---
 
@@ -141,11 +156,40 @@ agent = create_agent(
     tools=[search],
     middleware=[
         FilesystemMiddleware(backend=backend),
-        SummarizationMiddleware(model=model, backend=backend),  # compresses at ~85% context fill
+        SummarizationMiddleware(model=model, backend=backend),
         MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
         SkillsMiddleware(backend=backend, sources=["./skills/"]),
     ],
 )
+```
+
+:::
+
+:::js
+
+```typescript
+import { createAgent } from "langchain";
+import {
+  FilesystemMiddleware,
+  MemoryMiddleware,
+  SkillsMiddleware,
+  SummarizationMiddleware,
+  StateBackend,
+} from "deepagents";
+
+const backend = new StateBackend();
+const model = "anthropic:claude-sonnet-4-6";
+
+const agent = createAgent({
+  model,
+  tools: [search],
+  middleware: [
+    new FilesystemMiddleware({ backend }),
+    new SummarizationMiddleware({ model, backend }),
+    new MemoryMiddleware({ backend, sources: ["./AGENTS.md"] }),
+    new SkillsMiddleware({ backend, sources: ["./skills/"] }),
+  ],
+});
 ```
 
 :::
@@ -203,6 +247,45 @@ agent = create_agent(
 
 :::
 
+:::js
+
+```typescript
+import { createAgent, TodoListMiddleware } from "langchain";
+import {
+  FilesystemMiddleware,
+  MemoryMiddleware,
+  SkillsMiddleware,
+  SubAgentMiddleware,
+  SummarizationMiddleware,
+  StateBackend,
+} from "deepagents";
+
+const backend = new StateBackend();
+const model = "anthropic:claude-sonnet-4-6";
+
+const researcher = {
+  name: "researcher",
+  description: "Deep-dives into a topic and returns a structured summary.",
+  systemPrompt: "You are a research specialist. Search thoroughly and cite your sources.",
+  tools: [search],
+};
+
+const agent = createAgent({
+  model,
+  tools: [search],
+  middleware: [
+    new FilesystemMiddleware({ backend }),
+    new SummarizationMiddleware({ model, backend }),
+    new MemoryMiddleware({ backend, sources: ["./AGENTS.md"] }),
+    new SkillsMiddleware({ backend, sources: ["./skills/"] }),
+    new TodoListMiddleware(),
+    new SubAgentMiddleware({ backend, subagents: [researcher] }),
+  ],
+});
+```
+
+:::
+
 ---
 
 ## Fault tolerance
@@ -231,6 +314,23 @@ agent = create_agent(
         ToolRetryMiddleware(max_retries=2),
     ],
 )
+```
+
+:::
+
+:::js
+
+```typescript
+import { createAgent, ModelRetryMiddleware, ToolRetryMiddleware } from "langchain";
+
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-6",
+  tools: [search],
+  middleware: [
+    new ModelRetryMiddleware({ maxRetries: 3 }),
+    new ToolRetryMiddleware({ maxRetries: 2 }),
+  ],
+});
 ```
 
 :::
@@ -293,6 +393,46 @@ agent = create_agent(
         HumanInTheLoopMiddleware(interrupt_on={"write_file": True}),
     ],
 )
+```
+
+:::
+
+:::js
+
+```typescript
+import { createAgent, HumanInTheLoopMiddleware, TodoListMiddleware } from "langchain";
+import {
+  FilesystemMiddleware,
+  MemoryMiddleware,
+  SkillsMiddleware,
+  SubAgentMiddleware,
+  SummarizationMiddleware,
+  StateBackend,
+} from "deepagents";
+
+const backend = new StateBackend();
+const model = "anthropic:claude-sonnet-4-6";
+
+const researcher = {
+  name: "researcher",
+  description: "Deep-dives into a topic and returns a structured summary.",
+  systemPrompt: "You are a research specialist. Search thoroughly and cite your sources.",
+  tools: [search],
+};
+
+const agent = createAgent({
+  model,
+  tools: [search],
+  middleware: [
+    new FilesystemMiddleware({ backend }),
+    new SummarizationMiddleware({ model, backend }),
+    new MemoryMiddleware({ backend, sources: ["./AGENTS.md"] }),
+    new SkillsMiddleware({ backend, sources: ["./skills/"] }),
+    new TodoListMiddleware(),
+    new SubAgentMiddleware({ backend, subagents: [researcher] }),
+    new HumanInTheLoopMiddleware({ interruptOn: { writeFile: true } }),
+  ],
+});
 ```
 
 :::
