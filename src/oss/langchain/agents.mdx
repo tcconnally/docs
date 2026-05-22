@@ -128,469 +128,121 @@ Design the harness around your use case: start with a clear prompt, then connect
 
 ### Model
 
-The [model](/oss/langchain/models) is the reasoning engine of your agent. It can be specified in multiple ways, supporting both static and dynamic model selection.
-
-#### Static model
-
-Static models are configured once when creating the agent and remain unchanged throughout execution. This is the most common and straightforward approach.
-
-To initialize a static model from a <Tooltip tip="A string that follows the format `provider:model` (e.g. openai:gpt-5)" cta="See mappings" href="https://reference.langchain.com/python/langchain/models/#langchain.chat_models.init_chat_model(model)">model identifier string</Tooltip>:
+Pass a model identifier string (`"provider:model"`) or an initialized model instance. See [Models](/oss/langchain/models) for parameters, provider setup, and dynamic model selection.
 
 :::python
-```python wrap
+```python
 from langchain.agents import create_agent
 
 agent = create_agent("openai:gpt-5.4", tools=tools)
 ```
 :::
 :::js
-```ts wrap
+```typescript
 import { createAgent } from "langchain";
 
-const agent = createAgent({
-  model: "openai:gpt-5.4",
-  tools: []
-});
+const agent = createAgent({ model: "openai:gpt-5.4", tools });
 ```
 :::
-
-:::python
-<Tip>
-    Model identifier strings support automatic inference (e.g., `"gpt-5.4"` will be inferred as `"openai:gpt-5.4"`). Refer to the @[reference][init_chat_model(model)] to see a full list of model identifier string mappings.
-</Tip>
-
-For more control over the model configuration, initialize a model instance directly using the provider package. In this example, we use @[`ChatOpenAI`]. See [Chat models](/oss/integrations/chat) for other available chat model classes.
-
-```python wrap
-from langchain.agents import create_agent
-from langchain_openai import ChatOpenAI
-
-model = ChatOpenAI(
-    model="gpt-5.4",
-    temperature=0.1,
-    max_tokens=1000,
-    timeout=30
-    # ... (other params)
-)
-agent = create_agent(model, tools=tools)
-```
-
-Model instances give you complete control over configuration. Use them when you need to set specific [parameters](/oss/langchain/models#parameters) like `temperature`, `max_tokens`, `timeouts`, `base_url`, and other provider-specific settings. Refer to the [reference](/oss/integrations/providers/all_providers) to see available params and methods on your model.
-:::
-:::js
-Model identifier strings use the format `provider:model` (e.g. `"openai:gpt-5.4"`). You may want more control over the model configuration, in which case you can initialize a model instance directly using the provider package:
-
-```ts wrap
-import { createAgent } from "langchain";
-import { ChatOpenAI } from "@langchain/openai";
-
-const model = new ChatOpenAI({
-  model: "gpt-5.4",
-  temperature: 0.1,
-  maxTokens: 1000,
-  timeout: 30
-});
-
-const agent = createAgent({
-  model,
-  tools: []
-});
-```
-
-Model instances give you complete control over configuration. Use them when you need to set specific parameters like `temperature`, `max_tokens`, `timeouts`, or configure API keys, `base_url`, and other provider-specific settings. Refer to the [API reference](/oss/integrations/providers/) to see available params and methods on your model.
-:::
-
-<Tip>
-For dynamic model selection at runtime, see [Dynamic model selection](/oss/langchain/models#dynamic-model-selection).
-</Tip>
 
 ### Tools
 
-Tools give agents the ability to take actions. Agents go beyond simple model-only tool binding by facilitating:
-
-- Multiple tool calls in sequence (triggered by a single prompt)
-- Parallel tool calls when appropriate
-- Dynamic tool selection based on previous results
-- Tool retry logic and error handling
-- State persistence across tool calls
-
-For more information, see [Tools](/oss/langchain/tools).
-
-#### Static tools
-
-Static tools are defined when creating the agent and remain unchanged throughout execution. This is the most common and straightforward approach.
-
-To define an agent with static tools, pass a list of the tools to the agent.
+Pass any Python callable, LangChain tool, or tool dict. See [Tools](/oss/langchain/tools) for tool definition, context access, and dynamic tool selection.
 
 :::python
-
-<Tip>
-Tools can be specified as plain Python functions or <Tooltip tip="A method that can suspend execution and resume at a later time">coroutines</Tooltip>.
-
-The [tool decorator](/oss/langchain/tools#create-tools) can be used to customize tool names, descriptions, argument schemas, and other properties.
-</Tip>
-
-```python wrap
+```python
 from langchain.tools import tool
-from langchain.agents import create_agent
-
 
 @tool
 def search(query: str) -> str:
     """Search for information."""
     return f"Results for: {query}"
 
-@tool
-def get_weather(location: str) -> str:
-    """Get weather information for a location."""
-    return f"Weather in {location}: Sunny, 72°F"
-
-agent = create_agent(model, tools=[search, get_weather])
+agent = create_agent("openai:gpt-5.4", tools=[search])
 ```
 :::
 :::js
-```ts wrap
-import * as z from "zod";
+```typescript
 import { createAgent, tool } from "langchain";
+import * as z from "zod";
 
-const search = tool(
-  ({ query }) => `Results for: ${query}`,
-  {
-    name: "search",
-    description: "Search for information",
-    schema: z.object({
-      query: z.string().describe("The query to search for"),
-    }),
-  }
-);
-
-const getWeather = tool(
-  ({ location }) => `Weather in ${location}: Sunny, 72°F`,
-  {
-    name: "get_weather",
-    description: "Get weather information for a location",
-    schema: z.object({
-      location: z.string().describe("The location to get weather for"),
-    }),
-  }
-);
-
-const agent = createAgent({
-  model: "gpt-5.4",
-  tools: [search, getWeather],
+const search = tool(({ query }) => `Results for: ${query}`, {
+  name: "search",
+  description: "Search for information",
+  schema: z.object({ query: z.string() }),
 });
+
+const agent = createAgent({ model: "openai:gpt-5.4", tools: [search] });
 ```
 :::
-
-If an empty tool list is provided, the agent will consist of a single LLM node without tool-calling capabilities.
-
-<Tip>
-For dynamic tool selection and runtime tool registration, see [Dynamic tool selection](/oss/langchain/tools#dynamic-tool-selection).
-</Tip>
 
 ### System prompt
 
-:::python
-You can shape how your agent approaches tasks by providing a prompt. The @[`system_prompt`] parameter can be provided as a string:
-:::
-
-:::js
-You can shape how your agent approaches tasks by providing a prompt. The `systemPrompt` parameter can be provided as a string:
-:::
+Shape how the agent approaches tasks. Accepts a string or `SystemMessage`. For dynamic prompts at runtime, use [middleware](/oss/langchain/middleware).
 
 :::python
-```python wrap
+```python
 agent = create_agent(
-    model,
-    tools,
-    system_prompt="You are a helpful assistant. Be concise and accurate."
+    "openai:gpt-5.4",
+    tools=tools,
+    system_prompt="You are a helpful assistant. Be concise and accurate.",
 )
 ```
 :::
 :::js
-```ts wrap
+```typescript
 const agent = createAgent({
-  model,
+  model: "openai:gpt-5.4",
   tools,
   systemPrompt: "You are a helpful assistant. Be concise and accurate.",
 });
 ```
 :::
 
-:::python
-When no @[`system_prompt`] is provided, the agent will infer its task from the messages directly.
+### Structured output
 
-The @[`system_prompt`] parameter accepts either a `str` or a @[`SystemMessage`]. Using a `SystemMessage` gives you more control over the prompt structure, which is useful for provider-specific features like [Anthropic's prompt caching](/oss/integrations/chat/anthropic#prompt-caching):
-
-```python wrap
-from langchain.agents import create_agent
-from langchain.messages import SystemMessage, HumanMessage
-
-literary_agent = create_agent(
-    model="google_genai:gemini-3.5-flash",
-    system_prompt=SystemMessage(
-        content=[
-            {
-                "type": "text",
-                "text": "You are an AI assistant tasked with analyzing literary works.",
-            },
-            {
-                "type": "text",
-                "text": "<the entire contents of 'Pride and Prejudice'>",
-                "cache_control": {"type": "ephemeral"}
-            }
-        ]
-    )
-)
-
-result = literary_agent.invoke(
-    {"messages": [HumanMessage("Analyze the major themes in 'Pride and Prejudice'.")]}
-)
-```
-
-The `cache_control` field with `{"type": "ephemeral"}` tells Anthropic to cache that content block, reducing latency and costs for repeated requests that use the same system prompt.
-:::
-
-:::js
-When no `systemPrompt` is provided, the agent will infer its task from the messages directly.
-
-The `systemPrompt` parameter accepts either a `string` or a `SystemMessage`. Using a `SystemMessage` gives you more control over the prompt structure, which is useful for provider-specific features like [Anthropic's prompt caching](/oss/integrations/chat/anthropic#prompt-caching):
-
-```ts wrap
-import { createAgent } from "langchain";
-import { SystemMessage, HumanMessage } from "@langchain/core/messages";
-
-const literaryAgent = createAgent({
-  model: "google_genai:gemini-3.5-flash",
-  systemPrompt: new SystemMessage({
-    content: [
-      {
-        type: "text",
-        text: "You are an AI assistant tasked with analyzing literary works.",
-      },
-      {
-        type: "text",
-        text: "<the entire contents of 'Pride and Prejudice'>",
-        cache_control: { type: "ephemeral" }
-      }
-    ]
-  })
-});
-
-const result = await literaryAgent.invoke({
-  messages: [new HumanMessage("Analyze the major themes in 'Pride and Prejudice'.")]
-});
-```
-
-The `cache_control` field with `{ type: "ephemeral" }` tells Anthropic to cache that content block, reducing latency and costs for repeated requests that use the same system prompt.
-:::
-
-#### Dynamic system prompt
-
-For more advanced use cases where you need to modify the system prompt based on runtime context or agent state, you can use [middleware](/oss/langchain/middleware).
+Return a validated schema from the agent using `response_format=`. See [Structured output](/oss/langchain/structured-output) for strategies and examples.
 
 :::python
-
-The @[`@dynamic_prompt`] decorator creates middleware that generates system prompts based on the model request:
-
-```python wrap
-from typing import TypedDict
-
+```python
+from pydantic import BaseModel
 from langchain.agents import create_agent
-from langchain.agents.middleware import dynamic_prompt, ModelRequest
 
+class Answer(BaseModel):
+    summary: str
+    confidence: float
 
-class Context(TypedDict):
-    user_role: str
-
-@dynamic_prompt
-def user_role_prompt(request: ModelRequest) -> str:
-    """Generate system prompt based on user role."""
-    user_role = request.runtime.context.get("user_role", "user")
-    base_prompt = "You are a helpful assistant."
-
-    if user_role == "expert":
-        return f"{base_prompt} Provide detailed technical responses."
-    elif user_role == "beginner":
-        return f"{base_prompt} Explain concepts simply and avoid jargon."
-
-    return base_prompt
-
-agent = create_agent(
-    model="gpt-5.4",
-    tools=[web_search],
-    middleware=[user_role_prompt],
-    context_schema=Context
-)
-
-# The system prompt will be set dynamically based on context
-result = agent.invoke(
-    {"messages": [{"role": "user", "content": "Explain machine learning"}]},
-    context={"user_role": "expert"}
-)
+agent = create_agent("openai:gpt-5.4", tools=tools, response_format=Answer)
+result = agent.invoke({"messages": [{"role": "user", "content": "Summarize AI trends"}]})
+result["structured_response"]  # Answer(summary=..., confidence=...)
 ```
 :::
-
 :::js
-```typescript wrap
+```typescript
 import * as z from "zod";
-import { createAgent, dynamicSystemPromptMiddleware } from "langchain";
 
-const contextSchema = z.object({
-  userRole: z.enum(["expert", "beginner"]),
-});
+const Answer = z.object({ summary: z.string(), confidence: z.number() });
 
-const agent = createAgent({
-  model: "gpt-5.4",
-  tools: [/* ... */],
-  contextSchema,
-  middleware: [
-    dynamicSystemPromptMiddleware<z.infer<typeof contextSchema>>((state, runtime) => {
-      const userRole = runtime.context.userRole || "user";
-      const basePrompt = "You are a helpful assistant.";
-
-      if (userRole === "expert") {
-        return `${basePrompt} Provide detailed technical responses.`;
-      } else if (userRole === "beginner") {
-        return `${basePrompt} Explain concepts simply and avoid jargon.`;
-      }
-      return basePrompt;
-    }),
-  ],
-});
-
-// The system prompt will be set dynamically based on context
-const result = await agent.invoke(
-  { messages: [{ role: "user", content: "Explain machine learning" }] },
-  { context: { userRole: "expert" } }
-);
+const agent = createAgent({ model: "openai:gpt-5.4", tools, responseFormat: Answer });
+const result = await agent.invoke({ messages: [{ role: "user", content: "Summarize AI trends" }] });
+result.structuredResponse; // { summary: ..., confidence: ... }
 ```
 :::
-
-<Tip>
-For more details on message types and formatting, see [Messages](/oss/langchain/messages). For comprehensive middleware documentation, see [Middleware](/oss/langchain/middleware).
-</Tip>
 
 ### Name
 
-:::python
-Set an optional @[`name`][create_agent(name)] for the agent. This is used as the node identifier when adding the agent as a subgraph in [multi-agent systems](/oss/langchain/multi-agent):
+Optional identifier used as the node name when embedding this agent as a subgraph in [multi-agent](/oss/langchain/multi-agent) systems.
 
+:::python
 ```python
-agent = create_agent(
-    model,
-    tools,
-    name="research_assistant"
-)
+agent = create_agent("openai:gpt-5.4", tools=tools, name="research_assistant")
 ```
 :::
 :::js
-Set an optional `name` for the agent. This is used as the node identifier when adding the agent as a subgraph in [multi-agent systems](/oss/langchain/multi-agent):
-
-```ts
-const agent = createAgent({
-  model,
-  tools,
-  name: "research_assistant",
-});
+```typescript
+const agent = createAgent({ model: "openai:gpt-5.4", tools, name: "research_assistant" });
 ```
 :::
-
-<Warning>
-    Prefer `snake_case` for agent names (e.g., `research_assistant` instead of `Research Assistant`). Some model providers reject names containing spaces or special characters with errors. Using alphanumeric characters, underscores, and hyphens only ensures compatibility across all providers. The same applies to [tool names](/oss/langchain/tools).
-</Warning>
-
-### Structured output
-
-:::python
-
-In some situations, you may want the agent to return an output in a specific format. LangChain provides strategies for structured output via the @[`response_format`][create_agent(response_format)] parameter.
-
-#### ToolStrategy
-
-`ToolStrategy` uses artificial tool calling to generate structured output. This works with any model that supports tool calling. `ToolStrategy` should be used when provider-native structured output (via [`ProviderStrategy`](#providerstrategy)) is not available or reliable.
-
-```python wrap
-from pydantic import BaseModel
-from langchain.agents import create_agent
-from langchain.agents.structured_output import ToolStrategy
-
-
-class ContactInfo(BaseModel):
-    name: str
-    email: str
-    phone: str
-
-agent = create_agent(
-    model="gpt-5.4-mini",
-    tools=[search_tool],
-    response_format=ToolStrategy(ContactInfo)
-)
-
-result = agent.invoke({
-    "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
-})
-
-result["structured_response"]
-# ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
-```
-
-#### ProviderStrategy
-
-`ProviderStrategy` uses the model provider's native structured output generation. This is more reliable but only works with providers that support native structured output:
-
-```python wrap
-from langchain.agents.structured_output import ProviderStrategy
-
-agent = create_agent(
-    model="gpt-5.4",
-    response_format=ProviderStrategy(ContactInfo)
-)
-```
-
-<Note>
-As of `langchain 1.0`, simply passing a schema (e.g., `response_format=ContactInfo`) will default to `ProviderStrategy` if the model supports native structured output. It will fall back to `ToolStrategy` otherwise.
-</Note>
-
-:::
-:::js
-In some situations, you may want the agent to return an output in a specific format. LangChain provides a simple, universal way to do this with the `responseFormat` parameter.
-
-```ts wrap
-import * as z from "zod";
-import { createAgent } from "langchain";
-
-const ContactInfo = z.object({
-  name: z.string(),
-  email: z.string(),
-  phone: z.string(),
-});
-
-const agent = createAgent({
-  model: "gpt-5.4",
-  responseFormat: ContactInfo,
-});
-
-const result = await agent.invoke({
-  messages: [
-    {
-      role: "user",
-      content: "Extract contact info from: John Doe, john@example.com, (555) 123-4567",
-    },
-  ],
-});
-
-console.log(result.structuredResponse);
-// {
-//   name: 'John Doe',
-//   email: 'john@example.com',
-//   phone: '(555) 123-4567'
-// }
-```
-:::
-<Tip>
-    To learn about structured output, see [Structured output](/oss/langchain/structured-output).
-</Tip>
 
 ## Invocation
 
