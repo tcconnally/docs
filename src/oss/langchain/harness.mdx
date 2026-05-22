@@ -29,7 +29,7 @@ The execution environment is how an agent acts in the world. It starts with the 
 |---|---|
 | Custom tools (functions, APIs) | `tools=` parameter on `create_agent` |
 | Virtual filesystem + file tools | @[`FilesystemMiddleware`] |
-| JavaScript REPL (QuickJS) | @[`CodeInterpreterMiddleware`] (`langchain_quickjs`) |
+| JavaScript REPL (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) (`langchain_quickjs`) |
 | Persistent shell across turns | @[`ShellToolMiddleware`] |
 | Isolated sandbox with shell execution | [`SandboxBackend`](/oss/deepagents/sandboxes) |
 
