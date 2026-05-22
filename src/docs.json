@@ -2910,6 +2910,14 @@
     {
       "source": "/langsmith/fleet/workspace-settings",
       "destination": "/langsmith/fleet/workspace-admin"
+    },
+    {
+      "source": "/oss/python/langchain/harness",
+      "destination": "/oss/python/langchain/agents"
+    },
+    {
+      "source": "/oss/javascript/langchain/harness",
+      "destination": "/oss/javascript/langchain/agents"
     }
   ]
 }
