@@ -9,7 +9,9 @@ This guide builds a data analysis agent from first principles using `create_agen
 The agent we'll build:
 1. Accepts a CSV file for analysis
 2. Writes and executes Python code in an isolated sandbox
-3. Produces exploratory analysis and visualizations
+3. Delegates visualization work to a specialized subagent
+4. Loads domain knowledge from a skills file
+5. Pauses for human review before sharing results
 
 ## Setup
 
@@ -30,23 +32,17 @@ export LANGSMITH_API_KEY=...
 
 ## Step 1: The minimal agent
 
-A model, a tool, a loop. Nothing else yet.
+A model, a loop. Nothing else yet.
 
 :::python
 ```python
 from langchain.agents import create_agent
-from langchain.tools import tool
 
-@tool
-def analyze(instructions: str) -> str:
-    """Analyze data according to the given instructions."""
-    return "Analysis placeholder"
-
-agent = create_agent("anthropic:claude-sonnet-4-6", tools=[analyze])
+agent = create_agent("anthropic:claude-sonnet-4-6", tools=[])
 ```
 :::
 
-This runs, but the agent has no filesystem and no way to execute code. The next steps fix that.
+This runs, but the agent has no filesystem, no way to execute code, and no context management. The next steps add those.
 
 ---
 
@@ -75,11 +71,7 @@ agent = create_agent(
 
 @[`FilesystemMiddleware`] adds `read_file`, `write_file`, `edit_file`, `glob`, and `grep`. Because `LangSmithSandbox` implements the sandbox protocol, it also adds `execute` — the agent can now run shell commands.
 
----
-
-## Step 3: Upload data and run
-
-Upload a CSV to the sandbox and invoke the agent:
+Upload a CSV and invoke:
 
 :::python
 ```python
@@ -92,27 +84,21 @@ rows = [
     ["2025-08-03", "Widget A", 7, 175],
     ["2025-08-04", "Widget C", 3, 90],
 ]
-
 buf = io.StringIO()
 csv.writer(buf).writerows(rows)
 backend.upload("sales.csv", buf.getvalue().encode())
 
 result = agent.invoke({
-    "messages": [{
-        "role": "user",
-        "content": "Analyze sales.csv. Summarize trends and generate a bar chart of revenue by product.",
-    }]
+    "messages": [{"role": "user", "content": "Analyze sales.csv. Summarize trends."}]
 })
 ```
 :::
 
-The agent writes a Python script, executes it in the sandbox, and returns its findings.
-
 ---
 
-## Step 4: Add context management
+## Step 3: Add context management
 
-For longer analysis sessions the context window fills up. `SummarizationMiddleware` compresses history automatically so the agent can keep working without hitting token limits.
+For longer analysis sessions the context window fills. `SummarizationMiddleware` compresses history automatically so the agent keeps working without hitting token limits.
 
 :::python
 ```python
@@ -133,25 +119,44 @@ agent = create_agent(
 
 ---
 
-## Step 5: Add a custom tool
+## Step 4: Add skills
 
-The agent can call any tool you define. Here we add one to download the generated chart from the sandbox:
+Skills give the agent on-demand domain knowledge via progressive disclosure — loaded only when the current task calls for it. Create a skill file for data analysis patterns:
 
 :::python
 ```python
-from langchain.tools import tool
+# analysis-skills/pandas-patterns/SKILL.md
+```
+:::
 
-@tool
-def download_artifact(path: str) -> bytes:
-    """Download a file from the sandbox by path."""
-    return backend.download(path)
+```markdown
+---
+name: pandas-patterns
+description: Common pandas and matplotlib patterns for data analysis and visualization
+---
+
+## Data loading
+Use `pd.read_csv()` for CSV files. Always check `df.info()` and `df.describe()` first.
+
+## Visualization
+Use `matplotlib` for bar charts, `seaborn` for statistical plots.
+Save figures with `plt.savefig("output.png", dpi=150, bbox_inches="tight")`.
+
+## Reporting
+Write a markdown summary to `report.md` alongside any generated charts.
+```
+
+:::python
+```python
+from deepagents.middleware import FilesystemMiddleware, SkillsMiddleware, SummarizationMiddleware
 
 agent = create_agent(
     model=model,
-    tools=[download_artifact],
+    tools=[],
     middleware=[
         FilesystemMiddleware(backend=backend),
         SummarizationMiddleware(model=model, backend=backend),
+        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
     ],
 )
 ```
@@ -159,15 +164,92 @@ agent = create_agent(
 
 ---
 
+## Step 5: Add a visualization subagent
+
+Some tasks benefit from isolation. A visualization subagent runs in its own context window, keeping chart generation separate from the main analysis — and enabling parallel execution.
+
+:::python
+```python
+from langchain.agents.middleware import TodoListMiddleware
+from deepagents import SubAgent
+from deepagents.middleware import (
+    FilesystemMiddleware,
+    SkillsMiddleware,
+    SubAgentMiddleware,
+    SummarizationMiddleware,
+)
+
+visualizer: SubAgent = {
+    "name": "visualizer",
+    "description": "Generates charts and visualizations from data files in the sandbox.",
+    "system_prompt": "You are a data visualization specialist. Write Python scripts using matplotlib and seaborn. Save all figures as PNG files.",
+    "tools": [],
+}
+
+agent = create_agent(
+    model=model,
+    tools=[],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[visualizer]),
+    ],
+)
+```
+:::
+
+The main agent handles analysis and planning; it delegates chart generation to the `visualizer` subagent via the `task` tool.
+
+---
+
+## Step 6: Add human-in-the-loop
+
+Before sharing results, pause for human review. @[`HumanInTheLoopMiddleware`] intercepts specific tool calls and waits for approval before proceeding.
+
+:::python
+```python
+from langchain.agents.middleware import HumanInTheLoopMiddleware, TodoListMiddleware
+from deepagents.middleware import (
+    FilesystemMiddleware,
+    SkillsMiddleware,
+    SubAgentMiddleware,
+    SummarizationMiddleware,
+)
+from langgraph.checkpoint.memory import MemorySaver
+
+agent = create_agent(
+    model=model,
+    tools=[],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[visualizer]),
+        HumanInTheLoopMiddleware(interrupt_on={"write_file": lambda args: args.get("path", "").endswith(".md")}),
+    ],
+    checkpointer=MemorySaver(),
+)
+```
+:::
+
+The agent pauses whenever it tries to write a `.md` report file, surfacing the content for human review before committing it.
+
+---
+
 ## What you built
 
-The stack above is a focused data analysis harness:
+The full harness:
 
-| Component | What it adds |
+| Middleware | What it adds |
 |---|---|
 | @[`FilesystemMiddleware`] + `LangSmithSandbox` | Isolated filesystem + `execute` tool |
 | @[`SummarizationMiddleware`] | Automatic context compression |
-| Custom `download_artifact` tool | Domain-specific action |
+| @[`SkillsMiddleware`] | Domain knowledge loaded on demand |
+| @[`TodoListMiddleware`] + @[`SubAgentMiddleware`] | Parallel visualization subagent |
+| @[`HumanInTheLoopMiddleware`] | Human review before publishing |
 
 This is the same foundation as `create_deep_agent` — assembled manually so you control exactly what's included.
 
