@@ -90,7 +90,7 @@ You extend it through two levers:
 - **Arguments** — `tools=` and `system_prompt=` wire in capabilities directly.
 - **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
-Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations.
+Design the harness around your use case: start with a clear prompt, then connect the agent tightly to the data and environment the task needs. A research agent connects to search tools, a filesystem for findings, and summarization for long runs. A coding agent needs filesystem access, a sandbox, and human-in-the-loop gates for risky writes.
 
 ---
 

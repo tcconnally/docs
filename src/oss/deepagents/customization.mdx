@@ -50,34 +50,34 @@ import CustomizationStructuredOutputPy from '/snippets/code-samples/customizatio
 import CustomizationStructuredOutputJs from '/snippets/code-samples/customization-structured-output-js.mdx';
 
 :::python
-`create_deep_agent` is a pre-assembled harness—[`create_agent`][langchain.agents.create_agent] plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
+@[`create_deep_agent`] is @[`create_agent`] plus a pre-assembled middleware stack. These parameters configure each layer.
 
 | Category | Parameters | What it controls |
 |---|---|---|
-| **Execution environment** | `tools=`, `backend=`, `permissions=` | Domain tools, virtual filesystem or sandbox, path-level access control |
-| **Context management** | `memory=`, `skills=`, `middleware=` | `AGENTS.md` injection, skill disclosure, summarization |
-| **Delegation** | `subagents=` | Ephemeral subagents and background tasks |
-| **Steering** | `interrupt_on=`, `checkpointer=` | Human approval gates and state persistence |
-| **Model & persona** | `model=`, `system_prompt=` | Which model to use and the agent's instructions |
-| **Output** | `response_format=` | Structured response schema |
-| **Harness-wide tweaks** | [profiles](#profiles) | Per-model prompt overrides, tool exclusions, middleware additions |
+| **Execution environment** | `tools=`, `backend=`, `permissions=` | Tools, filesystem backend, and path permissions |
+| **Context management** | `memory=`, `skills=`, `middleware=` | Persistent memory, skills, and extra middleware |
+| **Delegation** | `subagents=` | Ephemeral subagents for isolated subtasks |
+| **Steering** | `interrupt_on=` | Human approval gates |
+| **Model & persona** | `model=`, `system_prompt=` | Model selection and system prompt |
+| **Output** | `response_format=` | Structured output schema |
+| **Harness-wide tweaks** | [profiles](#profiles) | Per-model defaults as a reusable bundle |
 
-To compose a fully custom harness from scratch with `create_agent` and individual middleware, see [Agent harness](/oss/langchain/harness).
+To compose a fully custom harness from scratch, see [Agent harness](/oss/langchain/harness).
 
 For the full parameter list, see the @[`create_deep_agent`] API reference.
 :::
 
 :::js
-`createDeepAgent` is a pre-assembled harness—`createAgent` plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
+`createDeepAgent` is `createAgent` plus a pre-assembled middleware stack. These parameters configure each layer.
 
 | Category | Parameters | What it controls |
 |---|---|---|
-| **Execution environment** | `tools`, `backend`, `permissions` | Domain tools, virtual filesystem or sandbox, path-level access control |
-| **Context management** | `memory`, `skills`, `middleware` | `AGENTS.md` injection, skill disclosure, summarization |
-| **Delegation** | `subagents` | Ephemeral subagents and background tasks |
-| **Steering** | `interruptOn`, `checkpointer` | Human approval gates and state persistence |
-| **Model & persona** | `model`, `systemPrompt` | Which model to use and the agent's instructions |
-| **Output** | `responseFormat` | Structured response schema |
+| **Execution environment** | `tools`, `backend`, `permissions` | Tools, filesystem backend, and path permissions |
+| **Context management** | `memory`, `skills`, `middleware` | Persistent memory, skills, and extra middleware |
+| **Delegation** | `subagents` | Ephemeral subagents for isolated subtasks |
+| **Steering** | `interruptOn` | Human approval gates |
+| **Model & persona** | `model`, `systemPrompt` | Model selection and system prompt |
+| **Output** | `responseFormat` | Structured output schema |
 
 For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/types/CreateDeepAgentParams) API reference.
 :::
