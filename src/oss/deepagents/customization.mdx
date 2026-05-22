@@ -50,7 +50,7 @@ import CustomizationStructuredOutputPy from '/snippets/code-samples/customizatio
 import CustomizationStructuredOutputJs from '/snippets/code-samples/customization-structured-output-js.mdx';
 
 :::python
-`create_deep_agent` is a pre-assembled harness — [`create_agent`][langchain.agents.create_agent] plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
+`create_deep_agent` is a pre-assembled harness—[`create_agent`][langchain.agents.create_agent] plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
 
 | Category | Parameters | What it controls |
 |---|---|---|
@@ -68,7 +68,7 @@ For the full parameter list, see the @[`create_deep_agent`] API reference.
 :::
 
 :::js
-`createDeepAgent` is a pre-assembled harness — `createAgent` plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
+`createDeepAgent` is a pre-assembled harness—`createAgent` plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
 
 | Category | Parameters | What it controls |
 |---|---|---|
@@ -537,7 +537,7 @@ You can pass one or more file paths to the `memory` parameter when creating your
 
 ## Profiles
 
-A [harness profile](/oss/deepagents/profiles#harness-profiles) is a reusable bundle of per-model configuration that `create_deep_agent` applies automatically when the matching model is selected. Profiles are the right tool when you want behaviour that follows the model — not the call site — such as a system prompt suffix tuned for Claude's instruction style, tool descriptions rewritten for GPT, or extra middleware that only makes sense with a specific provider.
+A [harness profile](/oss/deepagents/profiles#harness-profiles) is a reusable bundle of per-model configuration that `create_deep_agent` applies automatically when the matching model is selected. Profiles are the right tool when you want behaviour that follows the model—not the call site—such as a system prompt suffix tuned for Claude's instruction style, tool descriptions rewritten for GPT, or extra middleware that only makes sense with a specific provider.
 
 A single profile can carry: a custom base system prompt (`base_system_prompt`), an appended suffix (`system_prompt_suffix`), tool description overrides, tools or middleware to exclude, additional middleware to inject, and edits to the auto-added general-purpose subagent.
 
@@ -571,7 +571,7 @@ For more information and examples, see [response format](/oss/langchain/structur
 
 ## Advanced
 
-`create_deep_agent` pre-assembles a middleware stack on top of [`create_agent`][langchain.agents.create_agent]. To build a fully custom agent — choosing exactly which capabilities to include — see [Agent harness](/oss/langchain/harness).
+`create_deep_agent` pre-assembles a middleware stack on top of [`create_agent`][langchain.agents.create_agent]. To build a fully custom agent—choosing exactly which capabilities to include—see [Agent harness](/oss/langchain/harness).
 
 :::
 

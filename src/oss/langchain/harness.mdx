@@ -6,7 +6,7 @@ description: create_agent is the minimal loop. Compose only what you need.
 
 [`create_agent`][langchain.agents.create_agent] is a model calling tools in a loop. That is the entire primitive.
 
-Everything else — filesystems, memory, subagents, guardrails — comes from middleware. You pick which pieces to include. The table below maps every built-in capability to its category; the sections that follow show how to compose them layer by layer.
+Everything else—filesystems, memory, subagents, guardrails—comes from middleware. You pick which pieces to include. The table below maps every built-in capability to its category; the sections that follow show how to compose them layer by layer.
 
 | Category | What it covers |
 |---|---|
@@ -23,7 +23,7 @@ For the full middleware reference with configuration examples, see [Prebuilt mid
 
 ## Execution environment
 
-The execution environment is how an agent acts in the world. It starts with the tools you wire up — custom functions, APIs, databases — and extends with middleware that adds a managed filesystem and code execution.
+The execution environment is how an agent acts in the world. It starts with the tools you wire up—custom functions, APIs, databases—and extends with middleware that adds a managed filesystem and code execution.
 
 | Capability | How to add |
 |---|---|
@@ -86,7 +86,7 @@ Fault tolerance keeps agents running when models or tools fail transiently.
 
 :::python
 
-The following example builds a research assistant step by step. Each layer adds one category of capability — stop wherever your use case is satisfied.
+The following example builds a research assistant step by step. Each layer adds one category of capability—stop wherever your use case is satisfied.
 
 ```python
 from langchain.agents import create_agent
@@ -98,7 +98,7 @@ agent = create_agent(
 )
 ```
 
-**Add execution environment** — give the agent a filesystem and the ability to run code:
+**Add execution environment**—give the agent a filesystem and the ability to run code:
 
 ```python
 from langchain.agents import create_agent
@@ -116,7 +116,7 @@ agent = create_agent(
 )
 ```
 
-**Add context management** — compress history automatically and inject domain knowledge:
+**Add context management**—compress history automatically and inject domain knowledge:
 
 ```python
 from langchain.agents import create_agent
@@ -138,7 +138,7 @@ agent = create_agent(
 )
 ```
 
-**Add planning and delegation** — track tasks and spawn subagents for isolated subtasks:
+**Add planning and delegation**—track tasks and spawn subagents for isolated subtasks:
 
 ```python
 from langchain.agents import create_agent
@@ -171,7 +171,7 @@ agent = create_agent(
 )
 ```
 
-**Add steering** — pause for human review before high-impact actions:
+**Add steering**—pause for human review before high-impact actions:
 
 ```python
 from langchain.agents import create_agent
@@ -210,5 +210,5 @@ agent = create_agent(
 :::
 
 <Tip>
-`create_deep_agent` pre-assembles this stack for long-running coding and research tasks — filesystem, summarization, subagents, and prompt caching are included by default. See [Deep Agents](/oss/deepagents/harness) for the full pre-built harness.
+`create_deep_agent` pre-assembles this stack for long-running coding and research tasks—filesystem, summarization, subagents, and prompt caching are included by default. See [Deep Agents](/oss/deepagents/harness) for the full pre-built harness.
 </Tip>
