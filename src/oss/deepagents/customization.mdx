@@ -50,35 +50,34 @@ import CustomizationStructuredOutputPy from '/snippets/code-samples/customizatio
 import CustomizationStructuredOutputJs from '/snippets/code-samples/customization-structured-output-js.mdx';
 
 :::python
-`create_deep_agent` has the following core configuration options:
-:::
+`create_deep_agent` is a pre-assembled harness — [`create_agent`][langchain.agents.create_agent] plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
 
-:::js
-`createDeepAgent` has the following configuration options:
-:::
+| Category | Parameters | What it controls |
+|---|---|---|
+| **Execution environment** | `tools=`, `backend=`, `permissions=` | Domain tools, virtual filesystem or sandbox, path-level access control |
+| **Context management** | `memory=`, `skills=`, `middleware=` | `AGENTS.md` injection, skill disclosure, summarization |
+| **Delegation** | `subagents=` | Ephemeral subagents and background tasks |
+| **Steering** | `interrupt_on=`, `checkpointer=` | Human approval gates and state persistence |
+| **Model & persona** | `model=`, `system_prompt=` | Which model to use and the agent's instructions |
+| **Output** | `response_format=` | Structured response schema |
+| **Harness-wide tweaks** | [profiles](#profiles) | Per-model prompt overrides, tool exclusions, middleware additions |
 
-- [Model](#model)
-- [Tools](#tools)
-- [System Prompt](#system-prompt)
-- [Middleware](#middleware), including [prebuilt middleware](#prebuilt-middleware) and [custom middleware](#custom-middleware)
-- [Interpreters](#interpreters)
-- [Subagents](#subagents)
-- [Backends (virtual filesystems)](#backends)
-- [Human-in-the-loop](#human-in-the-loop)
-- [Skills](#skills)
-- [Memory](#memory)
-:::python
-- [Profiles](#profiles)
-:::
-
-:::python
-<CreateDeepAgentConfigOptionsPy />
+To compose a fully custom harness from scratch with `create_agent` and individual middleware, see [Agent harness](/oss/langchain/harness).
 
 For the full parameter list, see the @[`create_deep_agent`] API reference.
 :::
 
 :::js
-<CreateDeepAgentConfigOptionsJs />
+`createDeepAgent` is a pre-assembled harness — `createAgent` plus a stack of middleware covering execution environment, context management, delegation, and steering. The parameters below are the toggles for each piece.
+
+| Category | Parameters | What it controls |
+|---|---|---|
+| **Execution environment** | `tools`, `backend`, `permissions` | Domain tools, virtual filesystem or sandbox, path-level access control |
+| **Context management** | `memory`, `skills`, `middleware` | `AGENTS.md` injection, skill disclosure, summarization |
+| **Delegation** | `subagents` | Ephemeral subagents and background tasks |
+| **Steering** | `interruptOn`, `checkpointer` | Human approval gates and state persistence |
+| **Model & persona** | `model`, `systemPrompt` | Which model to use and the agent's instructions |
+| **Output** | `responseFormat` | Structured response schema |
 
 For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/types/CreateDeepAgentParams) API reference.
 :::
@@ -538,11 +537,13 @@ You can pass one or more file paths to the `memory` parameter when creating your
 
 ## Profiles
 
-A [harness profile](/oss/deepagents/profiles#harness-profiles) packages per-provider or per-model tweaks (system prompt suffixes, tool description overrides, excluded tools or middleware, extra middleware, and general-purpose subagent edits) so `create_deep_agent` applies them automatically when the matching model is selected.
+A [harness profile](/oss/deepagents/profiles#harness-profiles) is a reusable bundle of per-model configuration that `create_deep_agent` applies automatically when the matching model is selected. Profiles are the right tool when you want behaviour that follows the model — not the call site — such as a system prompt suffix tuned for Claude's instruction style, tool descriptions rewritten for GPT, or extra middleware that only makes sense with a specific provider.
+
+A single profile can carry: a custom base system prompt (`base_system_prompt`), an appended suffix (`system_prompt_suffix`), tool description overrides, tools or middleware to exclude, additional middleware to inject, and edits to the auto-added general-purpose subagent.
 
 <CustomizationProfilesPy />
 
-See [Profiles](/oss/deepagents/profiles) for registration keys, merge semantics, and plugin packaging. A narrower companion API, [provider profiles](/oss/deepagents/profiles#provider-profiles), packages model-construction arguments for a provider.
+See [Profiles](/oss/deepagents/profiles) for registration keys, merge semantics, and plugin packaging. A narrower companion API, [provider profiles](/oss/deepagents/profiles#provider-profiles), packages model-construction arguments (API keys, timeouts, retry settings) for a provider.
 
 :::
 
