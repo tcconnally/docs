@@ -4,7 +4,7 @@ sidebarTitle: Deep Agent
 description: Build a data analysis agent step by step using create_agent and deepagents middleware.
 ---
 
-This guide builds a data analysis agent from first principles using `create_agent` and deepagents middleware. Rather than starting with `create_deep_agent`, we assemble the harness one piece at a time — so you can see exactly what each component adds and swap in only what your use case needs.
+This guide builds a data analysis agent from first principles using `create_agent` and deepagents middleware. Rather than starting with `create_deep_agent`, we assemble the harness one piece at a time: so you can see exactly what each component adds and swap in only what your use case needs.
 
 The agent we'll build:
 1. Accepts a CSV file for analysis
@@ -47,7 +47,7 @@ This runs, but the agent has no filesystem and no way to execute code. The next 
 
 ## Step 2: Add a sandbox backend
 
-`LangSmithSandbox` gives the agent an isolated environment with a filesystem and an `execute` tool for running shell commands. The agent can install packages, write scripts, and run them — without touching the host.
+`LangSmithSandbox` gives the agent an isolated environment with a filesystem and an `execute` tool for running shell commands. The agent can install packages, write scripts, and run them: without touching the host.
 
 :::python
 ```python
@@ -68,7 +68,7 @@ agent = create_agent(
 ```
 :::
 
-@[`FilesystemMiddleware`] adds `read_file`, `write_file`, `edit_file`, `glob`, and `grep`. Because `LangSmithSandbox` implements the sandbox protocol, it also adds `execute` — the agent can now run shell commands.
+@[`FilesystemMiddleware`] adds `read_file`, `write_file`, `edit_file`, `glob`, and `grep`. Because `LangSmithSandbox` implements the sandbox protocol, it also adds `execute`: the agent can now run shell commands.
 
 Upload a CSV and invoke:
 
@@ -120,7 +120,7 @@ agent = create_agent(
 
 ## Step 4: Add skills
 
-Skills give the agent on-demand domain knowledge via progressive disclosure — loaded only when the current task calls for it. Create a skill file in your skills directory:
+Skills give the agent on-demand domain knowledge via progressive disclosure: loaded only when the current task calls for it. Create a skill file in your skills directory:
 
 ```
 skills/
@@ -165,7 +165,7 @@ agent = create_agent(
 
 ## Step 5: Add a visualization subagent
 
-Some tasks benefit from isolation. A visualization subagent runs in its own context window, keeping chart generation separate from the main analysis — and enabling parallel execution.
+Some tasks benefit from isolation. A visualization subagent runs in its own context window, keeping chart generation separate from the main analysis: and enabling parallel execution.
 
 :::python
 ```python
@@ -212,7 +212,7 @@ The main agent handles analysis and planning; it delegates chart generation to t
 | @[`SkillsMiddleware`] | Domain knowledge loaded on demand |
 | @[`TodoListMiddleware`] + @[`SubAgentMiddleware`] | Parallel visualization subagent |
 
-This is the same foundation as `create_deep_agent` — assembled manually so you control exactly what's included. The possibilities don't end here: see [Prebuilt middleware](/oss/langchain/middleware/built-in) for the full list of composable capabilities, and the @[`create_agent`] reference for all configuration options.
+This is the same foundation as `create_deep_agent`: assembled manually so you control exactly what's included. The possibilities don't end here: see [Prebuilt middleware](/oss/langchain/middleware/built-in) for the full list of composable capabilities, and the @[`create_agent`] reference for all configuration options.
 
 :::python
 For a pre-assembled version, see @[`create_deep_agent`] and [Customize Deep Agents](/oss/deepagents/customization). For the full data analysis example using `create_deep_agent`, see [Data analysis](/oss/deepagents/data-analysis).

@@ -1,17 +1,17 @@
 ---
 title: LangChain overview
 sidebarTitle: Overview
-description: LangChain provides create_agent — a minimal, highly configurable agent harness. Compose exactly the agent your use case needs from model, tools, prompt, and middleware.
+description: LangChain provides create_agent: a minimal, highly configurable agent harness. Compose exactly the agent your use case needs from model, tools, prompt, and middleware.
 ---
 
-**Agent = Model + Harness.** LangChain provides `create_agent` — a minimal, highly configurable harness. The harness is everything around the model loop: the prompt, the tools, and any middleware that shapes behavior. Start with the primitives and compose exactly what your use case needs. Supports [OpenAI, Anthropic, Google, and more](/oss/integrations/providers/overview).
+**Agent = Model + Harness.** LangChain provides `create_agent`: a minimal, highly configurable harness. The harness is everything around the model loop: the prompt, the tools, and any middleware that shapes behavior. Start with the primitives and compose exactly what your use case needs. Supports [OpenAI, Anthropic, Google, and more](/oss/integrations/providers/overview).
 
 <Tip>
 **LangChain vs. Deep Agents vs. LangGraph**
 
-[Deep Agents](/oss/deepagents/overview/) (`create_deep_agent`) pre-assembles a production-ready harness on top of LangChain: filesystem, summarization, subagents, and prompt caching included by default. Start here when you want common patterns pre-built.
+[Deep Agents](/oss/deepagents/overview/) (`create_deep_agent`) pre-assembles a production-ready harness on top of LangChain: filesystem, summarization, subagents, and prompt caching included by default. Start here when you want common patterns prebuilt.
 
-[LangChain](/oss/langchain/agents) gives you `create_agent` — a minimal harness you configure and extend with middleware. Full control, composable primitives, take exactly what your use case needs.
+[LangChain](/oss/langchain/agents) gives you `create_agent`: a minimal harness you configure and extend with middleware. Full control, composable primitives, take exactly what your use case needs.
 
 [LangGraph](/oss/langgraph/overview) is our low-level orchestration runtime for advanced workflows combining deterministic and agentic steps.
 
@@ -487,7 +487,7 @@ Use [LangSmith](/langsmith/home) to trace requests, debug agent behavior, and ev
     </Card>
 
     <Card title="Highly configurable harness" icon="wand" href="/oss/langchain/agents" arrow cta="Learn more">
-        `create_agent` is a minimal harness: model, tools, prompt, loop. Extend it with middleware — each piece handles one concern and composes freely. Build exactly the agent your use case needs, nothing more.
+        `create_agent` is a minimal harness: model, tools, prompt, loop. Extend it with middleware: each piece handles one concern and composes freely. Build exactly the agent your use case needs, nothing more.
     </Card>
 
     <Card title="Built on top of LangGraph" icon="/images/brand/langgraph-icon.png" href="/oss/langgraph/overview" arrow cta="Learn more">
