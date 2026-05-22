@@ -1,0 +1,442 @@
+---
+title: Agents
+---
+
+import AgentInvocationThreadAndContextJs from '/snippets/code-samples/agent-invocation-thread-and-context-js.mdx';
+import AgentInvocationThreadAndContextPy from '/snippets/code-samples/agent-invocation-thread-and-context-py.mdx';
+import AgentInvocationThreadIdJs from '/snippets/code-samples/agent-invocation-thread-id-js.mdx';
+import AgentInvocationThreadIdPy from '/snippets/code-samples/agent-invocation-thread-id-py.mdx';
+
+An agent is a model calling tools in a loop until the task is complete.
+
+```mermaid
+%%{
+  init: {
+    "fontFamily": "monospace",
+    "flowchart": {
+      "curve": "curve"
+    }
+  }
+}%%
+graph TD
+  QUERY([input])
+  LLM{model}
+  TOOL(tools)
+  ANSWER([output])
+
+  QUERY --> LLM
+  LLM --"action"--> TOOL
+  TOOL --"observation"--> LLM
+  LLM --"finish"--> ANSWER
+
+  classDef blueHighlight fill:#E5F4FF,stroke:#006DDD,color:#030710;
+  classDef greenHighlight fill:#F6FFDB,stroke:#6E8900,color:#2E3900;
+  class QUERY blueHighlight;
+  class ANSWER blueHighlight;
+  class LLM greenHighlight;
+  class TOOL greenHighlight;
+```
+
+**agent = model + harness.** A harness is everything around that loop: the model, its prompt, its tools, and any middleware that shapes its behavior. The job of a harness is to get the model the right context at the right time for the given task.
+
+[`create_agent`](https://reference.langchain.com/python/langchain/agents/factory/create_agent) is a configurable harness. At its simplest:
+
+```python
+from langchain.agents import create_agent
+
+agent = create_agent("openai:gpt-5.4", tools=tools)
+```
+
+
+
+You extend it through two levers:
+
+- **Arguments** — `tools=`, `system_prompt=`, and `response_format=` wire in capabilities directly.
+- **Middleware** — each middleware bundles prompts, tools, and loop logic into a composable unit. Pass one or more to `middleware=` to extend the harness.
+
+<CardGroup cols={2}>
+  <Card title="Execution environment" icon="bolt" href="#execution-environment">
+    Tools, filesystem, sandboxes, and code execution
+  </Card>
+  <Card title="Context management" icon="database" href="#context-management">
+    Summarization, memory, skills, and prompt caching
+  </Card>
+  <Card title="Planning and delegation" icon="sitemap" href="#planning-and-delegation">
+    Todo lists and subagents for parallel, isolated work
+  </Card>
+  <Card title="Fault tolerance" icon="shield" href="#fault-tolerance">
+    Retries, fallbacks, and call limits
+  </Card>
+  <Card title="Guardrails" icon="lock" href="#guardrails">
+    PII detection and content controls
+  </Card>
+  <Card title="Steering" icon="user" href="#steering">
+    Human-in-the-loop approval before high-impact actions
+  </Card>
+</CardGroup>
+
+## Core components
+
+### Model
+
+Pass a model identifier string (`"provider:model"`) or an initialized model instance. See [Models](/oss/python/langchain/models) for parameters, provider setup, and dynamic model selection.
+
+```python
+from langchain.agents import create_agent
+
+agent = create_agent("openai:gpt-5.4", tools=tools)
+```
+
+
+
+### Tools
+
+Pass any Python callable, LangChain tool, or tool dict. See [Tools](/oss/python/langchain/tools) for tool definition, context access, and dynamic tool selection.
+
+```python
+from langchain.tools import tool
+
+@tool
+def search(query: str) -> str:
+    """Search for information."""
+    return f"Results for: {query}"
+
+agent = create_agent("openai:gpt-5.4", tools=[search])
+```
+
+
+
+### System prompt
+
+Shape how the agent approaches tasks. Accepts a string or `SystemMessage`. For dynamic prompts at runtime, use [middleware](/oss/python/langchain/middleware).
+
+```python
+agent = create_agent(
+    "openai:gpt-5.4",
+    tools=tools,
+    system_prompt="You are a helpful assistant. Be concise and accurate.",
+)
+```
+
+
+
+### Structured output
+
+Return a validated schema from the agent using `response_format=`. See [Structured output](/oss/python/langchain/structured-output) for strategies and examples.
+
+```python
+from pydantic import BaseModel
+from langchain.agents import create_agent
+
+class Answer(BaseModel):
+    summary: str
+    confidence: float
+
+agent = create_agent("openai:gpt-5.4", tools=tools, response_format=Answer)
+result = agent.invoke({"messages": [{"role": "user", "content": "Summarize AI trends"}]})
+result["structured_response"]  # Answer(summary=..., confidence=...)
+```
+
+
+
+### Name
+
+Optional identifier used as the node name when embedding this agent as a subgraph in [multi-agent](/oss/python/langchain/multi-agent) systems.
+
+```python
+agent = create_agent("openai:gpt-5.4", tools=tools, name="research_assistant")
+```
+
+
+
+
+<Tip>
+To extend the agent's state schema with custom fields, use [`state_schema`](/oss/python/langchain/long-term-memory) on `create_agent` or define it via middleware. See [Memory](/oss/python/langchain/long-term-memory) for details.
+</Tip>
+## Invocation
+
+<Tip>
+Trace each step of this loop, debug tool calls, and evaluate agent outputs with [LangSmith](https://smith.langchain.com?utm_source=docs&utm_medium=cta&utm_campaign=langsmith-signup&utm_content=oss-langchain-agents). Follow the [tracing quickstart](/langsmith/trace-with-langchain) to get set up.
+</Tip>
+
+
+You can invoke an agent by passing an update to its [`State`](/oss/python/langgraph/graph-api#state). All agents include a [sequence of messages](/oss/python/langgraph/use-graph-api#messagesstate) in their state; to invoke the agent, pass a new message along with a `thread_id` so the agent can persist and resume conversation history:
+
+
+
+<AgentInvocationThreadIdPy />
+
+
+
+
+<Note>
+Persisting conversation history with `thread_id` requires the agent to be configured with a [checkpointer](/oss/python/langchain/long-term-memory). When deployed on [LangSmith](/langsmith/deployment), a checkpointer is provisioned automatically. Locally, pass one explicitly, for example `create_agent(..., checkpointer=InMemorySaver())`.
+</Note>
+
+If you also need to pass per-run configuration (such as a user ID, API keys, or feature flags) to tools and middleware, pass it as `context` alongside `config`. Define the shape of that data with `context_schema` and access it through `runtime.context`:
+
+<AgentInvocationThreadAndContextPy />
+
+`thread_id` scopes the *conversation* (message history, checkpoints), while `context` carries *per-run* data your tools and middleware read at invocation time. Both are commonly passed together. See [tool context](/oss/python/langchain/tools#context) and [Runtime](/oss/python/langchain/runtime) for more.
+
+
+
+### Streaming
+
+We've seen how the agent can be called with `invoke` to get a final response. If the agent executes multiple steps, this may take a while. To show intermediate progress, we can stream back messages as they occur.
+
+```python
+from langchain.messages import AIMessage, HumanMessage
+
+for chunk in agent.stream({
+    "messages": [{"role": "user", "content": "Search for AI news and summarize the findings"}]
+}, stream_mode="values"):
+    # Each chunk contains the full state at that point
+    latest_message = chunk["messages"][-1]
+    if latest_message.content:
+        if isinstance(latest_message, HumanMessage):
+            print(f"User: {latest_message.content}")
+        elif isinstance(latest_message, AIMessage):
+            print(f"Agent: {latest_message.content}")
+    elif latest_message.tool_calls:
+        print(f"Calling tools: {[tc['name'] for tc in latest_message.tool_calls]}")
+```
+
+
+
+<Tip>
+For more details on streaming, see [Streaming](/oss/python/langchain/streaming).
+</Tip>
+
+## Configure the harness
+
+### Execution environment
+
+The execution environment is where the agent takes action. Tools give the model a set of callable actions: any function, API, or database query. The filesystem extends those actions across turns, letting the agent read, write, and organize files as it works. Sandboxes and interpreters add code execution: sandboxes for isolated shell access, a QuickJS interpreter for lightweight in-process scripting.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Tools**: functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
+| **Virtual filesystem**: files persisted across turns | [`FilesystemMiddleware`](https://reference.langchain.com/python/deepagents/middleware/filesystem/FilesystemMiddleware) | ✓ |
+| **REPL**: in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/python/deepagents/interpreters) | — |
+| **Shell**: shared working directory across turns | [`ShellToolMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/shell_tool/ShellToolMiddleware) | — |
+| **Sandbox**: code execution isolated from the host | [`SandboxBackend`](/oss/python/deepagents/sandboxes) | — |
+
+```python
+from langchain.agents import create_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware
+
+agent = create_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search, fetch_url],
+    middleware=[  # add what your use case needs
+        FilesystemMiddleware(backend=StateBackend()),
+    ],
+)
+```
+
+
+
+
+
+### Context management
+
+Context management has three jobs: optimize what's in the context window at any given turn, prevent overflow and context rot as the run grows, and improve what the agent knows across sessions.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Summarization**: compresses history and offloads large results | [`SummarizationMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/summarization/SummarizationMiddleware) | ✓ |
+| **Summarization tool**: agent controls when to compress | [`SummarizationToolMiddleware`](https://reference.langchain.com/python/deepagents/middleware/summarization/SummarizationToolMiddleware) | — |
+| **Memory**: AGENTS.md instructions loaded at startup | [`MemoryMiddleware`](https://reference.langchain.com/python/deepagents/middleware/memory/MemoryMiddleware) | ✓ if `memory=` |
+| **Skills**: domain knowledge loaded progressively | [`SkillsMiddleware`](https://reference.langchain.com/python/deepagents/middleware/skills/SkillsMiddleware) | ✓ if `skills=` |
+| **Prompt caching**: reuses static prompt sections (Anthropic) | [`AnthropicPromptCachingMiddleware`](https://reference.langchain.com/python/langchain-anthropic/middleware/prompt_caching/AnthropicPromptCachingMiddleware) | ✓ Anthropic |
+| **Dynamic tools**: trims tool list per model call | [`LLMToolSelectorMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_selection/LLMToolSelectorMiddleware) | — |
+
+```python
+from langchain.agents import create_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware import (
+    FilesystemMiddleware,
+    MemoryMiddleware,
+    SkillsMiddleware,
+    SummarizationMiddleware,
+)
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[  # add what your use case needs
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+    ],
+)
+```
+
+
+
+
+
+### Planning and delegation
+
+Some tasks are too large or too parallel for a single context window. Delegation lets the main agent hand off focused subtasks to subagents. Each runs independently in its own context window and returns a single result, keeping the main agent's context clean and enabling parallel execution.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Todo list**: structured task tracking across turns | [`TodoListMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/todo/TodoListMiddleware) | ✓ |
+| **Subagents**: isolated subtasks in their own context windows | [`SubAgentMiddleware`](https://reference.langchain.com/python/deepagents/middleware/subagents/SubAgentMiddleware) | ✓ |
+| **Async subagents**: fire-and-forget tasks the main agent doesn't wait on | [`AsyncSubAgentMiddleware`](https://reference.langchain.com/python/deepagents/middleware/async_subagents/AsyncSubAgentMiddleware) | — |
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import TodoListMiddleware
+from deepagents import SubAgent
+from deepagents.backends import StateBackend
+from deepagents.middleware import (
+    FilesystemMiddleware,
+    MemoryMiddleware,
+    SkillsMiddleware,
+    SubAgentMiddleware,
+    SummarizationMiddleware,
+)
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+researcher: SubAgent = {
+    "name": "researcher",
+    "description": "Deep-dives into a topic and returns a structured summary.",
+    "system_prompt": "You are a research specialist. Search thoroughly and cite your sources.",
+    "tools": [search],
+}
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[researcher]),
+    ],
+)
+```
+
+
+
+
+
+### Fault tolerance
+
+Production agents encounter failures that dev environments don't: rate limits, model timeouts, transient tool errors. These middleware handle failure at the infrastructure level so your tools and business logic stay clean.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Model retry**: retries on transient model failures | [`ModelRetryMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_retry/ModelRetryMiddleware) | — |
+| **Tool retry**: retries on rate limits or transient tool errors | [`ToolRetryMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_retry/ToolRetryMiddleware) | — |
+| **Model fallback**: switches to an alternate model on failure | [`ModelFallbackMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_fallback/ModelFallbackMiddleware) | — |
+| **Model call cap**: bounds total model calls per session | [`ModelCallLimitMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_call_limit/ModelCallLimitMiddleware) | — |
+| **Tool call cap**: bounds total tool calls per session | [`ToolCallLimitMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_call_limit/ToolCallLimitMiddleware) | — |
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import ModelRetryMiddleware, ToolRetryMiddleware
+
+agent = create_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search],
+    middleware=[
+        ModelRetryMiddleware(max_retries=3),
+        ToolRetryMiddleware(max_retries=2),
+    ],
+)
+```
+
+
+
+
+
+### Guardrails
+
+Guardrails intercept data as it flows through the agent loop, enforcing compliance or content policies before tool results reach the model's context.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **PII detection**: redacts personal data from tool results before they enter the context | [`PIIMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/pii/PIIMiddleware) | — |
+
+### Steering
+
+Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls (destructive writes, expensive API calls, anything requiring human judgment) so a human can approve, edit, or reject before the agent proceeds.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Human-in-the-loop**: pause for approval before specified tool calls | [`HumanInTheLoopMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/human_in_the_loop/HumanInTheLoopMiddleware) | ✓ if `interrupt_on=` |
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware, TodoListMiddleware
+from deepagents import SubAgent
+from deepagents.backends import StateBackend
+from deepagents.middleware import (
+    FilesystemMiddleware,
+    MemoryMiddleware,
+    SkillsMiddleware,
+    SubAgentMiddleware,
+    SummarizationMiddleware,
+)
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+researcher: SubAgent = {
+    "name": "researcher",
+    "description": "Deep-dives into a topic and returns a structured summary.",
+    "system_prompt": "You are a research specialist. Search thoroughly and cite your sources.",
+    "tools": [search],
+}
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[researcher]),
+        HumanInTheLoopMiddleware(interrupt_on={"write_file": True}),
+    ],
+)
+```
+
+
+
+
+
+<Tip>
+`create_deep_agent` pre-assembles this stack for long-running coding and research tasks (filesystem, summarization, subagents, and prompt caching included by default). See [Deep Agents](/oss/python/deepagents/harness) for the full pre-built harness.
+</Tip>
+
+**Middleware resources:**
+- [Middleware overview](/oss/python/langchain/middleware/overview): how the middleware stack works and when hooks fire
+- [Prebuilt middleware](/oss/python/langchain/middleware/built-in): full reference with configuration examples
+- [Custom middleware](/oss/python/langchain/middleware/custom): write your own hooks for business logic, PII scrubbing, and more
+
+---
+
+<div className="source-links">
+<Callout icon="terminal-2">
+    [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/agents.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
+</Callout>
+</div>
