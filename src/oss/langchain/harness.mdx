@@ -80,11 +80,11 @@ Tools are the agent's primary interface to the world—any function, API, or dat
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Custom tools**—functions, APIs, databases your agent can call | `tools=` on `create_agent` | ✓ via `tools=` |
-| **Virtual filesystem**—read and write files that persist across turns | @[`FilesystemMiddleware`] | ✓ |
-| **JavaScript REPL**—batch tool calls or transform data in-process (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
-| **Persistent shell**—commands sharing a working directory across turns | @[`ShellToolMiddleware`] | — |
-| **Isolated sandbox**—install packages and run code without touching the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
+| **Custom tools**—functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
+| **Virtual filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
+| **JavaScript REPL**—in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
+| **Persistent shell**—shared working directory across turns | @[`ShellToolMiddleware`] | — |
+| **Isolated sandbox**—code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
 
 :::python
 
@@ -114,12 +114,12 @@ Long-running agents accumulate context they no longer need and eventually hit to
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **History compression**—keeps context lean for tasks running 10+ turns or producing large tool results | @[`SummarizationMiddleware`] | ✓ |
-| **Agent-triggered summarization**—agent decides when to compress, e.g., between tasks | @[`SummarizationToolMiddleware`] | — |
-| **Persistent memory** via `AGENTS.md`—preferences and guidelines loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
-| **On-demand skills**—domain knowledge loaded only when the agent needs it | @[`SkillsMiddleware`] | ✓ if `skills=` |
-| **Prompt caching**—reduces cost on repeated static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
-| **Dynamic tool filtering**—trims tool list before each model call | @[`LLMToolSelectorMiddleware`] | — |
+| **History compression**—prevents overflow on long runs | @[`SummarizationMiddleware`] | ✓ |
+| **Agent-triggered summarization**—agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
+| **Persistent memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
+| **On-demand skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
+| **Prompt caching**—reuses static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
+| **Dynamic tool filtering**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
 
 :::python
 

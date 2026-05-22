@@ -9,12 +9,20 @@ You can use deep agents for any task, including complex, multi-step tasks.
 
 We think of `deepagents` as an ["agent harness"](/oss/concepts/products#agent-harnesses-like-the-deep-agents-sdk). It is the same core tool calling loop as other agent frameworks, but with built-in tools and capabilities organized into four components:
 
-| Component | What it provides |
-|-----------|-----------------|
-| **[Execution environment](/oss/deepagents/harness#execution-environment)** | Virtual filesystem, optional sandbox, and REPL (interpreter) |
-| **[Context management](/oss/deepagents/harness#context-management)** | Skills, memory, summarization, context offloading, and prompt caching |
-| **[Delegation](/oss/deepagents/harness#delegation)** | Subagent spawning and task planning |
-| **[Steering](/oss/deepagents/harness#steering)** | Human-in-the-loop approval and interrupts |
+<CardGroup cols={2}>
+  <Card title="Execution environment" icon="bolt" href="/oss/deepagents/harness#execution-environment">
+    Tools, virtual filesystem, optional sandbox, and REPL (interpreter)
+  </Card>
+  <Card title="Context management" icon="database" href="/oss/deepagents/harness#context-management">
+    Skills, memory, summarization, context offloading, and prompt caching
+  </Card>
+  <Card title="Delegation" icon="sitemap" href="/oss/deepagents/harness#delegation">
+    Subagent spawning and task planning
+  </Card>
+  <Card title="Steering" icon="user" href="/oss/deepagents/harness#steering">
+    Human-in-the-loop approval and interrupts
+  </Card>
+</CardGroup>
 
 See [Harness capabilities](/oss/deepagents/harness) for a full breakdown of each component.
 
