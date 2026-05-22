@@ -78,7 +78,7 @@ agent = create_deep_agent(
 | `response_format=` | Structured output schema |
 | [profiles](#profiles) | Per-model defaults as a reusable bundle |
 
-For the full parameter list, see the @[`create_deep_agent`] API reference. To compose a fully custom harness from scratch, see [Agent harness](/oss/langchain/harness).
+For the full parameter list, see the @[`create_deep_agent`] API reference. To compose a fully custom harness from scratch, see [Middleware capabilities](/oss/langchain/agents#middleware-capabilities).
 :::
 
 :::js
@@ -109,7 +109,7 @@ const agent = await createDeepAgent({
 | `interruptOn` | Pause before tool calls for human approval |
 | `responseFormat` | Structured output schema |
 
-For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/types/CreateDeepAgentParams) API reference. To compose a fully custom harness from scratch, see [Agent harness](/oss/langchain/harness).
+For the full parameter list, see the [`createDeepAgent`](https://reference.langchain.com/javascript/deepagents/types/CreateDeepAgentParams) API reference. To compose a fully custom harness from scratch, see [Middleware capabilities](/oss/langchain/agents#middleware-capabilities).
 :::
 
 ## Model
@@ -601,13 +601,13 @@ For more information and examples, see [response format](/oss/langchain/structur
 
 :::python
 
-`create_deep_agent` pre-assembles a middleware stack on top of @[`create_agent`]. To build a fully custom agent—choosing exactly which capabilities to include—see [Agent harness](/oss/langchain/harness).
+`create_deep_agent` pre-assembles a middleware stack on top of @[`create_agent`]. To build a fully custom agent—choosing exactly which capabilities to include—see [Middleware capabilities](/oss/langchain/agents#middleware-capabilities).
 
 :::
 
 :::js
 
-`createDeepAgent` pre-assembles a middleware stack on top of `createAgent`. To build a fully custom agent—choosing exactly which capabilities to include—see [Agent harness](/oss/langchain/harness).
+`createDeepAgent` pre-assembles a middleware stack on top of `createAgent`. To build a fully custom agent—choosing exactly which capabilities to include—see [Middleware capabilities](/oss/langchain/agents#middleware-capabilities).
 
 :::
 
