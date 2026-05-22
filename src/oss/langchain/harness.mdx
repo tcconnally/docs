@@ -63,7 +63,7 @@ The harness is everything wrapped around that loop. For a simple task the harnes
   </Card>
 </CardGroup>
 
-@[`create_agent`] is the minimal harness—a model, a set of tools, a loop:
+@[`create_agent`] is the minimal harness: a model, a set of tools, a loop.
 
 :::python
 
@@ -87,8 +87,8 @@ const agent = createAgent({ model: "openai:gpt-5.4", tools });
 
 You extend it through two levers:
 
-- **Arguments** — `tools=` and `system_prompt=` wire in capabilities directly.
-- **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
+- **Arguments**: `tools=` and `system_prompt=` wire in capabilities directly.
+- **Middleware**: each middleware bundles its own tools, prompt additions, and loop hooks into a composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
 Design the harness around your use case: start with a clear prompt, then connect the agent tightly to the data and environment the task needs. A research agent connects to search tools, a filesystem for findings, and summarization for long runs. A coding agent needs filesystem access, a sandbox, and human-in-the-loop gates for risky writes.
 
@@ -96,15 +96,15 @@ Design the harness around your use case: start with a clear prompt, then connect
 
 ## Execution environment
 
-The execution environment is where the agent takes action. Tools give the model a set of callable actions—any function, API, or database query. The filesystem extends those actions across turns, letting the agent read, write, and organize files as it works. Sandboxes and interpreters add code execution: sandboxes for isolated shell access, a QuickJS interpreter for lightweight in-process scripting.
+The execution environment is where the agent takes action. Tools give the model a set of callable actions: any function, API, or database query. The filesystem extends those actions across turns, letting the agent read, write, and organize files as it works. Sandboxes and interpreters add code execution: sandboxes for isolated shell access, a QuickJS interpreter for lightweight in-process scripting.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Tools**—functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
-| **Virtual filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
-| **REPL**—in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
-| **Shell**—shared working directory across turns | @[`ShellToolMiddleware`] | — |
-| **Sandbox**—code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
+| **Tools**: functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
+| **Virtual filesystem**: files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
+| **REPL**: in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
+| **Shell**: shared working directory across turns | @[`ShellToolMiddleware`] | — |
+| **Sandbox**: code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
 
 :::python
 
@@ -149,12 +149,12 @@ Context management has three jobs: optimize what's in the context window at any 
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Summarization**—compresses history and offloads large results | @[`SummarizationMiddleware`] | ✓ |
-| **Summarization tool**—agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
-| **Memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
-| **Skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
-| **Prompt caching**—reuses static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
-| **Dynamic tools**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
+| **Summarization**: compresses history and offloads large results | @[`SummarizationMiddleware`] | ✓ |
+| **Summarization tool**: agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
+| **Memory**: AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
+| **Skills**: domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
+| **Prompt caching**: reuses static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
+| **Dynamic tools**: trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
 
 :::python
 
@@ -218,13 +218,13 @@ const agent = createAgent({
 
 ## Planning and delegation
 
-Some tasks are too large or too parallel for a single context window. Delegation lets the main agent hand off focused subtasks to subagents—each runs independently in its own context window and returns a single result, keeping the main agent's context clean and enabling parallel execution.
+Some tasks are too large or too parallel for a single context window. Delegation lets the main agent hand off focused subtasks to subagents. Each runs independently in its own context window and returns a single result, keeping the main agent's context clean and enabling parallel execution.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Todo list**—structured task tracking across turns | @[`TodoListMiddleware`] | ✓ |
-| **Subagents**—isolated subtasks in their own context windows | @[`SubAgentMiddleware`] | ✓ |
-| **Async subagents**—fire-and-forget tasks the main agent doesn't wait on | @[`AsyncSubAgentMiddleware`] | — |
+| **Todo list**: structured task tracking across turns | @[`TodoListMiddleware`] | ✓ |
+| **Subagents**: isolated subtasks in their own context windows | @[`SubAgentMiddleware`] | ✓ |
+| **Async subagents**: fire-and-forget tasks the main agent doesn't wait on | @[`AsyncSubAgentMiddleware`] | — |
 
 :::python
 
@@ -310,15 +310,15 @@ const agent = createAgent({
 
 ## Fault tolerance
 
-Production agents encounter failures that dev environments don't—rate limits, model timeouts, transient tool errors. These middleware handle failure at the infrastructure level so your tools and business logic stay clean.
+Production agents encounter failures that dev environments don't: rate limits, model timeouts, transient tool errors. These middleware handle failure at the infrastructure level so your tools and business logic stay clean.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Model retry**—retries on transient model failures | @[`ModelRetryMiddleware`] | — |
-| **Tool retry**—retries on rate limits or transient tool errors | @[`ToolRetryMiddleware`] | — |
-| **Model fallback**—switches to an alternate model on failure | @[`ModelFallbackMiddleware`] | — |
-| **Model call cap**—bounds total model calls per session | @[`ModelCallLimitMiddleware`] | — |
-| **Tool call cap**—bounds total tool calls per session | @[`ToolCallLimitMiddleware`] | — |
+| **Model retry**: retries on transient model failures | @[`ModelRetryMiddleware`] | — |
+| **Tool retry**: retries on rate limits or transient tool errors | @[`ToolRetryMiddleware`] | — |
+| **Model fallback**: switches to an alternate model on failure | @[`ModelFallbackMiddleware`] | — |
+| **Model call cap**: bounds total model calls per session | @[`ModelCallLimitMiddleware`] | — |
+| **Tool call cap**: bounds total tool calls per session | @[`ToolCallLimitMiddleware`] | — |
 
 :::python
 
@@ -363,17 +363,17 @@ Guardrails intercept data as it flows through the agent loop, enforcing complian
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **PII detection**—redacts personal data from tool results before they enter the context | @[`PIIMiddleware`] | — |
+| **PII detection**: redacts personal data from tool results before they enter the context | @[`PIIMiddleware`] | — |
 
 ---
 
 ## Steering
 
-Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls—destructive writes, expensive API calls, anything requiring human judgment—so a human can approve, edit, or reject before the agent proceeds.
+Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls (destructive writes, expensive API calls, anything requiring human judgment) so a human can approve, edit, or reject before the agent proceeds.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Human-in-the-loop**—pause for approval before specified tool calls | @[`HumanInTheLoopMiddleware`] | ✓ if `interrupt_on=` |
+| **Human-in-the-loop**: pause for approval before specified tool calls | @[`HumanInTheLoopMiddleware`] | ✓ if `interrupt_on=` |
 
 :::python
 
@@ -460,10 +460,10 @@ const agent = createAgent({
 ---
 
 <Tip>
-`create_deep_agent` pre-assembles this stack for long-running coding and research tasks—filesystem, summarization, subagents, and prompt caching included by default. See [Deep Agents](/oss/deepagents/harness) for the full pre-built harness.
+`create_deep_agent` pre-assembles this stack for long-running coding and research tasks (filesystem, summarization, subagents, and prompt caching included by default). See [Deep Agents](/oss/deepagents/harness) for the full pre-built harness.
 </Tip>
 
 **Middleware resources:**
-- [Middleware overview](/oss/langchain/middleware/overview)—how the middleware stack works and when hooks fire
-- [Prebuilt middleware](/oss/langchain/middleware/built-in)—full reference with configuration examples
-- [Custom middleware](/oss/langchain/middleware/custom)—write your own hooks for business logic, PII scrubbing, and more
+- [Middleware overview](/oss/langchain/middleware/overview): how the middleware stack works and when hooks fire
+- [Prebuilt middleware](/oss/langchain/middleware/built-in): full reference with configuration examples
+- [Custom middleware](/oss/langchain/middleware/custom): write your own hooks for business logic, PII scrubbing, and more
