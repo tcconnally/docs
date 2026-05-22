@@ -7,7 +7,7 @@ A deep agents harness provides four categories of built-in capabilities that mak
 
 | Component | What it provides |
 |-----------|-----------------|
-| **[Execution environment](#execution-environment)** | Virtual filesystem, optional sandbox, and REPL (interpreter) |
+| **[Execution environment](#execution-environment)** | Tools, virtual filesystem, optional sandbox, and REPL (interpreter) |
 | **[Context management](#context-management)** | Skills, memory, summarization, context offloading, and prompt caching |
 | **[Delegation](#delegation)** | Subagent spawning and task planning |
 | **[Steering](#steering)** | Human-in-the-loop approval and interrupts |
@@ -18,11 +18,27 @@ Alongside these four components, [harness profiles](#harness-profiles) let you p
 
 ## Execution environment
 
-The execution environment component gives agents a place to read, write, and run code. It has three layers:
+The execution environment is where an agent acts. It has four layers:
 
-- **[Virtual filesystem](#virtual-filesystem-access)** — file tools backed by pluggable backends
-- **[Filesystem permissions](#filesystem-permissions)** — declarative access control over which paths agents can read or write
-- **[Code execution](#code-execution)** — sandboxed shell execution and an in-process JavaScript interpreter
+- **[Tools](#tools)**—custom functions, APIs, and databases the agent can call
+- **[Virtual filesystem](#virtual-filesystem-access)**—file tools backed by pluggable backends
+- **[Filesystem permissions](#filesystem-permissions)**—declarative access control over which paths agents can read or write
+- **[Code execution](#code-execution)**—sandboxed shell execution and an in-process JavaScript interpreter
+
+### Tools
+
+Pass any Python callable, LangChain tool, or tool dict to `create_deep_agent` via the `tools=` parameter. These are the domain-specific actions your agent can take—web search, database queries, API calls, or any function you define.
+
+```python
+from deepagents import create_deep_agent
+
+agent = create_deep_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search, fetch_page, run_query],
+)
+```
+
+For more information on defining and using tools, see [Tools](/oss/langchain/tools).
 
 ### Virtual filesystem access
 
@@ -66,7 +82,7 @@ The backends support the following file system operations:
     )
     ```
 
-    Removing `FilesystemMiddleware` itself via `excluded_middleware` is intentionally rejected — use `excluded_tools` to hide only the model-visible tool surface and leave the middleware in place. To remove the `task` tool, see [Running without subagents](/oss/deepagents/subagents#running-without-subagents).
+    Removing `FilesystemMiddleware` itself via `excluded_middleware` is intentionally rejected—use `excluded_tools` to hide only the model-visible tool surface and leave the middleware in place. To remove the `task` tool, see [Running without subagents](/oss/deepagents/subagents#running-without-subagents).
 </Accordion>
 
 The virtual filesystem is used by several other harness capabilities such as skills, memory, code execution, and context management.
@@ -109,10 +125,10 @@ For sandbox setup, providers, and file transfer APIs, see [Sandboxes](/oss/deepa
 
 The context management component controls what the agent knows, how long it can operate within token limits, and what it retains across sessions. It has four layers:
 
-- **[Skills](#skills)** — on-demand domain knowledge loaded progressively from skill files
-- **[Memory](#memory)** — persistent instructions and preferences loaded at startup from `AGENTS.md` files
-- **[Summarization and context offloading](#summarization-and-context-offloading)** — automatic compression of conversation history and large tool results
-- **Prompt caching** — static prompt sections are cache-eligible to speed up inference and reduce cost on supported models
+- **[Skills](#skills)**—on-demand domain knowledge loaded progressively from skill files
+- **[Memory](#memory)**—persistent instructions and preferences loaded at startup from `AGENTS.md` files
+- **[Summarization and context offloading](#summarization-and-context-offloading)**—automatic compression of conversation history and large tool results
+- **[Prompt caching](#prompt-caching)**—static prompt sections are cache-eligible to speed up inference and reduce cost on supported models
 
 ### Skills
 
@@ -157,10 +173,10 @@ For configuration details and examples, see [Memory](/oss/deepagents/customizati
 The harness manages context so deep agents can handle long-running tasks within token limits while retaining the information they need.
 
 **How it works:**
-- **Input context** — System prompt, memory, skills, and tool prompts shape what the agent knows at startup
-- **Compression** — Built-in offloading and summarization keep context within window limits as tasks progress
-- **Isolation** — Subagents quarantine heavy work and return only results (see [Delegation](#delegation))
-- **Long-term memory** — Persistent storage across threads via the virtual filesystem
+- **Input context**—System prompt, memory, skills, and tool prompts shape what the agent knows at startup
+- **Compression**—Built-in offloading and summarization keep context within window limits as tasks progress
+- **Isolation**—Subagents quarantine heavy work and return only results (see [Delegation](#delegation))
+- **Long-term memory**—Persistent storage across threads via the virtual filesystem
 
 **Why it's useful:**
 - Enables multi-step tasks that exceed a single context window
@@ -169,12 +185,20 @@ The harness manages context so deep agents can handle long-running tasks within 
 
 For configuration details, see [Context engineering](/oss/deepagents/context-engineering).
 
+### Prompt caching
+
+For Anthropic models, `create_deep_agent` automatically applies prompt caching to static sections of the system prompt—the base agent instructions, memory, and skill content that repeat on every turn. This avoids reprocessing the same tokens across calls, reducing both latency and cost on long-running agents.
+
+Prompt caching is enabled by default when using an Anthropic model. No configuration is required.
+
+For other providers, see [Middleware integrations](/oss/integrations/middleware#official-integrations) for available provider-specific caching middleware.
+
 ## Delegation
 
 The delegation component enables agents to break large problems into smaller, parallelizable units of work. It has two layers:
 
-- **[Task planning](#task-planning)** — a built-in `write_todos` tool for structured task tracking
-- **[Subagents](#subagents)** — ephemeral child agents that handle isolated subtasks
+- **[Task planning](#task-planning)**—a built-in `write_todos` tool for structured task tracking
+- **[Subagents](#subagents)**—ephemeral child agents that handle isolated subtasks
 
 ### Task planning
 
@@ -191,10 +215,10 @@ The harness provides a `write_todos` tool that agents can use to maintain a stru
 The harness allows the main agent to create ephemeral "subagents" for isolated multi-step tasks.
 
 **Why it's useful:**
-- **Context isolation** — Subagent's work does not clutter main agent's context
-- **Parallel execution** — Multiple subagents can run concurrently
-- **Specialization** — Subagents can have different tools and configurations
-- **Token efficiency** — Large subtask context is compressed into a single result
+- **Context isolation**—Subagent's work does not clutter main agent's context
+- **Parallel execution**—Multiple subagents can run concurrently
+- **Specialization**—Subagents can have different tools and configurations
+- **Token efficiency**—Large subtask context is compressed into a single result
 
 **How it works:**
 - Main agent has a `task` tool
