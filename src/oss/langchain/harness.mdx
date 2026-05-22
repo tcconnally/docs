@@ -69,7 +69,7 @@ Not every agent needs every capability. Design the harness around what your appl
 
 Two levers configure the harness:
 
-- **Arguments to `create_agent`** — `tools=`, `system_prompt=`, and `checkpointer=` wire in static capabilities directly.
+- **Arguments to `create_agent`** — `tools=` and `system_prompt=` wire in static capabilities directly.
 - **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a single composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
 ---
@@ -80,11 +80,11 @@ The execution environment is where the agent takes action. Tools give the model 
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **Custom tools**—functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
-| **Virtual filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
-| **JavaScript REPL**—in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
-| **Persistent shell**—shared working directory across turns | @[`ShellToolMiddleware`] | — |
-| **Isolated sandbox**—code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
+| **Tools**—functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
+| **Filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
+| **REPL**—in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
+| **Shell**—shared working directory across turns | @[`ShellToolMiddleware`] | — |
+| **Sandbox**—code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
 
 :::python
 
@@ -114,12 +114,12 @@ Context management has three jobs: optimize what's in the context window at any 
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
-| **History compression**—compresses history and offloads large results | @[`SummarizationMiddleware`] | ✓ |
-| **Agent-triggered summarization**—agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
-| **Persistent memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
-| **On-demand skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
+| **Summarization**—compresses history and offloads large results | @[`SummarizationMiddleware`] | ✓ |
+| **Summarization tool**—agent controls when to compress | @[`SummarizationToolMiddleware`] | — |
+| **Memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
+| **Skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
 | **Prompt caching**—reuses static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
-| **Dynamic tool filtering**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
+| **Tool filtering**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
 
 :::python
 
@@ -159,8 +159,8 @@ Some tasks are too large or too parallel for a single context window. Delegation
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
 | **Todo list**—structured task tracking across turns | @[`TodoListMiddleware`] | ✓ |
-| **Sync subagents**—isolated subtasks in their own context windows | @[`SubAgentMiddleware`] | ✓ |
-| **Background subagents**—fire-and-forget tasks the main agent doesn't wait on | @[`AsyncSubAgentMiddleware`] | — |
+| **Subagents**—isolated subtasks in their own context windows | @[`SubAgentMiddleware`] | ✓ |
+| **Async subagents**—fire-and-forget tasks the main agent doesn't wait on | @[`AsyncSubAgentMiddleware`] | — |
 
 :::python
 
@@ -249,7 +249,7 @@ Guardrails intercept data as it flows through the agent loop, enforcing complian
 
 ## Steering
 
-Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls—destructive writes, expensive API calls, anything requiring human judgment—so a human can approve, edit, or reject before the agent proceeds. State is persisted via a checkpointer while waiting for input.
+Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls—destructive writes, expensive API calls, anything requiring human judgment—so a human can approve, edit, or reject before the agent proceeds.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
@@ -260,7 +260,6 @@ Fully autonomous agents aren't always the right call. Steering lets you pause ex
 ```python
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware, TodoListMiddleware
-from langgraph.checkpoint.memory import MemorySaver
 from deepagents import SubAgent
 from deepagents.backends import StateBackend
 from deepagents.middleware import (
@@ -285,15 +284,14 @@ agent = create_agent(
     model=model,
     tools=[search],
     middleware=[
-        FilesystemMiddleware(backend=backend),                               # execution environment
-        SummarizationMiddleware(model=model, backend=backend),               # context management
-        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),          # context management
-        SkillsMiddleware(backend=backend, sources=["./skills/"]),            # context management
-        TodoListMiddleware(),                                                 # delegation
-        SubAgentMiddleware(backend=backend, subagents=[researcher]),         # delegation
-        HumanInTheLoopMiddleware(interrupt_on={"write_file": True}),        # steering
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[researcher]),
+        HumanInTheLoopMiddleware(interrupt_on={"write_file": True}),
     ],
-    checkpointer=MemorySaver(),
 )
 ```
 
