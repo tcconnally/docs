@@ -7,15 +7,15 @@ description: LangChain provides create_agent: a minimal, highly configurable age
 **Agent = Model + Harness.** LangChain provides `create_agent`: a minimal, highly configurable harness. The harness is everything around the model loop: the prompt, the tools, and any middleware that shapes behavior. Start with the primitives and compose exactly what your use case needs. Supports [OpenAI, Anthropic, Google, and more](/oss/integrations/providers/overview).
 
 <Tip>
-**LangChain vs. Deep Agents vs. LangGraph**
+**LangChain vs. LangGraph vs. Deep Agents**
 
-[Deep Agents](/oss/deepagents/overview/) (`create_deep_agent`) pre-assembles a production-ready harness on top of LangChain: filesystem, summarization, subagents, and prompt caching included by default. Start here when you want common patterns prebuilt.
+Start with [Deep Agents](/oss/deepagents/overview/) for a "batteries-included" agent with features like automatic context compression, a virtual filesystem, and subagent-spawning. Deep Agents are built on LangChain [agents](/oss/langchain/agents/) which you can also use directly.
 
-[LangChain](/oss/langchain/agents) gives you `create_agent`: a minimal harness you configure and extend with middleware. Full control, composable primitives, take exactly what your use case needs.
+Use [LangChain](/oss/langchain/agents) (`create_agent`) for a highly customizable harness, easily tailored to your use case and data.
 
-[LangGraph](/oss/langgraph/overview) is our low-level orchestration runtime for advanced workflows combining deterministic and agentic steps.
+Use [LangGraph](/oss/langgraph/overview), our low-level orchestration framework, for advanced needs combining deterministic and agentic workflows.
 
-[LangSmith](/langsmith/home) traces, debugs, and evaluates agents built with any of the above.
+Use [LangSmith](/langsmith/home) to trace, debug, and evaluate agents built with any of these frameworks. Follow the [tracing quickstart](/langsmith/trace-with-langchain) to get set up.
 </Tip>
 
 <Tip>
