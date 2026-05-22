@@ -61,27 +61,6 @@ You extend it through two levers:
 - **Arguments** — `tools=`, `system_prompt=`, and `response_format=` wire in capabilities directly.
 - **Middleware** — each middleware bundles prompts, tools, and loop logic into a composable unit. Pass one or more to `middleware=` to extend the harness.
 
-<CardGroup cols={2}>
-  <Card title="Execution environment" icon="bolt" href="#execution-environment">
-    Tools, filesystem, sandboxes, and code execution
-  </Card>
-  <Card title="Context management" icon="database" href="#context-management">
-    Summarization, memory, skills, and prompt caching
-  </Card>
-  <Card title="Planning and delegation" icon="sitemap" href="#planning-and-delegation">
-    Todo lists and subagents for parallel, isolated work
-  </Card>
-  <Card title="Fault tolerance" icon="shield" href="#fault-tolerance">
-    Retries, fallbacks, and call limits
-  </Card>
-  <Card title="Guardrails" icon="lock" href="#guardrails">
-    PII detection and content controls
-  </Card>
-  <Card title="Steering" icon="user" href="#steering">
-    Human-in-the-loop approval before high-impact actions
-  </Card>
-</CardGroup>
-
 ## Core components
 
 ### Model
@@ -302,6 +281,29 @@ For more details on streaming, see [Streaming](/oss/langchain/streaming).
 </Tip>
 
 ## Configure the harness
+
+Middleware extends the harness by adding capabilities across six categories. Each middleware bundles its own prompts, tools, and loop logic — pick what your use case needs.
+
+<CardGroup cols={2}>
+  <Card title="Execution environment" icon="bolt" href="#execution-environment">
+    Tools, filesystem, sandboxes, and code execution
+  </Card>
+  <Card title="Context management" icon="database" href="#context-management">
+    Summarization, memory, skills, and prompt caching
+  </Card>
+  <Card title="Planning and delegation" icon="sitemap" href="#planning-and-delegation">
+    Todo lists and subagents for parallel, isolated work
+  </Card>
+  <Card title="Fault tolerance" icon="shield" href="#fault-tolerance">
+    Retries, fallbacks, and call limits
+  </Card>
+  <Card title="Guardrails" icon="lock" href="#guardrails">
+    PII detection and content controls
+  </Card>
+  <Card title="Steering" icon="user" href="#steering">
+    Human-in-the-loop approval before high-impact actions
+  </Card>
+</CardGroup>
 
 ### Execution environment
 
