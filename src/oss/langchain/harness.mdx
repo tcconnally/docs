@@ -81,7 +81,7 @@ The execution environment is where the agent takes action. Tools give the model 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
 | **Tools**—functions, APIs, databases | `tools=` on `create_agent` | ✓ via `tools=` |
-| **Filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
+| **Virtual filesystem**—files persisted across turns | @[`FilesystemMiddleware`] | ✓ |
 | **REPL**—in-process scripting (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
 | **Shell**—shared working directory across turns | @[`ShellToolMiddleware`] | — |
 | **Sandbox**—code execution isolated from the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
@@ -119,7 +119,7 @@ Context management has three jobs: optimize what's in the context window at any 
 | **Memory**—AGENTS.md instructions loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
 | **Skills**—domain knowledge loaded progressively | @[`SkillsMiddleware`] | ✓ if `skills=` |
 | **Prompt caching**—reuses static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
-| **Tool filtering**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
+| **Dynamic tools**—trims tool list per model call | @[`LLMToolSelectorMiddleware`] | — |
 
 :::python
 
