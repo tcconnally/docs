@@ -1,12 +1,20 @@
 ---
 title: Agent harness
 sidebarTitle: Harness
-description: create_agent is the minimal loop. Compose only what you need.
+description: An agent is a model plus a harness. Compose exactly the harness you need.
 ---
 
-[`create_agent`][langchain.agents.create_agent] is a model calling tools in a loop. That is the entire primitive.
+An agent is a model plus a **harness**. The model reasons; the harness is the infrastructure around it that gives the model the ability to act, remember, and coordinate:
 
-Everything else—filesystems, memory, subagents, guardrails—comes from middleware. You pick which pieces to include. The table below maps every built-in capability to its category; the sections that follow show how to compose them layer by layer.
+- **Tools**: functions, APIs, and databases the model can call
+- **Execution environment**: a filesystem or sandbox where the agent can read, write, and run code
+- **Context management**: memory, skills, and summarization that keep the agent effective across long sessions
+- **Delegation**: subagents that handle isolated subtasks in their own context windows
+- **Steering**: human-in-the-loop approval at critical decision points
+
+[`create_agent`][langchain.agents.create_agent] provides the minimal harness: a model and tools in a loop, with a middleware system that lets you add exactly the capabilities you need. Every item above is opt-in—add what your use case requires, leave out the rest.
+
+The table below maps every built-in capability to its harness category.
 
 | Category | What it covers |
 |---|---|
