@@ -45,7 +45,7 @@ The job of a harness: get the model the right context at the right time for the 
 
 A harness is everything around that loop: the model, its prompt, its tools, and any middleware that shapes its behavior.
 
-@[`create_agent`] is a configurable harness. At its simplest:
+@[`create_agent`] is a highly configurable harness. At its simplest:
 
 :::python
 ```python
@@ -62,10 +62,10 @@ const agent = createAgent({ model: "openai:gpt-5.4", tools });
 ```
 :::
 
-You extend it through two levers:
+You configure it through two levers:
 
-- **Arguments**: `tools=`, `system_prompt=`, and `response_format=` wire in capabilities directly.
-- **Middleware**: each middleware bundles prompts, tools, and loop logic into a composable unit. Pass one or more to `middleware=` to extend the harness.
+- **Arguments**: `model=`, `tools=`, `system_prompt=`, and `response_format=` cover the most common configuration directly on `create_agent`. See [Core components](#core-components).
+- **Middleware**: for more advanced capabilities — filesystem access, context management, delegation, guardrails — each middleware bundles prompts, tools, and loop logic into a composable unit. See [Configure the harness](#configure-the-harness).
 
 ## Core components
 
@@ -289,6 +289,10 @@ For more details on streaming, see [Streaming](/oss/langchain/streaming).
 ## Configure the harness
 
 Middleware extends the harness by adding capabilities across six categories. Each middleware bundles its own prompts, tools, and loop logic. Pick what your use case needs.
+
+<Note>
+Many capabilities below (summarization, memory, skills, subagents) require a filesystem backend to store and retrieve data. Add @[`FilesystemMiddleware`] to your stack to enable them. See [Backends](/oss/deepagents/backends).
+</Note>
 
 <CardGroup cols={2}>
   <Card title="Execution environment" icon="bolt" href="#execution-environment">
