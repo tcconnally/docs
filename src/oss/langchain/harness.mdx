@@ -10,50 +10,35 @@ description: The harness gets the model the right context at the right time for 
 The job of a harness: get the model the right context at the right time for the given task.
 </Note>
 
-Every agent needs a harness. For a simple task the harness is trivial—a model, a few tools, a loop. But agents that do real work need more. A harness gives agents the ability to:
+Every agent needs a harness. For a simple task the harness is trivial—a model, a few tools, a loop. But agents that do real work need more.
 
-- **Act in an environment**: take actions via tools, read and write files, execute code
-- **Connect to your data**: load memories, skills, and domain knowledge at the right moment
-- **Manage growing context**: summarize history and offload large results across long runs
-- **Parallelize tasks**: delegate to specialized subagents running in isolated context windows
-- **Stay in the loop**: pause for human approval at critical decision points
+<CardGroup cols={2}>
+  <Card title="Act in an environment" icon="bolt">
+    Take actions via tools, read and write files, execute code
+  </Card>
+  <Card title="Connect to your data" icon="database">
+    Load memories, skills, and domain knowledge at the right moment
+  </Card>
+  <Card title="Manage growing context" icon="compress">
+    Summarize history and offload large results across long runs
+  </Card>
+  <Card title="Parallelize tasks" icon="code-branch">
+    Delegate to specialized subagents running in isolated context windows
+  </Card>
+  <Card title="Stay in the loop" icon="user">
+    Pause for human approval at critical decision points
+  </Card>
+</CardGroup>
 
-[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. Add middleware to extend it. The sections below build a complete agent one layer at a time.
+[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. Add middleware to extend it.
+
+Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations. Start with what your use case requires—add the rest as your agent's scope grows.
 
 ---
 
 ## Execution environment
 
-The execution environment is where an agent acts. It starts with the tools you wire up—that is how the agent interacts with the world. Add middleware for a managed filesystem and code execution.
-
-:::python
-
-```python
-from langchain.agents import create_agent
-
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[search, fetch_url],  # tools are the first layer: how the agent acts
-)
-```
-
-Add a filesystem so the agent can read, write, and persist files across turns:
-
-```python
-from langchain.agents import create_agent
-from deepagents.backends import StateBackend
-from deepagents.middleware import FilesystemMiddleware
-
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-6",
-    tools=[search],
-    middleware=[
-        FilesystemMiddleware(backend=StateBackend()),
-    ],
-)
-```
-
-:::
+The execution environment is the complete space where an agent acts: the tools it can call, the filesystem where it reads and writes files, and the sandbox or interpreter where it runs code. These are not separate add-ons—they are one unified capability for taking action in the world.
 
 | Capability | How to add |
 |---|---|
@@ -63,11 +48,40 @@ agent = create_agent(
 | Persistent shell across turns | @[`ShellToolMiddleware`] |
 | Isolated sandbox with shell execution | [`SandboxBackend`](/oss/deepagents/sandboxes) |
 
+:::python
+
+```python
+from langchain.agents import create_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware
+
+agent = create_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search, fetch_url],
+    middleware=[
+        FilesystemMiddleware(backend=StateBackend()),
+    ],
+)
+```
+
+:::
+
+
+
 ---
 
 ## Context management
 
 Context management controls what the agent knows and how long it can run. Summarization keeps history lean; memory injects persistent instructions; skills load domain knowledge on demand.
+
+| Capability | How to add |
+|---|---|
+| History compression + large-result offloading | @[`SummarizationMiddleware`] |
+| Agent-triggered summarization | @[`SummarizationToolMiddleware`] |
+| Persistent instructions via `AGENTS.md` | @[`MemoryMiddleware`] |
+| On-demand domain knowledge | @[`SkillsMiddleware`] |
+| Prompt caching (Anthropic) | @[`AnthropicPromptCachingMiddleware`] |
+| Dynamic tool filtering | @[`LLMToolSelectorMiddleware`] |
 
 :::python
 
@@ -98,20 +112,17 @@ agent = create_agent(
 
 :::
 
-| Capability | How to add |
-|---|---|
-| History compression + large-result offloading | @[`SummarizationMiddleware`] |
-| Agent-triggered summarization | @[`SummarizationToolMiddleware`] |
-| Persistent instructions via `AGENTS.md` | @[`MemoryMiddleware`] |
-| On-demand domain knowledge | @[`SkillsMiddleware`] |
-| Prompt caching (Anthropic) | @[`AnthropicPromptCachingMiddleware`] |
-| Dynamic tool filtering | @[`LLMToolSelectorMiddleware`] |
-
 ---
 
 ## Planning and delegation
 
 Delegation breaks large problems into parallel or sequential units of work. Each subagent runs in its own context window—delegating keeps the main agent's context clean and allows work to run in parallel.
+
+| Capability | How to add |
+|---|---|
+| Todo list tracking across turns | @[`TodoListMiddleware`] |
+| Sync subagent spawning | @[`SubAgentMiddleware`] |
+| Background non-blocking subagents | @[`AsyncSubAgentMiddleware`] |
 
 :::python
 
@@ -154,15 +165,17 @@ agent = create_agent(
 
 :::
 
-| Capability | How to add |
-|---|---|
-| Todo list tracking across turns | @[`TodoListMiddleware`] |
-| Sync subagent spawning | @[`SubAgentMiddleware`] |
-| Background non-blocking subagents | @[`AsyncSubAgentMiddleware`] |
-
 ---
 
 ## Fault tolerance
+
+| Capability | How to add |
+|---|---|
+| Retry on model call failure | @[`ModelRetryMiddleware`] |
+| Retry failed tool calls | @[`ToolRetryMiddleware`] |
+| Fall back to an alternate model | @[`ModelFallbackMiddleware`] |
+| Cap total model calls per session | @[`ModelCallLimitMiddleware`] |
+| Cap total tool calls per session | @[`ToolCallLimitMiddleware`] |
 
 :::python
 
@@ -182,14 +195,6 @@ agent = create_agent(
 
 :::
 
-| Capability | How to add |
-|---|---|
-| Retry on model call failure | @[`ModelRetryMiddleware`] |
-| Retry failed tool calls | @[`ToolRetryMiddleware`] |
-| Fall back to an alternate model | @[`ModelFallbackMiddleware`] |
-| Cap total model calls per session | @[`ModelCallLimitMiddleware`] |
-| Cap total tool calls per session | @[`ToolCallLimitMiddleware`] |
-
 ---
 
 ## Guardrails
@@ -203,6 +208,10 @@ agent = create_agent(
 ## Steering
 
 Pause before high-impact actions so a human can approve, edit, or reject. Requires a checkpointer to persist state while waiting.
+
+| Capability | How to add |
+|---|---|
+| Pause for human approval before tool calls | @[`HumanInTheLoopMiddleware`] |
 
 :::python
 
@@ -247,10 +256,6 @@ agent = create_agent(
 ```
 
 :::
-
-| Capability | How to add |
-|---|---|
-| Pause for human approval before tool calls | @[`HumanInTheLoopMiddleware`] |
 
 ---
 
