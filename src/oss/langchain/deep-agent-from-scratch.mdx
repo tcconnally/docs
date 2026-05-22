@@ -10,8 +10,7 @@ The agent we'll build:
 1. Accepts a CSV file for analysis
 2. Writes and executes Python code in an isolated sandbox
 3. Delegates visualization work to a specialized subagent
-4. Loads domain knowledge from a skills file
-5. Pauses for human review before sharing results
+4. Loads data analysis patterns from a skills file
 
 ## Setup
 
@@ -42,7 +41,7 @@ agent = create_agent("anthropic:claude-sonnet-4-6", tools=[])
 ```
 :::
 
-This runs, but the agent has no filesystem, no way to execute code, and no context management. The next steps add those.
+This runs, but the agent has no filesystem and no way to execute code. The next steps add those.
 
 ---
 
@@ -121,13 +120,13 @@ agent = create_agent(
 
 ## Step 4: Add skills
 
-Skills give the agent on-demand domain knowledge via progressive disclosure — loaded only when the current task calls for it. Create a skill file for data analysis patterns:
+Skills give the agent on-demand domain knowledge via progressive disclosure — loaded only when the current task calls for it. Create a skill file in your skills directory:
 
-:::python
-```python
-# analysis-skills/pandas-patterns/SKILL.md
 ```
-:::
+skills/
+  pandas-patterns/
+    SKILL.md
+```
 
 ```markdown
 ---
@@ -156,7 +155,7 @@ agent = create_agent(
     middleware=[
         FilesystemMiddleware(backend=backend),
         SummarizationMiddleware(model=model, backend=backend),
-        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
     ],
 )
 ```
@@ -192,7 +191,7 @@ agent = create_agent(
     middleware=[
         FilesystemMiddleware(backend=backend),
         SummarizationMiddleware(model=model, backend=backend),
-        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
         TodoListMiddleware(),
         SubAgentMiddleware(backend=backend, subagents=[visualizer]),
     ],
@@ -204,44 +203,7 @@ The main agent handles analysis and planning; it delegates chart generation to t
 
 ---
 
-## Step 6: Add human-in-the-loop
-
-Before sharing results, pause for human review. @[`HumanInTheLoopMiddleware`] intercepts specific tool calls and waits for approval before proceeding.
-
-:::python
-```python
-from langchain.agents.middleware import HumanInTheLoopMiddleware, TodoListMiddleware
-from deepagents.middleware import (
-    FilesystemMiddleware,
-    SkillsMiddleware,
-    SubAgentMiddleware,
-    SummarizationMiddleware,
-)
-from langgraph.checkpoint.memory import MemorySaver
-
-agent = create_agent(
-    model=model,
-    tools=[],
-    middleware=[
-        FilesystemMiddleware(backend=backend),
-        SummarizationMiddleware(model=model, backend=backend),
-        SkillsMiddleware(backend=backend, sources=["./analysis-skills/"]),
-        TodoListMiddleware(),
-        SubAgentMiddleware(backend=backend, subagents=[visualizer]),
-        HumanInTheLoopMiddleware(interrupt_on={"write_file": lambda args: args.get("path", "").endswith(".md")}),
-    ],
-    checkpointer=MemorySaver(),
-)
-```
-:::
-
-The agent pauses whenever it tries to write a `.md` report file, surfacing the content for human review before committing it.
-
----
-
 ## What you built
-
-The full harness:
 
 | Middleware | What it adds |
 |---|---|
@@ -249,9 +211,8 @@ The full harness:
 | @[`SummarizationMiddleware`] | Automatic context compression |
 | @[`SkillsMiddleware`] | Domain knowledge loaded on demand |
 | @[`TodoListMiddleware`] + @[`SubAgentMiddleware`] | Parallel visualization subagent |
-| @[`HumanInTheLoopMiddleware`] | Human review before publishing |
 
-This is the same foundation as `create_deep_agent` — assembled manually so you control exactly what's included.
+This is the same foundation as `create_deep_agent` — assembled manually so you control exactly what's included. The possibilities don't end here: see [Prebuilt middleware](/oss/langchain/middleware/built-in) for the full list of composable capabilities, and the @[`create_agent`] reference for all configuration options.
 
 :::python
 For a pre-assembled version, see @[`create_deep_agent`] and [Customize Deep Agents](/oss/deepagents/customization). For the full data analysis example using `create_deep_agent`, see [Data analysis](/oss/deepagents/data-analysis).
