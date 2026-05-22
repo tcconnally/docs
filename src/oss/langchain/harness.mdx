@@ -63,14 +63,34 @@ The harness is everything wrapped around that loop. For a simple task the harnes
   </Card>
 </CardGroup>
 
-@[`create_agent`] is the minimal harness—a model calling tools in a loop. You extend it by adding [middleware](/oss/langchain/middleware/overview): each middleware hooks into one stage of the loop and adds one capability without changing the harness itself.
+@[`create_agent`] is the minimal harness—a model, a set of tools, a loop:
+
+:::python
+
+```python
+from langchain.agents import create_agent
+
+agent = create_agent("openai:gpt-5.4", tools=tools)
+```
+
+:::
+
+:::js
+
+```typescript
+import { createAgent } from "langchain";
+
+const agent = createAgent({ model: "openai:gpt-5.4", tools });
+```
+
+:::
+
+You extend it through two levers:
+
+- **Arguments** — `tools=` and `system_prompt=` wire in capabilities directly.
+- **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
 Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations.
-
-Two levers configure the harness:
-
-- **Arguments to `create_agent`** — `tools=` and `system_prompt=` wire in static capabilities directly.
-- **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a single composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
 ---
 
