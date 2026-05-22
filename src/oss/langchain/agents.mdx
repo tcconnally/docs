@@ -64,8 +64,8 @@ const agent = createAgent({ model: "openai:gpt-5.4", tools });
 
 You extend it through two levers:
 
-- **Arguments** — `tools=`, `system_prompt=`, and `response_format=` wire in capabilities directly.
-- **Middleware** — each middleware bundles prompts, tools, and loop logic into a composable unit. Pass one or more to `middleware=` to extend the harness.
+- **Arguments**: `tools=`, `system_prompt=`, and `response_format=` wire in capabilities directly.
+- **Middleware**: each middleware bundles prompts, tools, and loop logic into a composable unit. Pass one or more to `middleware=` to extend the harness.
 
 ## Core components
 
@@ -288,7 +288,7 @@ For more details on streaming, see [Streaming](/oss/langchain/streaming).
 
 ## Configure the harness
 
-Middleware extends the harness by adding capabilities across six categories. Each middleware bundles its own prompts, tools, and loop logic — pick what your use case needs.
+Middleware extends the harness by adding capabilities across six categories. Each middleware bundles its own prompts, tools, and loop logic. Pick what your use case needs.
 
 <CardGroup cols={2}>
   <Card title="Execution environment" icon="bolt" href="#execution-environment">
