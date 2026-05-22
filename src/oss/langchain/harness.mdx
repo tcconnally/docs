@@ -40,7 +40,7 @@ graph TD
   class TOOL greenHighlight;
 ```
 
-The harness is everything wrapped around that loop. For a simple task the harness is trivial. But agents that do real work need more.
+The harness is everything wrapped around that loop. For a simple task the harness is trivial. But agents that do complex work need more.
 
 <CardGroup cols={2}>
   <Card title="Execution environment" icon="bolt" href="#execution-environment">
@@ -63,7 +63,7 @@ The harness is everything wrapped around that loop. For a simple task the harnes
   </Card>
 </CardGroup>
 
-[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. You extend it by adding [middleware](/oss/langchain/middleware/overview): each middleware hooks into one stage of the loop and adds one capability without changing the harness itself.
+@[`create_agent`] is the minimal harness—a model calling tools in a loop. You extend it by adding [middleware](/oss/langchain/middleware/overview): each middleware hooks into one stage of the loop and adds one capability without changing the harness itself.
 
 Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations.
 
@@ -96,7 +96,7 @@ from deepagents.middleware import FilesystemMiddleware
 agent = create_agent(
     model="anthropic:claude-sonnet-4-6",
     tools=[search, fetch_url],
-    middleware=[
+    middleware=[  # add what your use case needs
         FilesystemMiddleware(backend=StateBackend()),
     ],
 )
@@ -113,7 +113,7 @@ import { FilesystemMiddleware, StateBackend } from "deepagents";
 const agent = createAgent({
   model: "anthropic:claude-sonnet-4-6",
   tools: [search, fetchUrl],
-  middleware: [
+  middleware: [  // add what your use case needs
     new FilesystemMiddleware({ backend: new StateBackend() }),
   ],
 });
@@ -154,7 +154,7 @@ model = "anthropic:claude-sonnet-4-6"
 agent = create_agent(
     model=model,
     tools=[search],
-    middleware=[
+    middleware=[  # add what your use case needs
         FilesystemMiddleware(backend=backend),
         SummarizationMiddleware(model=model, backend=backend),
         MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
@@ -183,7 +183,7 @@ const model = "anthropic:claude-sonnet-4-6";
 const agent = createAgent({
   model,
   tools: [search],
-  middleware: [
+  middleware: [  // add what your use case needs
     new FilesystemMiddleware({ backend }),
     new SummarizationMiddleware({ model, backend }),
     new MemoryMiddleware({ backend, sources: ["./AGENTS.md"] }),
