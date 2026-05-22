@@ -65,21 +65,26 @@ The harness is everything wrapped around that loop. For a simple task the harnes
 
 [`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. You extend it by adding [middleware](/oss/langchain/middleware/overview): each middleware hooks into one stage of the loop and adds one capability without changing the harness itself.
 
-Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations. Start with what your use case requires—add the rest as your agent's scope grows.
+Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations.
+
+Two levers configure the harness:
+
+- **Arguments to `create_agent`** — `tools=`, `system_prompt=`, and `checkpointer=` wire in static capabilities directly.
+- **Middleware** — each middleware bundles its own tools, prompt additions, and loop hooks into a single composable unit. Pass one or more to `middleware=` to extend the harness. See [Middleware overview](/oss/langchain/middleware/overview).
 
 ---
 
 ## Execution environment
 
-The execution environment is the complete space where an agent acts: the tools it can call, the filesystem where it reads and writes files, and the sandbox or interpreter where it runs code. These are not separate add-ons—they are one unified capability for taking action in the world.
+Tools are the agent's primary interface to the world—any function, API, or database query becomes an action the model can call. The filesystem gives the agent persistent working storage across turns. When the agent needs to execute code, a sandbox provides host isolation; a QuickJS interpreter provides a lighter alternative for data transformation and programmatic tool orchestration.
 
-| Capability | How to add |
-|---|---|
-| Custom tools (functions, APIs, databases) | `tools=` on `create_agent` |
-| Virtual filesystem + file tools | @[`FilesystemMiddleware`] |
-| JavaScript REPL (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) (`langchain_quickjs`) |
-| Persistent shell across turns | @[`ShellToolMiddleware`] |
-| Isolated sandbox with shell execution | [`SandboxBackend`](/oss/deepagents/sandboxes) |
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Custom tools**—functions, APIs, databases your agent can call | `tools=` on `create_agent` | ✓ via `tools=` |
+| **Virtual filesystem**—read and write files that persist across turns | @[`FilesystemMiddleware`] | ✓ |
+| **JavaScript REPL**—batch tool calls or transform data in-process (QuickJS) | [`CodeInterpreterMiddleware`](/oss/deepagents/interpreters) | — |
+| **Persistent shell**—commands sharing a working directory across turns | @[`ShellToolMiddleware`] | — |
+| **Isolated sandbox**—install packages and run code without touching the host | [`SandboxBackend`](/oss/deepagents/sandboxes) | — |
 
 :::python
 
@@ -105,16 +110,16 @@ agent = create_agent(
 
 ## Context management
 
-Context management controls what the agent knows and how long it can run. Summarization keeps history lean; memory injects persistent instructions; skills load domain knowledge on demand.
+Long-running agents accumulate context they no longer need and eventually hit token limits. Context management controls what goes into the model's context window at each turn—compressing history that's no longer needed, loading instructions that are always relevant, surfacing domain knowledge only when the current task calls for it, and reusing cached static sections to reduce cost.
 
-| Capability | How to add |
-|---|---|
-| History compression + large-result offloading | @[`SummarizationMiddleware`] |
-| Agent-triggered summarization | @[`SummarizationToolMiddleware`] |
-| Persistent instructions via `AGENTS.md` | @[`MemoryMiddleware`] |
-| On-demand domain knowledge | @[`SkillsMiddleware`] |
-| Prompt caching (Anthropic) | @[`AnthropicPromptCachingMiddleware`] |
-| Dynamic tool filtering | @[`LLMToolSelectorMiddleware`] |
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **History compression**—keeps context lean for tasks running 10+ turns or producing large tool results | @[`SummarizationMiddleware`] | ✓ |
+| **Agent-triggered summarization**—agent decides when to compress, e.g., between tasks | @[`SummarizationToolMiddleware`] | — |
+| **Persistent memory** via `AGENTS.md`—preferences and guidelines loaded at startup | @[`MemoryMiddleware`] | ✓ if `memory=` |
+| **On-demand skills**—domain knowledge loaded only when the agent needs it | @[`SkillsMiddleware`] | ✓ if `skills=` |
+| **Prompt caching**—reduces cost on repeated static prompt sections (Anthropic) | @[`AnthropicPromptCachingMiddleware`] | ✓ Anthropic |
+| **Dynamic tool filtering**—trims tool list before each model call | @[`LLMToolSelectorMiddleware`] | — |
 
 :::python
 
@@ -149,13 +154,13 @@ agent = create_agent(
 
 ## Planning and delegation
 
-Delegation breaks large problems into parallel or sequential units of work. Each subagent runs in its own context window—delegating keeps the main agent's context clean and allows work to run in parallel.
+Some tasks are too large or too parallel for a single context window. Delegation lets the main agent hand off focused subtasks to subagents—each runs independently in its own context window and returns a single result, keeping the main agent's context clean and enabling parallel execution.
 
-| Capability | How to add |
-|---|---|
-| Todo list tracking across turns | @[`TodoListMiddleware`] |
-| Sync subagent spawning | @[`SubAgentMiddleware`] |
-| Background non-blocking subagents | @[`AsyncSubAgentMiddleware`] |
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Todo list**—structured task tracking across turns | @[`TodoListMiddleware`] | ✓ |
+| **Sync subagents**—isolated subtasks in their own context windows | @[`SubAgentMiddleware`] | ✓ |
+| **Background subagents**—fire-and-forget tasks the main agent doesn't wait on | @[`AsyncSubAgentMiddleware`] | — |
 
 :::python
 
@@ -202,13 +207,15 @@ agent = create_agent(
 
 ## Fault tolerance
 
-| Capability | How to add |
-|---|---|
-| Retry on model call failure | @[`ModelRetryMiddleware`] |
-| Retry failed tool calls | @[`ToolRetryMiddleware`] |
-| Fall back to an alternate model | @[`ModelFallbackMiddleware`] |
-| Cap total model calls per session | @[`ModelCallLimitMiddleware`] |
-| Cap total tool calls per session | @[`ToolCallLimitMiddleware`] |
+Production agents encounter failures that dev environments don't—rate limits, model timeouts, transient tool errors. These middleware handle failure at the infrastructure level so your tools and business logic stay clean.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Model retry**—retries on transient model failures | @[`ModelRetryMiddleware`] | — |
+| **Tool retry**—retries on rate limits or transient tool errors | @[`ToolRetryMiddleware`] | — |
+| **Model fallback**—switches to an alternate model on failure | @[`ModelFallbackMiddleware`] | — |
+| **Model call cap**—bounds total model calls per session | @[`ModelCallLimitMiddleware`] | — |
+| **Tool call cap**—bounds total tool calls per session | @[`ToolCallLimitMiddleware`] | — |
 
 :::python
 
@@ -232,19 +239,21 @@ agent = create_agent(
 
 ## Guardrails
 
-| Capability | How to add |
-|---|---|
-| Detect and redact PII from tool results | @[`PIIMiddleware`] |
+Guardrails intercept data as it flows through the agent loop, enforcing compliance or content policies before tool results reach the model's context.
+
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **PII detection**—redacts personal data from tool results before they enter the context | @[`PIIMiddleware`] | — |
 
 ---
 
 ## Steering
 
-Pause before high-impact actions so a human can approve, edit, or reject. Requires a checkpointer to persist state while waiting.
+Fully autonomous agents aren't always the right call. Steering lets you pause execution before specific tool calls—destructive writes, expensive API calls, anything requiring human judgment—so a human can approve, edit, or reject before the agent proceeds. State is persisted via a checkpointer while waiting for input.
 
-| Capability | How to add |
-|---|---|
-| Pause for human approval before tool calls | @[`HumanInTheLoopMiddleware`] |
+| Capability | How to add | In `create_deep_agent` |
+|---|---|---|
+| **Human-in-the-loop**—pause for approval before specified tool calls | @[`HumanInTheLoopMiddleware`] | ✓ if `interrupt_on=` |
 
 :::python
 

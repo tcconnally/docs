@@ -5,12 +5,20 @@ sidebarTitle: Overview
 
 A deep agents harness provides four categories of built-in capabilities that make building long-running, reliable agents easier:
 
-| Component | What it provides |
-|-----------|-----------------|
-| **[Execution environment](#execution-environment)** | Tools, virtual filesystem, optional sandbox, and REPL (interpreter) |
-| **[Context management](#context-management)** | Skills, memory, summarization, context offloading, and prompt caching |
-| **[Delegation](#delegation)** | Subagent spawning and task planning |
-| **[Steering](#steering)** | Human-in-the-loop approval and interrupts |
+<CardGroup cols={2}>
+  <Card title="Execution environment" icon="bolt" href="#execution-environment">
+    Tools, virtual filesystem, optional sandbox, and REPL (interpreter)
+  </Card>
+  <Card title="Context management" icon="database" href="#context-management">
+    Skills, memory, summarization, context offloading, and prompt caching
+  </Card>
+  <Card title="Delegation" icon="sitemap" href="#delegation">
+    Subagent spawning and task planning
+  </Card>
+  <Card title="Steering" icon="user" href="#steering">
+    Human-in-the-loop approval and interrupts
+  </Card>
+</CardGroup>
 
 Alongside these four components, [harness profiles](#harness-profiles) let you package per-model configuration into reusable bundles.
 
