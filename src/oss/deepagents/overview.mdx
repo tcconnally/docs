@@ -7,20 +7,26 @@ description: Build agents that can plan, use subagents, and leverage file system
 The easiest way to start building agents and applications powered by LLMs—with built-in capabilities for task planning, file systems for context management, subagent-spawning, and long-term memory.
 You can use deep agents for any task, including complex, multi-step tasks.
 
-We think of `deepagents` as an ["agent harness"](/oss/concepts/products#agent-harnesses-like-the-deep-agents-sdk). It is the same core tool calling loop as other agent frameworks, but with built-in tools and capabilities organized into four components:
+We think of `deepagents` as an ["agent harness"](/oss/concepts/products#agent-harnesses-like-the-deep-agents-sdk). It is the same core tool calling loop as other agent frameworks, but with built-in capabilities that make agents reliable for real tasks:
 
 <CardGroup cols={2}>
-  <Card title="Execution environment" icon="bolt" href="/oss/deepagents/harness#execution-environment">
-    Tools, virtual filesystem, optional sandbox, and REPL (interpreter)
+  <Card title="Act in an environment" icon="bolt">
+    Take actions via tools, read and write files, execute code
   </Card>
-  <Card title="Context management" icon="database" href="/oss/deepagents/harness#context-management">
-    Skills, memory, summarization, context offloading, and prompt caching
+  <Card title="Connect to your data" icon="database">
+    Load memories, skills, and domain knowledge at the right moment
   </Card>
-  <Card title="Delegation" icon="sitemap" href="/oss/deepagents/harness#delegation">
-    Subagent spawning and task planning
+  <Card title="Manage growing context" icon="scissors">
+    Summarize history and offload large results across long runs
   </Card>
-  <Card title="Steering" icon="user" href="/oss/deepagents/harness#steering">
-    Human-in-the-loop approval and interrupts
+  <Card title="Parallelize tasks" icon="sitemap">
+    Delegate to specialized subagents running in isolated context windows
+  </Card>
+  <Card title="Stay in the loop" icon="user">
+    Pause for human approval at critical decision points
+  </Card>
+  <Card title="Improve over time" icon="rocket">
+    Update memory, skills, and prompts based on real usage
   </Card>
 </CardGroup>
 

@@ -110,7 +110,7 @@ agent = create_agent(
 
 ## Context management
 
-As an agent runs, context accumulates—history, tool results, intermediate steps—and eventually overflows the context window. Context management attacks this at multiple levels: summarization compresses and offloads growing history before overflow hits; memory loads persistent instructions at the start of each session so knowledge carries across runs without re-stating it each time; skills use progressive disclosure so domain knowledge loads only when the task calls for it, avoiding context rot from irrelevant content sitting in the window throughout the run.
+Context management has three jobs: optimize what's in the context window at any given turn, prevent overflow and context rot as the run grows, and improve what the agent knows across sessions.
 
 | Capability | How to add | In `create_deep_agent` |
 |---|---|---|
