@@ -1,0 +1,223 @@
+---
+title: Agent harness
+sidebarTitle: Harness
+description: create_agent is the minimal loop. Compose only what you need.
+---
+
+[`create_agent`][langchain.agents.create_agent] is a model calling tools in a loop. That is the entire primitive.
+
+Everything else—filesystems, memory, subagents, guardrails—comes from middleware. You pick which pieces to include. The table below maps every built-in capability to its category; the sections that follow show how to compose them layer by layer.
+
+| Category | What it covers |
+|---|---|
+| **[Execution environment](#execution-environment)** | Custom tools, virtual filesystem, code execution |
+| **[Context management](#context-management)** | Summarization, memory, skills, prompt caching |
+| **[Planning & delegation](#planning-and-delegation)** | Task tracking, subagents |
+| **[Fault tolerance](#fault-tolerance)** | Retries, fallbacks, call limits |
+| **[Guardrails](#guardrails)** | PII detection and redaction |
+| **[Steering](#steering)** | Human-in-the-loop approval |
+
+For the full middleware reference with configuration examples, see [Prebuilt middleware](/oss/python/langchain/middleware/built-in).
+
+---
+
+## Execution environment
+
+The execution environment is how an agent acts in the world. It starts with the tools you wire up—custom functions, APIs, databases—and extends with middleware that adds a managed filesystem and code execution.
+
+| Capability | How to add |
+|---|---|
+| Custom tools (functions, APIs) | `tools=` parameter on `create_agent` |
+| Virtual filesystem + file tools | [`FilesystemMiddleware`](https://reference.langchain.com/python/deepagents/middleware/filesystem/FilesystemMiddleware) |
+| JavaScript REPL (QuickJS) | @[`CodeInterpreterMiddleware`] (`langchain_quickjs`) |
+| Persistent shell across turns | [`ShellToolMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/shell_tool/ShellToolMiddleware) |
+| Isolated sandbox with shell execution | [`SandboxBackend`](/oss/python/deepagents/sandboxes) |
+
+## Context management
+
+Context management controls what the agent knows, how long it can run within token limits, and what it retains across sessions.
+
+| Capability | How to add |
+|---|---|
+| History compression + large-result offloading | [`SummarizationMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/summarization/SummarizationMiddleware) |
+| Agent-triggered summarization | [`SummarizationToolMiddleware`](https://reference.langchain.com/python/deepagents/middleware/summarization/SummarizationToolMiddleware) |
+| Persistent instructions via `AGENTS.md` | [`MemoryMiddleware`](https://reference.langchain.com/python/deepagents/middleware/memory/MemoryMiddleware) |
+| On-demand domain knowledge | [`SkillsMiddleware`](https://reference.langchain.com/python/deepagents/middleware/skills/SkillsMiddleware) |
+| Prompt caching (Anthropic) | [`AnthropicPromptCachingMiddleware`](https://reference.langchain.com/python/langchain-anthropic/middleware/prompt_caching/AnthropicPromptCachingMiddleware) |
+| Dynamic tool filtering | [`LLMToolSelectorMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_selection/LLMToolSelectorMiddleware) |
+
+## Planning and delegation
+
+Delegation lets agents break large problems into parallel or sequential units of work with isolated context windows.
+
+| Capability | How to add |
+|---|---|
+| Todo list tracking across turns | [`TodoListMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/todo/TodoListMiddleware) |
+| Sync subagent spawning | [`SubAgentMiddleware`](https://reference.langchain.com/python/deepagents/middleware/subagents/SubAgentMiddleware) |
+| Background non-blocking subagents | [`AsyncSubAgentMiddleware`](https://reference.langchain.com/python/deepagents/middleware/async_subagents/AsyncSubAgentMiddleware) |
+
+## Fault tolerance
+
+Fault tolerance keeps agents running when models or tools fail transiently.
+
+| Capability | How to add |
+|---|---|
+| Retry on model call failure | [`ModelRetryMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_retry/ModelRetryMiddleware) |
+| Retry failed tool calls | [`ToolRetryMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_retry/ToolRetryMiddleware) |
+| Fall back to an alternate model | [`ModelFallbackMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_fallback/ModelFallbackMiddleware) |
+| Cap total model calls per session | [`ModelCallLimitMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/model_call_limit/ModelCallLimitMiddleware) |
+| Cap total tool calls per session | [`ToolCallLimitMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/tool_call_limit/ToolCallLimitMiddleware) |
+
+## Guardrails
+
+| Capability | How to add |
+|---|---|
+| Detect and redact PII from tool results | [`PIIMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/pii/PIIMiddleware) |
+
+## Steering
+
+| Capability | How to add |
+|---|---|
+| Pause for human approval before tool calls | [`HumanInTheLoopMiddleware`](https://reference.langchain.com/python/langchain/agents/middleware/human_in_the_loop/HumanInTheLoopMiddleware) |
+
+---
+
+## Composing from scratch
+
+The following example builds a research assistant step by step. Each layer adds one category of capability—stop wherever your use case is satisfied.
+
+```python
+from langchain.agents import create_agent
+
+# The minimal harness: model + tools in a loop
+agent = create_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search],
+)
+```
+
+**Add execution environment**—give the agent a filesystem and the ability to run code:
+
+```python
+from langchain.agents import create_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware
+
+backend = StateBackend()
+
+agent = create_agent(
+    model="anthropic:claude-sonnet-4-6",
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+    ],
+)
+```
+
+**Add context management**—compress history automatically and inject domain knowledge:
+
+```python
+from langchain.agents import create_agent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware, MemoryMiddleware, SkillsMiddleware, SummarizationMiddleware
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+    ],
+)
+```
+
+**Add planning and delegation**—track tasks and spawn subagents for isolated subtasks:
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import TodoListMiddleware
+from deepagents import SubAgent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware, MemoryMiddleware, SkillsMiddleware, SubAgentMiddleware, SummarizationMiddleware
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+researcher: SubAgent = {
+    "name": "researcher",
+    "description": "Deep-dives into a topic and returns a structured summary.",
+    "system_prompt": "You are a research specialist. Search thoroughly and cite your sources.",
+    "tools": [search],
+}
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),
+        SummarizationMiddleware(model=model, backend=backend),
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),
+        TodoListMiddleware(),
+        SubAgentMiddleware(backend=backend, subagents=[researcher]),
+    ],
+)
+```
+
+**Add steering**—pause for human review before high-impact actions:
+
+```python
+from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware, TodoListMiddleware
+from langgraph.checkpoint.memory import MemorySaver
+from deepagents import SubAgent
+from deepagents.backends import StateBackend
+from deepagents.middleware import FilesystemMiddleware, MemoryMiddleware, SkillsMiddleware, SubAgentMiddleware, SummarizationMiddleware
+
+backend = StateBackend()
+model = "anthropic:claude-sonnet-4-6"
+
+researcher: SubAgent = {
+    "name": "researcher",
+    "description": "Deep-dives into a topic and returns a structured summary.",
+    "system_prompt": "You are a research specialist. Search thoroughly and cite your sources.",
+    "tools": [search],
+}
+
+agent = create_agent(
+    model=model,
+    tools=[search],
+    middleware=[
+        FilesystemMiddleware(backend=backend),                                       # execution environment
+        SummarizationMiddleware(model=model, backend=backend),                       # context management
+        MemoryMiddleware(backend=backend, sources=["./AGENTS.md"]),                  # context management
+        SkillsMiddleware(backend=backend, sources=["./skills/"]),                    # context management
+        TodoListMiddleware(),                                                         # planning & delegation
+        SubAgentMiddleware(backend=backend, subagents=[researcher]),                 # planning & delegation
+        HumanInTheLoopMiddleware(interrupt_on={"write_file": True}),                # steering
+    ],
+    checkpointer=MemorySaver(),
+)
+```
+
+
+
+<Tip>
+`create_deep_agent` pre-assembles this stack for long-running coding and research tasks—filesystem, summarization, subagents, and prompt caching are included by default. See [Deep Agents](/oss/python/deepagents/harness) for the full pre-built harness.
+</Tip>
+
+---
+
+<div className="source-links">
+<Callout icon="terminal-2">
+    [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/harness.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
+</Callout>
+</div>
