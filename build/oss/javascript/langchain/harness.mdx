@@ -1,0 +1,140 @@
+---
+title: Agent harness
+sidebarTitle: Harness
+description: The harness gets the model the right context at the right time for the task.
+---
+
+<Note>
+**agent = model + harness**
+
+The job of a harness: get the model the right context at the right time for the given task.
+</Note>
+
+Every agent needs a harness. For a simple task the harness is trivial—a model, a few tools, a loop. But agents that do real work need more.
+
+<CardGroup cols={2}>
+  <Card title="Act in an environment" icon="bolt">
+    Take actions via tools, read and write files, execute code
+  </Card>
+  <Card title="Connect to your data" icon="database">
+    Load memories, skills, and domain knowledge at the right moment
+  </Card>
+  <Card title="Manage growing context" icon="compress">
+    Summarize history and offload large results across long runs
+  </Card>
+  <Card title="Parallelize tasks" icon="code-branch">
+    Delegate to specialized subagents running in isolated context windows
+  </Card>
+  <Card title="Stay in the loop" icon="user">
+    Pause for human approval at critical decision points
+  </Card>
+  <Card title="Improve over time" icon="arrow-trend-up">
+    Update memory, skills, and prompts based on real usage
+  </Card>
+</CardGroup>
+
+[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. Add middleware to extend it.
+
+Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations. Start with what your use case requires—add the rest as your agent's scope grows.
+
+---
+
+## Execution environment
+
+The execution environment is the complete space where an agent acts: the tools it can call, the filesystem where it reads and writes files, and the sandbox or interpreter where it runs code. These are not separate add-ons—they are one unified capability for taking action in the world.
+
+| Capability | How to add |
+|---|---|
+| Custom tools (functions, APIs, databases) | `tools=` on `create_agent` |
+| Virtual filesystem + file tools | [`FilesystemMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createFilesystemMiddleware) |
+| JavaScript REPL (QuickJS) | [`CodeInterpreterMiddleware`](/oss/javascript/deepagents/interpreters) (`langchain_quickjs`) |
+| Persistent shell across turns | @[`ShellToolMiddleware`] |
+| Isolated sandbox with shell execution | [`SandboxBackend`](/oss/javascript/deepagents/sandboxes) |
+
+
+
+
+
+---
+
+## Context management
+
+Context management controls what the agent knows and how long it can run. Summarization keeps history lean; memory injects persistent instructions; skills load domain knowledge on demand.
+
+| Capability | How to add |
+|---|---|
+| History compression + large-result offloading | [`SummarizationMiddleware`](https://reference.langchain.com/javascript/langchain/index/summarizationMiddleware) |
+| Agent-triggered summarization | [`SummarizationToolMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createSummarizationMiddleware) |
+| Persistent instructions via `AGENTS.md` | [`MemoryMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createMemoryMiddleware) |
+| On-demand domain knowledge | [`SkillsMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createSkillsMiddleware) |
+| Prompt caching (Anthropic) | [`AnthropicPromptCachingMiddleware`](https://reference.langchain.com/javascript/langchain/index/anthropicPromptCachingMiddleware) |
+| Dynamic tool filtering | @[`LLMToolSelectorMiddleware`] |
+
+
+
+---
+
+## Planning and delegation
+
+Delegation breaks large problems into parallel or sequential units of work. Each subagent runs in its own context window—delegating keeps the main agent's context clean and allows work to run in parallel.
+
+| Capability | How to add |
+|---|---|
+| Todo list tracking across turns | [`TodoListMiddleware`](https://reference.langchain.com/javascript/langchain/index/todoListMiddleware) |
+| Sync subagent spawning | [`SubAgentMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createSubAgentMiddleware) |
+| Background non-blocking subagents | [`AsyncSubAgentMiddleware`](https://reference.langchain.com/javascript/deepagents/agent/createDeepAgent) |
+
+
+
+---
+
+## Fault tolerance
+
+| Capability | How to add |
+|---|---|
+| Retry on model call failure | [`ModelRetryMiddleware`](https://reference.langchain.com/javascript/langchain/index/modelRetryMiddleware) |
+| Retry failed tool calls | [`ToolRetryMiddleware`](https://reference.langchain.com/javascript/langchain/index/toolRetryMiddleware) |
+| Fall back to an alternate model | [`ModelFallbackMiddleware`](https://reference.langchain.com/javascript/langchain/index/modelFallbackMiddleware) |
+| Cap total model calls per session | [`ModelCallLimitMiddleware`](https://reference.langchain.com/javascript/langchain/index/modelCallLimitMiddleware) |
+| Cap total tool calls per session | [`ToolCallLimitMiddleware`](https://reference.langchain.com/javascript/langchain/index/toolCallLimitMiddleware) |
+
+
+
+---
+
+## Guardrails
+
+| Capability | How to add |
+|---|---|
+| Detect and redact PII from tool results | @[`PIIMiddleware`] |
+
+---
+
+## Steering
+
+Pause before high-impact actions so a human can approve, edit, or reject. Requires a checkpointer to persist state while waiting.
+
+| Capability | How to add |
+|---|---|
+| Pause for human approval before tool calls | [`HumanInTheLoopMiddleware`](https://reference.langchain.com/javascript/langchain/middleware/humanInTheLoopMiddleware) |
+
+
+
+---
+
+<Tip>
+`create_deep_agent` pre-assembles this stack for long-running coding and research tasks—filesystem, summarization, subagents, and prompt caching included by default. See [Deep Agents](/oss/javascript/deepagents/harness) for the full pre-built harness.
+</Tip>
+
+For the full middleware reference with configuration examples, see [Prebuilt middleware](/oss/javascript/langchain/middleware/built-in).
+
+---
+
+<div className="source-links">
+<Callout icon="terminal-2">
+    [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/harness.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
+</Callout>
+</div>
