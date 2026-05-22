@@ -1,22 +1,20 @@
 ---
 title: Agent harness
 sidebarTitle: Harness
-description: An agent is a model plus a harness. The harness is the capability layer that makes deep, long-running agents tractable.
+description: An agent is a model plus a harness. Compose exactly the harness you need.
 ---
 
-An agent is a model plus a **harness**. The model reasons; the harness is the capability layer that defines what it can do.
-
-For a simple task—answer a question, call one API—the harness is trivial: a model, a few tools, and a loop. But deep agents that run for minutes or hours, manage large amounts of context, coordinate specialized subagents, and need to stay reliable in production require more:
+An agent is a model plus a **harness**. The model reasons; the harness is the infrastructure around it that gives the model the ability to act, remember, and coordinate:
 
 - **Tools**: functions, APIs, and databases the model can call
-- **Execution environment**: a filesystem or sandbox where the agent reads, writes, and runs code
-- **Context management**: memory, skills, and summarization that keep the agent coherent across long sessions
-- **Delegation**: subagents that handle isolated subtasks in their own context windows, keeping the main agent's context clean
+- **Execution environment**: a filesystem or sandbox where the agent can read, write, and run code
+- **Context management**: memory, skills, and summarization that keep the agent effective across long sessions
+- **Delegation**: subagents that handle isolated subtasks in their own context windows
 - **Steering**: human-in-the-loop approval at critical decision points
 
-[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop, with a middleware system that lets you extend it with exactly the capabilities you need. Every item above is opt-in.
+[`create_agent`][langchain.agents.create_agent] provides the minimal harness: a model and tools in a loop, with a middleware system that lets you add exactly the capabilities you need. Every item above is opt-in—add what your use case requires, leave out the rest.
 
-The table below maps every built-in capability to its harness category. For the pre-assembled harness tuned for deep, long-running agents, see [Deep Agents](/oss/deepagents/harness).
+The table below maps every built-in capability to its harness category.
 
 | Category | What it covers |
 |---|---|
@@ -94,11 +92,9 @@ Fault tolerance keeps agents running when models or tools fail transiently.
 
 ## Composing from scratch
 
-Every request through `create_agent` flows through a middleware stack. Each middleware hooks into one stage of the loop—before the model, after a tool call, around the full run—without forking the harness. Compose the stack your agent needs.
-
 :::python
 
-The following example builds a research assistant layer by layer. Stop wherever your use case is satisfied.
+The following example builds a research assistant step by step. Each layer adds one category of capability—stop wherever your use case is satisfied.
 
 ```python
 from langchain.agents import create_agent
