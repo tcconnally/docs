@@ -1,0 +1,94 @@
+---
+title: Build a data analysis agent from scratch
+sidebarTitle: Deep Agent
+description: Build a data analysis agent step by step using create_agent and deepagents middleware.
+---
+
+This guide builds a data analysis agent from first principles using `create_agent` and deepagents middleware. Rather than starting with `create_deep_agent`, we assemble the harness one piece at a time — so you can see exactly what each component adds and swap in only what your use case needs.
+
+The agent we'll build:
+1. Accepts a CSV file for analysis
+2. Writes and executes Python code in an isolated sandbox
+3. Produces exploratory analysis and visualizations
+
+## Setup
+
+
+
+Enable LangSmith tracing to inspect every step:
+
+```bash
+export LANGSMITH_TRACING=true
+export LANGSMITH_API_KEY=...
+```
+
+---
+
+## Step 1: The minimal agent
+
+A model, a tool, a loop. Nothing else yet.
+
+
+
+This runs, but the agent has no filesystem and no way to execute code. The next steps fix that.
+
+---
+
+## Step 2: Add a sandbox backend
+
+`LangSmithSandbox` gives the agent an isolated environment with a filesystem and an `execute` tool for running shell commands. The agent can install packages, write scripts, and run them — without touching the host.
+
+
+
+[`FilesystemMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createFilesystemMiddleware) adds `read_file`, `write_file`, `edit_file`, `glob`, and `grep`. Because `LangSmithSandbox` implements the sandbox protocol, it also adds `execute` — the agent can now run shell commands.
+
+---
+
+## Step 3: Upload data and run
+
+Upload a CSV to the sandbox and invoke the agent:
+
+
+
+The agent writes a Python script, executes it in the sandbox, and returns its findings.
+
+---
+
+## Step 4: Add context management
+
+For longer analysis sessions the context window fills up. `SummarizationMiddleware` compresses history automatically so the agent can keep working without hitting token limits.
+
+
+
+---
+
+## Step 5: Add a custom tool
+
+The agent can call any tool you define. Here we add one to download the generated chart from the sandbox:
+
+
+
+---
+
+## What you built
+
+The stack above is a focused data analysis harness:
+
+| Component | What it adds |
+|---|---|
+| [`FilesystemMiddleware`](https://reference.langchain.com/javascript/deepagents/middleware/createFilesystemMiddleware) + `LangSmithSandbox` | Isolated filesystem + `execute` tool |
+| [`SummarizationMiddleware`](https://reference.langchain.com/javascript/langchain/index/summarizationMiddleware) | Automatic context compression |
+| Custom `download_artifact` tool | Domain-specific action |
+
+This is the same foundation as `create_deep_agent` — assembled manually so you control exactly what's included.
+
+---
+
+<div className="source-links">
+<Callout icon="terminal-2">
+    [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/deep-agent-from-scratch.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
+</Callout>
+</div>
