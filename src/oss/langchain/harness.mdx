@@ -10,7 +10,37 @@ description: The harness gets the model the right context at the right time for 
 The job of a harness: get the model the right context at the right time for the given task.
 </Note>
 
-Every agent needs a harness. For a simple task the harness is trivial—a model, a few tools, a loop. But agents that do real work need more.
+At its core, an agent is a model calling tools in a loop until the task is complete.
+
+```mermaid
+%%{
+  init: {
+    "fontFamily": "monospace",
+    "flowchart": {
+      "curve": "curve"
+    }
+  }
+}%%
+graph TD
+  QUERY([input])
+  LLM{model}
+  TOOL(tools)
+  ANSWER([output])
+
+  QUERY --> LLM
+  LLM --"action"--> TOOL
+  TOOL --"observation"--> LLM
+  LLM --"finish"--> ANSWER
+
+  classDef blueHighlight fill:#E5F4FF,stroke:#006DDD,color:#030710;
+  classDef greenHighlight fill:#F6FFDB,stroke:#6E8900,color:#2E3900;
+  class QUERY blueHighlight;
+  class ANSWER blueHighlight;
+  class LLM greenHighlight;
+  class TOOL greenHighlight;
+```
+
+The harness is everything wrapped around that loop. For a simple task the harness is trivial. But agents that do real work need more.
 
 <CardGroup cols={2}>
   <Card title="Act in an environment" icon="bolt">
@@ -33,7 +63,7 @@ Every agent needs a harness. For a simple task the harness is trivial—a model,
   </Card>
 </CardGroup>
 
-[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. Add middleware to extend it.
+[`create_agent`][langchain.agents.create_agent] is the minimal harness—a model calling tools in a loop. You extend it by adding [middleware](/oss/langchain/middleware/overview): each middleware hooks into one stage of the loop and adds one capability without changing the harness itself.
 
 Not every agent needs every capability. Design the harness around what your application does. A research agent needs search tools, a filesystem to persist findings, and summarization to stay coherent across long runs. A coding agent needs filesystem access, a sandbox for safe execution, and human-in-the-loop for risky writes. A customer support agent needs memory for user preferences and HITL for escalations. Start with what your use case requires—add the rest as your agent's scope grows.
 
@@ -266,4 +296,7 @@ agent = create_agent(
 `create_deep_agent` pre-assembles this stack for long-running coding and research tasks—filesystem, summarization, subagents, and prompt caching included by default. See [Deep Agents](/oss/deepagents/harness) for the full pre-built harness.
 </Tip>
 
-For the full middleware reference with configuration examples, see [Prebuilt middleware](/oss/langchain/middleware/built-in).
+**Middleware resources:**
+- [Middleware overview](/oss/langchain/middleware/overview)—how the middleware stack works and when hooks fire
+- [Prebuilt middleware](/oss/langchain/middleware/built-in)—full reference with configuration examples
+- [Custom middleware](/oss/langchain/middleware/custom)—write your own hooks for business logic, PII scrubbing, and more
