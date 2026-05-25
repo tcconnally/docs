@@ -2407,6 +2407,23 @@
               "default": false,
               "title": "Include Deleted"
             }
+          },
+          {
+            "name": "data_plane_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Data Plane Id"
+            }
           }
         ],
         "responses": {
@@ -9017,7 +9034,7 @@
         "tags": [
           "run"
         ],
-        "summary": "Read run",
+        "summary": "Read Run",
         "description": "Get a specific run.",
         "operationId": "read_run_api_v1_runs__run_id__get",
         "security": [
@@ -9134,7 +9151,7 @@
         "tags": [
           "run"
         ],
-        "summary": "Update run",
+        "summary": "Update Run",
         "description": "Update a run.",
         "operationId": "update_run_api_v1_runs__run_id__patch",
         "security": [
@@ -9396,7 +9413,7 @@
         "tags": [
           "run"
         ],
-        "summary": "Query runs",
+        "summary": "Query Runs",
         "operationId": "query_runs_api_v1_runs_query_post",
         "requestBody": {
           "content": {
@@ -25852,58 +25869,6 @@
         }
       }
     },
-    "/checkpoint": {
-      "post": {
-        "description": "Flush filesystem state and create a point-in-time checkpoint of the running sandbox. With include_memory=true the work is scheduled asynchronously and clients should poll snapshot capture for completion.",
-        "tags": [
-          "checkpoint"
-        ],
-        "summary": "Create a checkpoint",
-        "parameters": [
-          {
-            "description": "Capture VM memory snapshot alongside the rootfs clone (default: false)",
-            "name": "include_memory",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "title": "Include Memory"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Checkpoint name (rootfs+memory work pending if include_memory=true)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.CreateCheckpointResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid include_memory value",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Checkpoint creation failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/commits/{owner}/{repo}": {
       "get": {
         "security": [
@@ -25946,8 +25911,8 @@
             "name": "include_stats",
             "in": "query",
             "schema": {
-              "default": true,
               "type": "boolean",
+              "default": true,
               "title": "Include Stats"
             }
           },
@@ -25956,10 +25921,10 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "maximum": 100,
-              "default": 20,
-              "minimum": 1,
               "type": "integer",
+              "minimum": 1,
+              "default": 20,
+              "maximum": 100,
               "title": "Limit"
             }
           },
@@ -25968,9 +25933,9 @@
             "name": "offset",
             "in": "query",
             "schema": {
-              "default": 0,
-              "minimum": 0,
               "type": "integer",
+              "minimum": 0,
+              "default": 0,
               "title": "Offset"
             }
           },
@@ -26178,8 +26143,8 @@
             "name": "get_examples",
             "in": "query",
             "schema": {
-              "default": false,
               "type": "boolean",
+              "default": false,
               "title": "Get Examples"
             }
           },
@@ -26197,8 +26162,8 @@
             "name": "include_model",
             "in": "query",
             "schema": {
-              "default": false,
               "type": "boolean",
+              "default": false,
               "title": "Include Model"
             }
           },
@@ -26206,8 +26171,8 @@
             "name": "is_view",
             "in": "query",
             "schema": {
-              "default": false,
               "type": "boolean",
+              "default": false,
               "title": "Is View"
             }
           }
@@ -26282,8 +26247,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -26380,8 +26345,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -26513,8 +26478,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -26524,8 +26489,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -26619,8 +26584,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -26630,8 +26595,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -26718,8 +26683,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -26729,8 +26694,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -26821,125 +26786,6 @@
             }
           }
         }
-      }
-    },
-    "/download": {
-      "get": {
-        "description": "Download a file from the sandbox filesystem",
-        "tags": [
-          "files"
-        ],
-        "summary": "Download a file",
-        "parameters": [
-          {
-            "description": "File path to download",
-            "name": "path",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "File content"
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "File not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "File operation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/execute": {
-      "post": {
-        "description": "Execute a shell command and return stdout, stderr, and exit code",
-        "tags": [
-          "execute"
-        ],
-        "summary": "Execute a command",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Command executed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ExecResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          },
-          "408": {
-            "description": "Command timed out",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/handlers.ExecRequest"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/execute/ws": {
-      "get": {
-        "description": "Execute a shell command with streaming stdout/stderr over WebSocket",
-        "tags": [
-          "execute"
-        ],
-        "summary": "Execute command via WebSocket",
-        "responses": {},
-        "parameters": []
       }
     },
     "/me/providers/{providerType}": {
@@ -27856,10 +27702,10 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "maximum": 100,
-              "default": 50,
-              "minimum": 1,
               "type": "integer",
+              "minimum": 1,
+              "default": 50,
+              "maximum": 100,
               "title": "Limit"
             }
           },
@@ -27867,9 +27713,9 @@
             "name": "offset",
             "in": "query",
             "schema": {
-              "default": 0,
-              "minimum": 0,
               "type": "integer",
+              "minimum": 0,
+              "default": 0,
               "title": "Offset"
             }
           }
@@ -28301,8 +28147,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -28399,79 +28245,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/runs.Run"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/upload": {
-      "post": {
-        "description": "Upload a file to the sandbox filesystem",
-        "tags": [
-          "files"
-        ],
-        "summary": "Upload a file",
-        "parameters": [
-          {
-            "description": "Destination file path",
-            "name": "path",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "File uploaded successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.UploadResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "File operation error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/handlers.ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "File to upload"
-                  }
-                },
-                "required": [
-                  "file"
-                ]
               }
             }
           }
@@ -29292,12 +29065,12 @@
             "name": "audience",
             "in": "query",
             "schema": {
+              "type": "string",
+              "default": "user",
               "enum": [
                 "user",
                 "tenant"
               ],
-              "default": "user",
-              "type": "string",
               "title": "Audience"
             }
           },
@@ -29306,13 +29079,13 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
+              "type": "string",
+              "default": "updated_at",
               "enum": [
                 "created_at",
                 "updated_at",
                 "name"
               ],
-              "default": "updated_at",
-              "type": "string",
               "title": "Sort By"
             }
           },
@@ -29321,12 +29094,12 @@
             "name": "sort_order",
             "in": "query",
             "schema": {
+              "type": "string",
+              "default": "desc",
               "enum": [
                 "asc",
                 "desc"
               ],
-              "default": "desc",
-              "type": "string",
               "title": "Sort Order"
             }
           }
@@ -29553,8 +29326,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -29675,8 +29448,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -29771,8 +29544,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -29885,8 +29658,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -32934,7 +32707,7 @@
       }
     },
     "/v1/fleet/threads/count": {
-      "post": {
+      "get": {
         "security": [
           {
             "API Key": []
@@ -32946,18 +32719,30 @@
             "Bearer Auth": []
           }
         ],
-        "description": "Counts threads matching the specified criteria. Request and response bodies are proxied unchanged to the upstream agent runtime.",
+        "description": "Returns the caller's inbox `attention_count`: the number of threads needing user action — unread idle threads (`metadata.read_status=false`) plus interrupted plus errored. Scoped to deep-agent threads (`graph_id=deep_agent`); test-run threads (`options.test_run=true`) are always excluded.",
         "tags": [
-          "fleet threads"
+          "internal"
         ],
-        "summary": "Count threads",
+        "summary": "Inbox attention count",
+        "parameters": [
+          {
+            "description": "Optional agent UUID to scope all buckets to a single agent",
+            "name": "agent_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Agent Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer"
+                  "$ref": "#/components/schemas/threads.CountResponse"
                 }
               }
             }
@@ -32992,26 +32777,6 @@
               }
             }
           },
-          "404": {
-            "description": "Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/threads.ErrorResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/threads.ErrorResponse"
-                }
-              }
-            }
-          },
           "502": {
             "description": "Bad Gateway",
             "content": {
@@ -33023,7 +32788,6 @@
             }
           }
         },
-        "parameters": [],
         "x-hidden": true
       }
     },
@@ -35287,8 +35051,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -35405,8 +35169,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -35558,10 +35322,10 @@
             "style": "form",
             "explode": false,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Tag Value Id"
             }
           },
@@ -35581,10 +35345,10 @@
             "style": "form",
             "explode": false,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Resource Id"
             }
           },
@@ -35611,8 +35375,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 100,
               "type": "integer",
+              "default": 100,
               "title": "Limit"
             }
           },
@@ -35621,8 +35385,8 @@
             "name": "offset",
             "in": "query",
             "schema": {
-              "default": 0,
               "type": "integer",
+              "default": 0,
               "title": "Offset"
             }
           }
@@ -35787,10 +35551,10 @@
             "style": "form",
             "explode": false,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Evaluator Ids"
             }
           },
@@ -37920,8 +37684,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 20,
               "type": "integer",
+              "default": 20,
               "title": "Limit"
             }
           },
@@ -37950,8 +37714,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "cost",
               "type": "string",
+              "default": "cost",
               "title": "Sort By"
             }
           },
@@ -37960,8 +37724,8 @@
             "name": "sort_order",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Order"
             }
           }
@@ -38025,8 +37789,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 20,
               "type": "integer",
+              "default": 20,
               "title": "Limit"
             }
           },
@@ -38055,8 +37819,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "cost",
               "type": "string",
+              "default": "cost",
               "title": "Sort By"
             }
           },
@@ -38065,8 +37829,8 @@
             "name": "sort_order",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Order"
             }
           }
@@ -38130,8 +37894,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 20,
               "type": "integer",
+              "default": 20,
               "title": "Limit"
             }
           },
@@ -38160,8 +37924,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "runs",
               "type": "string",
+              "default": "runs",
               "title": "Sort By"
             }
           },
@@ -38170,8 +37934,8 @@
             "name": "sort_order",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Order"
             }
           }
@@ -38235,8 +37999,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 20,
               "type": "integer",
+              "default": 20,
               "title": "Limit"
             }
           },
@@ -38265,8 +38029,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "cost",
               "type": "string",
+              "default": "cost",
               "title": "Sort By"
             }
           },
@@ -38275,8 +38039,8 @@
             "name": "sort_order",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Order"
             }
           }
@@ -38501,8 +38265,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -38580,8 +38344,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -38652,8 +38416,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -39169,12 +38933,12 @@
             "name": "status",
             "in": "query",
             "schema": {
+              "type": "string",
               "enum": [
                 "open",
                 "completed",
                 "ignored"
               ],
-              "type": "string",
               "title": "Status"
             }
           },
@@ -39183,13 +38947,13 @@
             "name": "severity",
             "in": "query",
             "schema": {
+              "type": "integer",
               "enum": [
                 0,
                 1,
                 2,
                 3
               ],
-              "type": "integer",
               "title": "Severity"
             }
           },
@@ -39216,12 +38980,12 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
+              "type": "string",
               "enum": [
                 "created_at",
                 "updated_at",
                 "severity"
               ],
-              "type": "string",
               "title": "Sort By"
             }
           },
@@ -40926,10 +40690,10 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Name Like"
             }
           },
@@ -40940,10 +40704,10 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Email Like"
             }
           },
@@ -40954,10 +40718,10 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Workspace Name Like"
             }
           },
@@ -40968,10 +40732,10 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Organization Role Like"
             }
           },
@@ -40982,10 +40746,10 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "type": "string"
               },
-              "type": "array",
               "title": "Workspace Role Like"
             }
           }
@@ -42793,7 +42557,7 @@
         "tags": [
           "runs"
         ],
-        "summary": "Query runs (v2)",
+        "summary": "Query runs",
         "parameters": [
           {
             "description": "application/json",
@@ -42948,8 +42712,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -42958,8 +42722,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "uuid",
               "type": "string",
+              "format": "uuid",
               "title": "Project Id"
             }
           },
@@ -42970,6 +42734,7 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "enum": [
                   "ID",
@@ -43019,7 +42784,6 @@
                 ],
                 "type": "string"
               },
-              "type": "array",
               "title": "Selects"
             }
           },
@@ -43029,8 +42793,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "date-time",
               "type": "string",
+              "format": "date-time",
               "title": "Start Time"
             }
           }
@@ -43156,8 +42920,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 50,
               "type": "integer",
+              "default": 50,
               "title": "Limit"
             }
           },
@@ -43166,8 +42930,8 @@
             "name": "offset",
             "in": "query",
             "schema": {
-              "default": 0,
               "type": "integer",
+              "default": 0,
               "title": "Offset"
             }
           },
@@ -43194,8 +42958,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "created_at",
               "type": "string",
+              "default": "created_at",
               "title": "Sort By"
             }
           },
@@ -43204,8 +42968,8 @@
             "name": "sort_direction",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Direction"
             }
           }
@@ -44175,8 +43939,8 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "default": 50,
               "type": "integer",
+              "default": 50,
               "title": "Limit"
             }
           },
@@ -44185,8 +43949,8 @@
             "name": "offset",
             "in": "query",
             "schema": {
-              "default": 0,
               "type": "integer",
+              "default": 0,
               "title": "Offset"
             }
           },
@@ -44213,8 +43977,8 @@
             "name": "sort_by",
             "in": "query",
             "schema": {
-              "default": "created_at",
               "type": "string",
+              "default": "created_at",
               "title": "Sort By"
             }
           },
@@ -44223,8 +43987,8 @@
             "name": "sort_direction",
             "in": "query",
             "schema": {
-              "default": "desc",
               "type": "string",
+              "default": "desc",
               "title": "Sort Direction"
             }
           }
@@ -44707,6 +44471,7 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "enum": [
                   "TURNS",
@@ -44728,7 +44493,6 @@
                 ],
                 "type": "string"
               },
-              "type": "array",
               "title": "Selects"
             }
           },
@@ -44738,8 +44502,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "uuid",
               "type": "string",
+              "format": "uuid",
               "title": "Session Id"
             }
           }
@@ -44889,10 +44653,10 @@
             "name": "page_size",
             "in": "query",
             "schema": {
-              "maximum": 100,
-              "default": 20,
-              "minimum": 1,
               "type": "integer",
+              "minimum": 1,
+              "default": 20,
+              "maximum": 100,
               "title": "Page Size"
             }
           },
@@ -44902,8 +44666,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "uuid",
               "type": "string",
+              "format": "uuid",
               "title": "Project Id"
             }
           },
@@ -44918,6 +44682,7 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "enum": [
                   "THREAD_ID",
@@ -44944,7 +44709,6 @@
                 ],
                 "type": "string"
               },
-              "type": "array",
               "title": "Selects"
             }
           }
@@ -45075,8 +44839,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           },
           {
@@ -45094,8 +44858,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "date-time",
               "type": "string",
+              "format": "date-time",
               "title": "Max Start Time"
             }
           },
@@ -45105,8 +44869,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "date-time",
               "type": "string",
+              "format": "date-time",
               "title": "Min Start Time"
             }
           },
@@ -45116,8 +44880,8 @@
             "in": "query",
             "required": true,
             "schema": {
-              "format": "uuid",
               "type": "string",
+              "format": "uuid",
               "title": "Project Id"
             }
           },
@@ -45128,6 +44892,7 @@
             "style": "form",
             "explode": true,
             "schema": {
+              "type": "array",
               "items": {
                 "enum": [
                   "ID",
@@ -45177,7 +44942,6 @@
                 ],
                 "type": "string"
               },
-              "type": "array",
               "title": "Selects"
             }
           }
@@ -77733,81 +77497,6 @@
           }
         }
       },
-      "handlers.CreateCheckpointResponse": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      },
-      "handlers.ErrorDetail": {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "handlers.ErrorResponse": {
-        "type": "object",
-        "properties": {
-          "detail": {
-            "$ref": "#/components/schemas/handlers.ErrorDetail"
-          }
-        }
-      },
-      "handlers.ExecRequest": {
-        "type": "object",
-        "properties": {
-          "command": {
-            "$ref": "#/components/schemas/sandboxapi.Command"
-          },
-          "cwd": {
-            "type": "string"
-          },
-          "env": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "shell": {
-            "type": "string"
-          },
-          "timeout_seconds": {
-            "type": "integer"
-          }
-        }
-      },
-      "handlers.ExecResponse": {
-        "type": "object",
-        "properties": {
-          "exit_code": {
-            "type": "integer"
-          },
-          "stderr": {
-            "type": "string"
-          },
-          "stdout": {
-            "type": "string"
-          }
-        }
-      },
-      "handlers.UploadResponse": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string"
-          },
-          "written": {
-            "type": "integer"
-          }
-        }
-      },
       "hub_environments.CreateEnvironmentsRequest": {
         "type": "object",
         "required": [
@@ -79916,20 +79605,6 @@
           }
         }
       },
-      "sandboxapi.Command": {
-        "type": "object",
-        "properties": {
-          "args": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isShell": {
-            "type": "boolean"
-          }
-        }
-      },
       "sandboxes.AccessControl": {
         "type": "object",
         "properties": {
@@ -80029,6 +79704,14 @@
           "checkpoint": {
             "description": "if omitted, creates a fresh checkpoint from the running VM",
             "type": "string"
+          },
+          "docker_image": {
+            "description": "sandbox-local Docker image to export",
+            "type": "string"
+          },
+          "fs_capacity_bytes": {
+            "description": "required for Docker image export unless the sandbox has a capacity",
+            "type": "integer"
           },
           "include_memory": {
             "description": "IncludeMemory, when true, captures a full VM memory snapshot\nalongside the filesystem clone. Only honored when the sandbox is running\nAND Checkpoint is omitted (i.e. a fresh in-VM checkpoint is requested).\nDefaults to false to keep snapshots small unless memory restore is\nexplicitly desired.",
@@ -80812,6 +80495,14 @@
             "items": {
               "$ref": "#/components/schemas/threads.BulkUpdateThreadResult"
             }
+          }
+        }
+      },
+      "threads.CountResponse": {
+        "type": "object",
+        "properties": {
+          "attention_count": {
+            "type": "integer"
           }
         }
       },
@@ -82384,14 +82075,6 @@
       "x-group": "LLM Gateway"
     },
     {
-      "name": "checkpoint",
-      "x-group": "Sandboxes"
-    },
-    {
-      "name": "execute",
-      "x-group": "Sandboxes"
-    },
-    {
       "name": "sandboxes",
       "x-group": "Sandboxes"
     },
@@ -82466,10 +82149,6 @@
     {
       "name": "workspaces",
       "x-group": "Administration"
-    },
-    {
-      "name": "files",
-      "x-group": "Files"
     },
     {
       "name": "ace",
@@ -82548,6 +82227,10 @@
     },
     {
       "name": "fleet_webhooks",
+      "x-hidden": true
+    },
+    {
+      "name": "internal",
       "x-hidden": true
     },
     {
