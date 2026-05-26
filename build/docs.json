@@ -1385,6 +1385,7 @@
                           "group": "LangChain",
                           "expanded": true,
                           "pages": [
+                            "oss/python/langchain/deep-agent-from-scratch",
                             "oss/python/langchain/knowledge-base",
                             "oss/python/langchain/rag",
                             "oss/python/langchain/sql-agent",
@@ -2909,6 +2910,14 @@
     {
       "source": "/langsmith/fleet/workspace-settings",
       "destination": "/langsmith/fleet/workspace-admin"
+    },
+    {
+      "source": "/oss/python/langchain/harness",
+      "destination": "/oss/python/langchain/agents"
+    },
+    {
+      "source": "/oss/javascript/langchain/harness",
+      "destination": "/oss/javascript/langchain/agents"
     }
   ]
 }
