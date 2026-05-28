@@ -849,8 +849,11 @@
                           "pages": [
                             "langsmith/self-host-terraform-aws-prerequisites",
                             "langsmith/self-host-terraform-aws-quickstart",
+                            "langsmith/self-host-terraform-aws-pass-1-infrastructure",
+                            "langsmith/self-host-terraform-aws-pass-2-langsmith",
                             "langsmith/self-host-terraform-aws-architecture",
                             "langsmith/self-host-terraform-aws-quick-reference",
+                            "langsmith/self-host-terraform-aws-variables",
                             "langsmith/self-host-terraform-aws-troubleshooting",
                             "langsmith/self-host-terraform-aws-teardown"
                           ]
@@ -859,8 +862,12 @@
                           "group": "GCP",
                           "pages": [
                             "langsmith/self-host-terraform-gcp-quickstart",
+                            "langsmith/self-host-terraform-gcp-pass-1-infrastructure",
+                            "langsmith/self-host-terraform-gcp-pass-2-langsmith",
+                            "langsmith/self-host-terraform-gcp-pass-3-deployments",
                             "langsmith/self-host-terraform-gcp-architecture",
                             "langsmith/self-host-terraform-gcp-quick-reference",
+                            "langsmith/self-host-terraform-gcp-variables",
                             "langsmith/self-host-terraform-gcp-troubleshooting",
                             "langsmith/self-host-terraform-gcp-teardown"
                           ]
