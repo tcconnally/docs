@@ -37,7 +37,7 @@ In production, use a checkpointer backed by a database:
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
-DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
     builder = StateGraph(...)
     graph = builder.compile(checkpointer=checkpointer)  # [!code highlight]
@@ -64,7 +64,7 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 
       model = init_chat_model(model="claude-haiku-4-5-20251001")
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
       with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
           # checkpointer.setup()
 
@@ -107,7 +107,7 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 
       model = init_chat_model(model="claude-haiku-4-5-20251001")
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
       async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
           # await checkpointer.setup()
 
@@ -570,7 +570,7 @@ In production, use a store backed by a database:
 ```python
 from langgraph.store.postgres import PostgresStore
 
-DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
     builder = StateGraph(...)
     graph = builder.compile(store=store)  # [!code highlight]
@@ -626,7 +626,7 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
           return {"messages": response}
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
       async with (
           AsyncPostgresStore.from_conn_string(DB_URI) as store,  # [!code highlight]
@@ -700,7 +700,7 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
           return {"messages": response}
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
       with (
           PostgresStore.from_conn_string(DB_URI) as store,  # [!code highlight]
