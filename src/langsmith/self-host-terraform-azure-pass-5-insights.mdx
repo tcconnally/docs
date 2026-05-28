@@ -8,10 +8,10 @@ Pass 5 enables two features, Insights and Polly, both of which require [Pass 3](
 
 **Duration:** ~5 minutes. **Required:** No.
 
-- **Insights:** AI-powered trace analytics (Clio). Surfaces patterns and anomalies in LangSmith traces. Clio deploys as a dynamic LangGraph deployment via the operator when first invoked from the UI. No new static pods are added.
+- **Insights:** AI-powered trace analytics (Clio). Surfaces patterns and anomalies in LangSmith traces. Clio deploys as a dynamic LangGraph deployment through the operator on first UI invocation. Pass 5 adds no new static pods.
 - **Polly:** AI-powered evaluation and monitoring agent. Runs as a dynamic LangGraph deployment. Sets resource limits for the Polly worker (2 CPU / 4 Gi request, 4 CPU / 8 Gi limit, scales 1 to 5 replicas).
 
-No `terraform apply` is needed for Pass 5: only `make init-values && make deploy`.
+Pass 5 needs no `terraform apply`; just run `make init-values && make deploy`.
 
 **Prerequisite:** Pass 3 (`enable_deployments = true`). Pass 4 and Pass 5 are independent; both require Pass 3 but not each other.
 

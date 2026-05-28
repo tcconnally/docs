@@ -4,7 +4,7 @@ sidebarTitle: Variables
 description: Complete reference of Terraform variables for LangSmith self-hosted on Azure AKS.
 ---
 
-Reference for every input variable exposed by the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure). Set non-sensitive variables in `infra/terraform.tfvars`. Sensitive variables (license key, passwords, encryption keys) are written to `infra/secrets.auto.tfvars` by `make setup-env` and stored in Azure Key Vault by Terraform.
+Reference for every input variable exposed by the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure). Set non-sensitive variables in `infra/terraform.tfvars`. For sensitive variables (license key, passwords, encryption keys), `make setup-env` writes them to `infra/secrets.auto.tfvars` and Terraform stores them in Azure Key Vault.
 
 ## Core
 
@@ -12,7 +12,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 |---|---|---|
 | `subscription_id` | — | Azure subscription ID. Required. |
 | `location` | `eastus` | Azure region. |
-| `identifier` | `""` | Suffix appended to all resource names (e.g. `-prod`, `-dev-dz`). Must start with a hyphen or be empty. |
+| `identifier` | `""` | Suffix appended to all resource names (for example, `-prod`, `-dev-dz`). Must start with a hyphen or be empty. |
 | `environment` | `dev` | Environment tag on all resources. |
 | `owner` | `""` | Owner tag applied to all resources. |
 | `cost_center` | `""` | Cost center tag for billing attribution. |
@@ -30,7 +30,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | Variable | Default | Description |
 |---|---|---|
 | `postgres_admin_username` | `langsmith` | PostgreSQL admin username. |
-| `postgres_admin_password` | `""` | PostgreSQL admin password (sensitive). Set via `setup-env.sh`. |
+| `postgres_admin_password` | `""` | PostgreSQL admin password (sensitive). Set with `setup-env.sh`. |
 | `postgres_subnet_address_prefix` | `["10.0.32.0/20"]` | CIDR for the PostgreSQL subnet. |
 | `postgres_deletion_protection` | `true` | Prevent accidental PostgreSQL server deletion. Set `false` for dev/test. |
 | `database_name` | `langsmith` | PostgreSQL database to create. Used in the `connection_url` output. |
@@ -53,7 +53,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | `aks_service_cidr` | `10.0.64.0/20` | Kubernetes ClusterIP range. Must not overlap the VNet. |
 | `aks_dns_service_ip` | `10.0.64.10` | CoreDNS service IP. Must be within `aks_service_cidr`. |
 | `aks_deletion_protection` | `true` | Prevent accidental AKS cluster deletion. Set `false` for dev/test. |
-| `availability_zones` | `["1"]` | Availability zones for AKS node pools (e.g. `["1", "2", "3"]`). Set to `[]` to disable zone pinning. |
+| `availability_zones` | `["1"]` | Availability zones for AKS node pools (for example, `["1", "2", "3"]`). Set to `[]` to disable zone pinning. |
 
 ## Ingress controller
 
@@ -66,12 +66,12 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | Variable | Default | Description |
 |---|---|---|
 | `dns_label` | `""` | Azure Public IP DNS label for the ingress LoadBalancer. Results in `<label>.<region>.cloudapp.azure.com`. Works with nginx, istio, istio-addon, envoy-gateway. |
-| `langsmith_domain` | `""` | Custom hostname for LangSmith (e.g. `langsmith.example.com`). Takes priority over `dns_label`. |
-| `tls_certificate_source` | `letsencrypt` | `letsencrypt` — HTTP-01 via cert-manager. `dns01` — DNS-01 via Azure DNS + Workload Identity. `none` — no TLS. |
+| `langsmith_domain` | `""` | Custom hostname for LangSmith (for example, `langsmith.example.com`). Takes priority over `dns_label`. |
+| `tls_certificate_source` | `letsencrypt` | `letsencrypt` — HTTP-01 with cert-manager. `dns01` — DNS-01 with Azure DNS + Workload Identity. `none` — no TLS. |
 | `letsencrypt_email` | `""` | Email for Let's Encrypt notifications. Required when `tls_certificate_source` is `letsencrypt` or `dns01`. |
 | `cert_manager_identity_client_id` | `""` | Client ID of the cert-manager Managed Identity. Wired automatically from the `k8s-cluster` output. Required when `tls_certificate_source = "dns01"`. |
 | `create_dns_zone` | `false` | Enable Azure DNS zone + A record. Required for DNS-01 cert issuance. |
-| `dns_zone_name` | `""` | Azure DNS zone name (e.g. `langsmith.mycompany.com`). Required when `tls_certificate_source = "dns01"`. |
+| `dns_zone_name` | `""` | Azure DNS zone name (for example, `langsmith.mycompany.com`). Required when `tls_certificate_source = "dns01"`. |
 | `dns_resource_group_name` | `""` | Resource group containing the Azure DNS zone. Required when `tls_certificate_source = "dns01"`. |
 
 ## LangSmith application
@@ -109,7 +109,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 
 | Variable | Default | Description |
 |---|---|---|
-| `postgres_high_availability_mode` | `""` | PostgreSQL HA mode (e.g. `ZoneRedundant`). Requires `GeneralPurpose` or `MemoryOptimized` SKU. |
+| `postgres_high_availability_mode` | `""` | PostgreSQL HA mode (for example, `ZoneRedundant`). Requires `GeneralPurpose` or `MemoryOptimized` SKU. |
 | `postgres_standby_availability_zone` | `""` | Zone for the PostgreSQL standby replica. Set when enabling zone-redundant HA. |
 
 ## Optional modules
@@ -121,11 +121,11 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | `enable_aks_diag` | `true` | Create the AKS diagnostic setting inside the diagnostics module. |
 | `enable_keyvault_diag` | `true` | Create the Key Vault diagnostic setting inside the diagnostics module. |
 | `enable_postgres_diag` | `false` | Create the PostgreSQL diagnostic setting. Set `true` when `postgres_source = "external"`. |
-| `create_bastion` | `false` | Enable a jump VM for private AKS cluster access via `az ssh vm`. No public IP required. |
+| `create_bastion` | `false` | Enable a jump VM for private AKS cluster access with `az ssh vm`. No public IP required. |
 
 ## Add-on pass flags
 
-These flags are read by `init-values.sh` and `deploy.sh`. Terraform ignores them; they only affect which Helm add-on overlay files are generated.
+`init-values.sh` and `deploy.sh` read these flags; Terraform ignores them. The flags affect which Helm add-on overlay files the scripts generate.
 
 | Variable | Default | Description |
 |---|---|---|
@@ -134,9 +134,9 @@ These flags are read by `init-values.sh` and `deploy.sh`. Terraform ignores them
 | `enable_insights` | `false` | [Pass 5](/langsmith/self-host-terraform-azure-pass-5-insights) — enable Insights / Clio analytics. Requires `enable_deployments = true`. |
 | `enable_polly` | `false` | [Pass 5](/langsmith/self-host-terraform-azure-pass-5-insights) — enable Polly AI eval agent. Requires `enable_deployments = true`. |
 
-## Sensitive variables (set via `setup-env.sh`)
+## Sensitive variables (set with `setup-env.sh`)
 
-These are written to `secrets.auto.tfvars` by `make setup-env` and stored in Azure Key Vault by Terraform. Never set these inline in `terraform.tfvars`.
+`make setup-env` writes these to `secrets.auto.tfvars` and Terraform stores them in Azure Key Vault. Never set these inline in `terraform.tfvars`.
 
 | Variable | Description |
 |---|---|

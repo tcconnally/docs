@@ -8,11 +8,11 @@ description: Configure namespaces, RBAC, operators, storage classes, and backing
 The OCP Terraform module at `infra/langsmith/` is in active development. The steps below reflect the planned production model plus the current POC scripts. Validate against your environment before using in production.
 </Warning>
 
-The OCP cluster is assumed pre-existing (ROSA or on-premises OpenShift 4.12+). Pass 1 configures Kubernetes resources on top of it: namespaces, RBAC, operators (Crunchy PGO, Redis, cert-manager), and storage classes.
+LangSmith on OpenShift assumes a pre-existing OCP cluster (ROSA or on-premises OpenShift 4.12+). Pass 1 configures Kubernetes resources on top of it: namespaces, RBAC, operators (Crunchy PGO, Redis, cert-manager), and storage classes.
 
 ## Planned production path (ROSA or on-prem OCP)
 
-When the Terraform module is generally available, Pass 1 will run:
+When the Terraform module is generally available, Pass 1 runs:
 
 ```bash
 cd terraform/modules/ocp/infra

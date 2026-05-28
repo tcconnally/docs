@@ -14,8 +14,8 @@ For the full deployment walkthrough, see the [Azure quickstart](/langsmith/self-
 |---|---|---|
 | 1 | AKS + Postgres + Redis + Blob + Key Vault + cert-manager + KEDA + ingress | `make apply` |
 | 1.5 | Cluster credentials + Kubernetes Secrets from Key Vault | `make kubeconfig && make k8s-secrets` |
-| 2 (Helm) | LangSmith Helm (~17 pods) via shell scripts | `make init-values && make deploy` |
-| 2 (TF) | LangSmith Helm via Terraform — secrets + SA + Helm release in state | `make init-app && make apply-app` |
+| 2 (Helm) | LangSmith Helm (~17 pods) with shell scripts | `make init-values && make deploy` |
+| 2 (TF) | LangSmith Helm with Terraform — secrets + SA + Helm release in state | `make init-app && make apply-app` |
 | 3 | + LangSmith Deployment — bump `default_node_pool_min_count` to 5 first | `make apply && make init-values && make deploy` |
 | 4 | + Agent Builder | `make init-values && make deploy` |
 | 5 | + Insights + Polly | `make init-values && make deploy` |

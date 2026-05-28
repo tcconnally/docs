@@ -4,7 +4,7 @@ sidebarTitle: Architecture
 description: Platform layers, services, Workload Identity, networking, ingress options, and module dependencies for LangSmith self-hosted on AKS.
 ---
 
-This page documents what the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure) provision and how the resulting deployment is wired together.
+This page documents what the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure) provision and how the modules wire the resulting deployment together.
 
 ## Platform layers
 
@@ -13,7 +13,7 @@ LangSmith on Azure deploys in up to five passes. Each pass adds a capability lay
 <img src="/images/self-hosted-terraform/azure-architecture.png" alt="LangSmith on Azure deployment passes and service layout" className="block dark:hidden" />
 <img src="/images/self-hosted-terraform/azure-architecture-light.png" alt="LangSmith on Azure deployment passes and service layout" className="hidden dark:block" />
 
-| Pass | Layer | What is added |
+| Pass | Layer | What it adds |
 |---|---|---|
 | 1 | Azure infrastructure | VNet, AKS, Postgres, Redis, Blob, Key Vault, cert-manager, KEDA, ingress controller |
 | 2 | LangSmith base | frontend, backend, platform-backend, queue, ingest-queue, ace-backend, clickhouse, playground |
@@ -21,7 +21,7 @@ LangSmith on Azure deploys in up to five passes. Each pass adds a capability lay
 | 4 | Agent Builder | agent-builder-tool-server, agent-builder-trigger-server + deep-agent LGP |
 | 5 | Insights + Polly | Clio analytics (ClickHouse-backed), Polly eval agent (operator-managed, dynamic) |
 
-## Two Pass 2 paths
+## Pass 2 deployment paths
 
 | Path | How | When to use |
 |---|---|---|

@@ -4,19 +4,19 @@ sidebarTitle: "Pass 4: Agent Builder"
 description: Enable the Agent Builder on Azure AKS for visual AI-assisted creation and management of LangGraph agents.
 ---
 
-Pass 4 enables Agent Builder, which provides visual AI-assisted creation and management of LangGraph agents from the LangSmith UI. No `terraform apply` is needed for this pass; it only requires `make init-values && make deploy`.
+Pass 4 enables Agent Builder, which provides visual AI-assisted creation and management of LangGraph agents from the LangSmith UI. This pass needs no `terraform apply`; just run `make init-values && make deploy`.
 
 **Duration:** ~10 minutes. **Required:** No.
 
 **Prerequisite:** [Pass 3](/langsmith/self-host-terraform-azure-pass-3-deployments) (`enable_deployments = true`). Enabling Agent Builder without Pass 3 causes a preflight error.
 
-## What Pass 4 adds
+## What pass 4 adds
 
 | Pod | Type | Role |
 |---|---|---|
 | `langsmith-agent-builder-tool-server` | Static | MCP tool execution server — code/file editing tools for the AI |
 | `langsmith-agent-builder-trigger-server` | Static | Webhook receiver and scheduled trigger engine |
-| `langsmith-agent-bootstrap` | Job (Completed) | Registers the bundled Agent Builder agent via the operator — runs once |
+| `langsmith-agent-bootstrap` | Job (Completed) | Registers the bundled Agent Builder agent through the operator — runs once |
 | `agent-builder-<hash>` + queue + redis + `lg-<hash>-0` | Dynamic (operator-managed) | Agent Builder deployment — created by the operator when the bootstrap Job runs |
 
 ## Step 1 — Enable in `terraform.tfvars`

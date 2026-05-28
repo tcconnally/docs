@@ -1,16 +1,16 @@
 ---
 title: Azure Terraform troubleshooting
 sidebarTitle: Troubleshooting
-description: Known issues, fixes, and diagnostic commands for LangSmith self-hosted on Azure AKS deployed with the LangChain Terraform modules.
+description: Common issues, fixes, and diagnostic commands for LangSmith self-hosted on Azure AKS deployed with the LangChain Terraform modules.
 ---
 
-Known issues, fixes, and diagnostic commands for LangSmith deployments provisioned with the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure).
+This page documents common issues, fixes, and diagnostic commands for LangSmith deployments provisioned with the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure).
 
 <Tip>
 Before upgrading, review the [LangSmith self-hosted changelog](/langsmith/self-hosted-changelog) for breaking changes and required variable updates. Run `az aks get-credentials --name <cluster> --resource-group <rg>` before running any `kubectl` commands.
 </Tip>
 
-## Pass 1 — Infrastructure
+## Pass 1 — infrastructure
 
 ### `K8sVersionNotSupported` — version is LTS-only
 
