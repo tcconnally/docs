@@ -350,7 +350,7 @@ There are a variety of other search methods that are not covered in this noteboo
 
 ### Query by turning into retriever
 
-You can also transform the vector store into a retriever for easier usage in your chains. For more information on the different search types and kwargs you can pass, please visit the [Chroma API reference](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma).
+You can also transform the vector store into a retriever for easier usage in your chains. For more information on the different search types and kwargs you can pass, please visit the [Chroma API reference](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma#langchain_chroma.vectorstores.Chroma.as_retriever).
 
 ```python
 retriever = vector_store.as_retriever(
@@ -363,15 +363,15 @@ retriever.invoke("Stealing from the bank is a crime", filter={"source": "news"})
 
 For guides on how to use this vector store for retrieval-augmented generation (RAG), see the following sections:
 
-- [Tutorials](/oss/python/langchain/rag)
-- [How-to: Question and answer with RAG](https://python.langchain.com/docs/how_to/#qa-with-rag)
-- [Retrieval conceptual docs](https://python.langchain.com/docs/concepts/retrieval)
+- [Retrieval docs](/oss/python/langchain/retrieval)
+- [Build a RAG app with LangChain](/oss/python/langchain/rag)
+- [Agentic RAG](/oss/python/langgraph/agentic-rag)
 
 ---
 
 ## API reference
 
-For detailed documentation of all `Chroma` vector store features and configurations head to the [API reference](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma)
+For detailed documentation of all `Chroma` vector store features and configurations head to the [API reference](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma).
 
 ---
 
