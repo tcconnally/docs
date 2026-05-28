@@ -1,7 +1,7 @@
 ---
 title: Deploy LangSmith with Terraform
 sidebarTitle: Overview
-description: Provision LangSmith self-hosted on AWS, Azure, GCP, or OpenShift using LangChain's production-ready Terraform modules.
+description: Provision LangSmith self-hosted on AWS, Azure, or GCP using LangChain's production-ready Terraform modules.
 ---
 
 <Info>
@@ -18,22 +18,17 @@ Use this path when you want infrastructure as code from day one. If you already 
 
 ## Choose a provider
 
-<CardGroup cols={2}>
-  <Card title="AWS (EKS)" icon="brand-aws" href="/langsmith/self-host-terraform-aws-quickstart">
-    Provision EKS, RDS PostgreSQL, ElastiCache, S3, and networking. Status: GA.
+<CardGroup cols={3}>
+  <Card title="AWS (EKS)" icon="brand-aws" href="/langsmith/self-host-terraform-aws-deploy">
+    Provision EKS, RDS PostgreSQL, ElastiCache, S3, and networking.
   </Card>
-  <Card title="Azure (AKS)" icon="brand-windows" href="/langsmith/self-host-terraform-azure-quickstart">
-    Provision AKS, Azure Database for PostgreSQL, Azure Managed Redis, Blob Storage, and Key Vault. Status: GA.
+  <Card title="Azure (AKS)" icon="brand-windows" href="/langsmith/self-host-terraform-azure-deploy">
+    Provision AKS, Azure Database for PostgreSQL, Azure Managed Redis, Blob Storage, and Key Vault.
   </Card>
-  <Card title="GCP (GKE)" icon="brand-google" href="/langsmith/self-host-terraform-gcp-quickstart">
-    Provision GKE, Cloud SQL, Memorystore, GCS, and Workload Identity. Status: GA.
-  </Card>
-  <Card title="OpenShift (OCP)" icon="brand-redhat" href="/langsmith/self-host-terraform-ocp-quickstart">
-    Configure namespaces, RBAC, operators, and storage classes on an existing OCP or ROSA cluster. Status: Preview.
+  <Card title="GCP (GKE)" icon="brand-google" href="/langsmith/self-host-terraform-gcp-deploy">
+    Provision GKE, Cloud SQL, Memorystore, GCS, and Workload Identity.
   </Card>
 </CardGroup>
-
-Walkthroughs cover all four provider paths. AWS, Azure, and GCP are GA; the OpenShift path is in preview while the Terraform module matures.
 
 ## Prerequisites
 
@@ -44,28 +39,13 @@ Install the following tools before running the modules:
 | `terraform` | 1.5 | Run the modules |
 | `kubectl` | 1.28 | Inspect the cluster after provisioning |
 | `helm` | 3.12 | Manage the LangSmith chart release |
-| Cloud CLI | latest | `aws`, `az`, `gcloud`, or `oc` for the target provider |
+| Cloud CLI | latest | `aws`, `az`, or `gcloud` for the target provider |
 
 You also need:
 
 - A LangSmith license key. [Contact sales](https://www.langchain.com/contact-sales) to request one.
 - Permissions in the target cloud account to create VPC or VNet networking, a managed Kubernetes cluster, managed databases, object storage, secrets, and IAM roles.
 - A registered domain (or subdomain) for the LangSmith UI endpoint.
-
-## Two-pass deployment model
-
-Each provider module deploys in two passes:
-
-<Steps>
-  <Step title="Pass 1 — Infrastructure">
-    Terraform provisions the cloud foundation: virtual network, managed Kubernetes cluster, managed PostgreSQL, managed Redis or cache, blob storage bucket, secret store, and the IAM roles or identities that connect them. Expect 20 to 25 minutes for a clean run.
-  </Step>
-  <Step title="Pass 2 — LangSmith">
-    Helm installs the LangSmith chart against the cluster from Pass 1. Secrets sync from the cloud-native store through [External Secrets Operator](https://external-secrets.io/), so no credentials live in `tfvars` or git.
-  </Step>
-</Steps>
-
-Azure offers optional passes for [LangSmith Deployment](/langsmith/deploy-self-hosted-full-platform), Agent Builder, and Insights. AWS and GCP cover the same optional add-ons in a single follow-up step.
 
 ## Deployment tiers
 
@@ -109,7 +89,7 @@ Enterprise customers can request a tailored Terraform package from their LangCha
 
 ## Next steps
 
-- Open the [README in your provider directory](https://github.com/langchain-ai/terraform) and follow the quickstart.
+- Pick a provider above and follow the deployment guide.
 - Review [required dependency versions](/langsmith/self-host-dependency-versions) for PostgreSQL, ClickHouse, Redis, and Kubernetes.
 - Plan capacity with the [scaling guide](/langsmith/self-host-scale).
-- After Pass 2, enable [LangSmith Deployment](/langsmith/deploy-self-hosted-full-platform) to add agent deployment and management to the UI.
+- After the application is running, enable [LangSmith Deployment](/langsmith/deploy-self-hosted-full-platform) to add agent deployment and management to the UI.

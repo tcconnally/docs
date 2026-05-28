@@ -6,19 +6,19 @@ description: Make targets, Terraform, kubectl, Azure CLI, and Helm commands for 
 
 Command cheat sheet for day-to-day operations against an Azure LangSmith deployment provisioned with the [Azure Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/azure). All `make` targets run from `modules/azure/`. Run `make help` for an inline summary.
 
-For the full deployment walkthrough, see the [Azure quickstart](/langsmith/self-host-terraform-azure-quickstart) and per-pass guides ([Pass 1](/langsmith/self-host-terraform-azure-pass-1-infrastructure) through [Pass 5](/langsmith/self-host-terraform-azure-pass-5-insights)).
+For the full deployment walkthrough, see the [Azure deployment guide](/langsmith/self-host-terraform-azure-deploy).
 
 ## Deployment overview
 
-| Pass | What gets deployed | Command |
+| Stage | What gets deployed | Command |
 |---|---|---|
-| 1 | AKS + Postgres + Redis + Blob + Key Vault + cert-manager + KEDA + ingress | `make apply` |
-| 1.5 | Cluster credentials + Kubernetes Secrets from Key Vault | `make kubeconfig && make k8s-secrets` |
-| 2 (Helm) | LangSmith Helm (~17 pods) with shell scripts | `make init-values && make deploy` |
-| 2 (TF) | LangSmith Helm with Terraform — secrets + SA + Helm release in state | `make init-app && make apply-app` |
-| 3 | + LangSmith Deployment — bump `default_node_pool_min_count` to 5 first | `make apply && make init-values && make deploy` |
-| 4 | + Agent Builder | `make init-values && make deploy` |
-| 5 | + Insights + Polly | `make init-values && make deploy` |
+| Infrastructure | AKS + Postgres + Redis + Blob + Key Vault + cert-manager + KEDA + ingress | `make apply` |
+| Cluster credentials | Kubeconfig + Kubernetes Secrets from Key Vault | `make kubeconfig && make k8s-secrets` |
+| LangSmith (Helm path) | LangSmith Helm (~17 pods) via shell scripts | `make init-values && make deploy` |
+| LangSmith (Terraform path) | Secrets + SA + Helm release managed in Terraform state | `make init-app && make apply-app` |
+| LangSmith Deployment add-on | host-backend, listener, operator. Bump `default_node_pool_min_count` to 5 first | `make apply && make init-values && make deploy` |
+| Agent Builder add-on | tool-server, trigger-server, agent-builder LGP | `make init-values && make deploy` |
+| Insights + Polly add-on | Clio analytics, Polly eval agent | `make init-values && make deploy` |
 
 ## First-time setup
 
@@ -87,14 +87,14 @@ Add-on passes (3 to 5) are controlled by flags in `infra/terraform.tfvars`. Set 
 ```hcl
 # infra/terraform.tfvars
 sizing_profile       = "production"   # minimum | dev | production | production-large
-enable_deployments   = true           # Pass 3 — listener + operator + host-backend
-enable_agent_builder = true           # Pass 4 (requires enable_deployments)
-enable_insights      = true           # Pass 5 — Clio analytics
-enable_polly         = true           # Pass 5 — Polly AI eval (requires enable_deployments)
+enable_deployments   = true           # LangSmith Deployment add-on (listener + operator + host-backend)
+enable_agent_builder = true           # Agent Builder add-on (requires enable_deployments)
+enable_insights      = true           # Insights / Clio analytics add-on
+enable_polly         = true           # Polly AI eval add-on (requires enable_deployments)
 ```
 
 <Warning>
-Pass 3 requires `default_node_pool_min_count = 5` first. Operator-spawned pods need node headroom; without it, agent pods stay in `Pending` indefinitely.
+The LangSmith Deployment add-on requires `default_node_pool_min_count = 5` first. Operator-spawned pods need node headroom; without it, agent pods stay in `Pending` indefinitely.
 </Warning>
 
 ## Sizing profiles
@@ -204,7 +204,7 @@ terraform state list
 - Skip `make plan` on a fresh deploy. `kubernetes_manifest` resources need a live cluster API. Use `make apply` directly.
 - Uninstall Helm before `terraform destroy`. The Azure Load Balancer holds a subnet reference; leaving it blocks VNet deletion. Run `make uninstall` first.
 - `config.deployment.url` must include `https://`. Without it, operator-spawned agents stay stuck in `DEPLOYING`.
-- `config.deployment.enabled: true` is required for Pass 3. Setting only the URL without `enabled: true` silently skips `listener` and `operator`.
+- `config.deployment.enabled: true` is required for the LangSmith Deployment add-on. Setting only the URL without `enabled: true` silently skips `listener` and `operator`.
 - Encryption keys must never change after first enable. Rotating `insights_encryption_key` or `polly_encryption_key` permanently breaks existing encrypted data.
 - Roll the frontend after first Polly enable. `agentBootstrap` creates `langsmith-polly-config` after registering; frontend pods started earlier do not pick it up.
 - `letsencrypt` (HTTP-01) only works with `nginx`, `istio` (self-managed), and `envoy-gateway`. For `istio-addon` or `agic`, use `dns01` with a custom domain, or `none` for HTTP-only.
@@ -218,4 +218,3 @@ make destroy     # destroys all Azure infrastructure via terraform destroy
 make clean       # removes generated secrets, helm values, tfstate lock
 ```
 
-For the full teardown procedure, see the [Azure teardown guide](/langsmith/self-host-terraform-azure-teardown).

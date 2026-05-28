@@ -8,22 +8,22 @@ This page documents what the [AWS Terraform modules](https://github.com/langchai
 
 ## Platform layers
 
-LangSmith on AWS deploys in up to three passes. Pass 1 provisions the cloud foundation. Pass 2 installs the LangSmith application with Helm. Pass 3 is opt-in and adds LangSmith Deployment for managing LangGraph applications from the UI.
+LangSmith on AWS deploys in two stages with one optional add-on. The infrastructure stage provisions the cloud foundation. The application stage installs the LangSmith Helm chart. The LangSmith Deployment add-on is opt-in and adds the host-backend, listener, and operator services for managing LangGraph applications from the UI.
 
-<img src="/images/self-hosted-terraform/aws-architecture.png" alt="LangSmith on AWS deployment passes and service layout" />
+<img src="/images/self-hosted-terraform/aws-architecture.png" alt="LangSmith on AWS service layout" />
 
 ```txt
-Pass 3 — LangSmith Deployments  (enable_langsmith_deployments = true)
+LangSmith Deployment add-on  (enable_langsmith_deployments = true)
   host-backend, listener, operator
   Per deployed graph: api-server, queue, redis, postgres (operator-managed)
-  Requires: KEDA (installed in Pass 1 via k8s-bootstrap)
+  Requires: KEDA (installed alongside infrastructure via k8s-bootstrap)
 
-Pass 2 — LangSmith base platform  (deploy_langsmith = true)
+LangSmith application  (deploy_langsmith = true)
   backend, frontend, playground, queue, ace-backend, clickhouse
   Storage: RDS PostgreSQL (metadata) + S3 (trace blobs via VPC endpoint)
   Ingress: AWS ALB | NGINX | Envoy Gateway | Istio
 
-Pass 1 — AWS infrastructure
+AWS infrastructure
   VPC + private/public subnets + single NAT gateway
   EKS cluster + managed node group + cluster autoscaler
   RDS PostgreSQL (private subnets)
@@ -44,7 +44,7 @@ Pass 1 — AWS infrastructure
 | `redis` | ElastiCache or in-cluster | Private subnet, security group |
 | LGP operator | RDS PostgreSQL (shared) | Private subnet, security group |
 
-## Pass 2 — core services
+## Application core services
 
 These pods run on every deployment. All write logs and metrics; the busier components (backend, queue, ingest-queue) scale horizontally.
 
@@ -73,7 +73,7 @@ The Helm chart runs three jobs at install and upgrade time:
 | `langsmith-backend-ch-migrations` | ClickHouse schema migrations |
 | `langsmith-backend-auth-bootstrap` | Creates the initial org and admin account from `initial_org_admin_password` in `langsmith-config` |
 
-## Pass 3 — LangSmith Deployment
+## LangSmith Deployment add-on
 
 When `enable_langsmith_deployments = true`, three additional services are installed and a `LangGraphPlatform` CRD is registered. Each deployment the user creates in the LangSmith UI produces a Kubernetes Deployment in the `langsmith` namespace, managed by the operator.
 
@@ -85,7 +85,7 @@ When `enable_langsmith_deployments = true`, three additional services are instal
 
 ## AWS managed services
 
-When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Pass 1 provisions the following AWS managed services:
+When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Terraform provisions the following AWS managed services:
 
 ### RDS PostgreSQL
 
@@ -112,7 +112,7 @@ When `postgres_source = "external"` and `redis_source = "external"` (the recomme
 - Flow: `source infra/scripts/setup-env.sh` writes secrets to SSM. The ESO `ClusterSecretStore` reads them and projects a `langsmith-config` Kubernetes Secret that the Helm chart mounts via `config.existingSecretName`.
 - Prefix: `/langsmith/{name_prefix}-{environment}/`.
 
-## Cluster infrastructure (Pass 1)
+## Cluster infrastructure
 
 The `k8s-bootstrap` Terraform module installs the cluster-level services that LangSmith depends on:
 
@@ -121,7 +121,7 @@ The `k8s-bootstrap` Terraform module installs the cluster-level services that La
 | `aws-load-balancer-controller` | `kube-system` | Yes | Provisions the AWS ALB from Kubernetes Ingress objects. Deleting the Ingress deprovisions the ALB and assigns a new DNS name on recreate, which breaks DNS records and OIDC redirect URIs. |
 | `cluster-autoscaler` | `kube-system` | Yes | Scales EC2 node groups based on pod scheduling pressure. |
 | `ebs-csi-driver` | `kube-system` | Yes | Provisions EBS volumes for PersistentVolumeClaims (used by ClickHouse). |
-| KEDA | `keda` | No | Kubernetes Event-driven Autoscaling. Scales `queue` and `ingest-queue` on Redis queue depth. Required for Pass 3. |
+| KEDA | `keda` | No | Kubernetes Event-driven Autoscaling. Scales `queue` and `ingest-queue` on Redis queue depth. Required for the LangSmith Deployment add-on. |
 | cert-manager | `cert-manager` | Optional (Route 53 IRSA when `letsencrypt`) | Automates TLS certificate issuance. Installed always; active for Let's Encrypt only. |
 | External Secrets Operator | `external-secrets` | Yes | Syncs SSM parameters into the `langsmith-config` Kubernetes Secret. |
 
@@ -283,7 +283,7 @@ vpc ─► firewall (optional, create_firewall = true)
 | ElastiCache Redis | `cache.m6g.xlarge` | 4 | 13.07 GB |
 | RDS storage | 10 GB | — | — |
 
-For production sizing recommendations, see the [scaling guide](/langsmith/self-host-scale) and the [AWS prerequisites](/langsmith/self-host-terraform-aws-prerequisites#cluster-sizing-reference).
+For production sizing recommendations, see the [scaling guide](/langsmith/self-host-scale) and the [AWS deployment guide](/langsmith/self-host-terraform-aws-deploy#cluster-sizing-reference).
 
 ## Validated behaviors and known constraints
 
@@ -298,7 +298,7 @@ These constraints were validated during the April 2026 gateway permutation test 
 | 5 | NGINX TGB port | NGINX ingress-nginx controller pods listen on port 80. The TargetGroupBinding target type is `ip`. |
 | 6 | Envoy proxy port | Envoy proxy pods listen on port 10080 (not 80) when running as non-root. The TGB `servicePort` must be 10080. |
 | 7 | Destroy order | Always run `terraform destroy` first and let Terraform handle namespace and Helm release lifecycle. Pre-deleting namespaces causes the `helm_release` resource to time out because Helm cannot uninstall cleanly into a terminating namespace. |
-| 8 | Stuck terminating namespaces | KEDA's stale `external.metrics.k8s.io/v1beta1` API group causes `NamespaceDeletionDiscoveryFailure`. See [teardown](/langsmith/self-host-terraform-aws-teardown#stuck-namespaces) for the fix. |
+| 8 | Stuck terminating namespaces | KEDA's stale `external.metrics.k8s.io/v1beta1` API group causes `NamespaceDeletionDiscoveryFailure`. Fix: `kubectl delete apiservice v1beta1.external.metrics.k8s.io` before re-running `terraform destroy`. |
 
 ## Verification commands
 

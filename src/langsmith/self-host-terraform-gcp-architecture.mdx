@@ -86,7 +86,7 @@ GKE Cluster
 GCS Bucket (Workload Identity, no static keys)
 ```
 
-## Pass 2 — core services
+## Application core services
 
 | Service | Purpose | Port | HPA | Workload Identity | Depends on |
 |---|---|---|---|---|---|
@@ -111,7 +111,7 @@ In-cluster ClickHouse is dev/POC only (single pod, no replication, no backups). 
 | `langsmith-backend-ch-migrations` | ClickHouse schema migrations |
 | `langsmith-backend-auth-bootstrap` | Creates the initial org and admin account |
 
-## Pass 3 — LangSmith Deployment
+## LangSmith Deployment add-on
 
 | Service | Purpose | Workload Identity |
 |---|---|---|
@@ -123,7 +123,7 @@ Each LangGraph deployment created in the UI produces a Kubernetes Deployment in 
 
 ## GCP managed services
 
-When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Pass 1 provisions:
+When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Terraform provisions:
 
 ### Cloud SQL PostgreSQL
 
@@ -152,12 +152,12 @@ When `postgres_source = "external"` and `redis_source = "external"` (the recomme
 - Stores Postgres password and generated secrets (LangSmith secret key, JWT secret) when `enable_secret_manager_module = true`.
 - Core secrets (`langsmith-postgres`, `langsmith-redis`) are always stored in Kubernetes Secrets by `k8s-bootstrap` regardless of this module. Secret Manager provides an additional durable store for secrets that must survive cluster recreation.
 
-## Cluster infrastructure (Pass 1)
+## Cluster infrastructure
 
 | Service | Namespace | Installed by | Required for |
 |---|---|---|---|
 | Envoy Gateway | `envoy-gateway-system` | `ingress` module (`install_ingress = true`, default) | All ingress |
-| KEDA | `keda` | `k8s-bootstrap` module when `enable_langsmith_deployment = true` | Pass 3 and later |
+| KEDA | `keda` | `k8s-bootstrap` module when `enable_langsmith_deployment = true` | LangSmith Deployment add-on and later |
 | cert-manager | `cert-manager` | `k8s-bootstrap` module when `tls_certificate_source = "letsencrypt"` or `install_cert_manager = true` | Let's Encrypt TLS |
 | External Secrets Operator | `external-secrets` | `k8s-bootstrap` module | Custom secret workflows (optional) |
 
@@ -212,7 +212,7 @@ Envoy Gateway  (envoy-gateway-system, external LoadBalancer IP)
   │
   ├── /                     → frontend:80
   ├── /api/*                → backend:1984
-  └── /api/v1/deployments/* → host-backend:1985  (Pass 3)
+  └── /api/v1/deployments/* → host-backend:1985  (LangSmith Deployment add-on)
 
 Internal traffic (private IPs, never leaving VPC):
   backend       → Cloud SQL:5432    via private IP
@@ -267,7 +267,7 @@ google_project_service (APIs enabled)
         └── (private_service_connection when external services)
 ```
 
-LangSmith itself is not deployed by Terraform; the chart is installed in Pass 2 via `helm upgrade --install`.
+LangSmith itself is not deployed by Terraform; the chart is installed in the application stage via `helm upgrade --install`.
 
 ## Verification commands
 
@@ -288,7 +288,7 @@ kubectl get svc -n envoy-gateway-system
 kubectl get pods -n cert-manager
 kubectl get certificate -n langsmith
 
-# KEDA (Pass 3)
+# KEDA (LangSmith Deployment add-on)
 kubectl get pods -n keda
 
 # Cloud SQL connectivity test

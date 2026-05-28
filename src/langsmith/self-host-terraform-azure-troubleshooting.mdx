@@ -10,7 +10,7 @@ This page documents common issues, fixes, and diagnostic commands for LangSmith 
 Before upgrading, review the [LangSmith self-hosted changelog](/langsmith/self-hosted-changelog) for breaking changes and required variable updates. Run `az aks get-credentials --name <cluster> --resource-group <rg>` before running any `kubectl` commands.
 </Tip>
 
-## Pass 1 — infrastructure
+## Infrastructure stage
 
 ### `K8sVersionNotSupported` — version is LTS-only
 
@@ -52,7 +52,7 @@ Error: creating temporary Agent Pool ... "code": "ErrCode_InsufficientVCPUQuota"
 
 **Cause:** Per-region vCPU quotas per VM family. Default for `standardDSv3Family` in `eastus` is often 10 cores. One `Standard_D8s_v3` node uses 8; only 2 remain.
 
-**Why `max_pods = 30` triggers it:** AKS default is 30 pods per node. Pass 2 alone deploys ~37 pods. The autoscaler tries to add a second node, hits quota, enters backoff. Fix: `default_node_pool_max_pods = 60` in `terraform.tfvars` so all pods fit on one node.
+**Why `max_pods = 30` triggers it:** AKS default is 30 pods per node. The base LangSmith install alone deploys ~37 pods. The autoscaler tries to add a second node, hits quota, enters backoff. Fix: `default_node_pool_max_pods = 60` in `terraform.tfvars` so all pods fit on one node.
 
 **Recommended quota** for multi-dataplane (3 dataplanes): 32 cores.
 
@@ -72,7 +72,7 @@ az quota update \
 az vm list-usage --location eastus --query "[?contains(name.value,'DSv3')]" -o table
 ```
 
-**Alternative — switch VM family if DSv3 quota is exhausted:** Use `Standard_DS4_v2` (default) + `Standard_DS5_v2` (large). Same vCPU, slightly less RAM. Validated for full Pass 2 to 5 deploy.
+**Alternative, switch VM family if DSv3 quota is exhausted:** Use `Standard_DS4_v2` (default) + `Standard_DS5_v2` (large). Same vCPU, slightly less RAM. Validated for the full LangSmith install plus all add-ons.
 
 <Note>
 `max_pods` is immutable on an existing node pool. Set it before the first `terraform apply`.
@@ -149,7 +149,7 @@ terraform import \
 terraform apply
 ```
 
-## Pass 2 — Application
+## Application stage
 
 ### `dns_label` subdomain not resolving — TLS cert stuck pending
 
@@ -249,7 +249,7 @@ make deploy
 
 **Fix:** `make deploy` already uses `--timeout 20m`. Running Helm manually, always include `--timeout 20m`.
 
-## Pass 3 to 5 — feature passes
+## Add-ons
 
 ### Pods stay in `DEPLOYING`, never reach `HEALTHY`
 
@@ -265,7 +265,7 @@ config:
     tlsEnabled: true   # must be true when tls_certificate_source = letsencrypt or dns01
 ```
 
-### Pass 5 — `backend-ch-migrations` in `CreateContainerConfigError`
+### Insights add-on: `backend-ch-migrations` in `CreateContainerConfigError`
 
 **Symptom:** Multiple pods fail with `CreateContainerConfigError` after enabling `enable_insights = true`. Logs: `secret "langsmith-clickhouse" not found`.
 
@@ -300,7 +300,7 @@ kubectl exec -n langsmith deploy/langsmith-frontend -- env | grep POLLY
 
 **Fix:** Remove the `polly.agent.extraEnv` block entirely. The operator injects `LANGCHAIN_ENDPOINT` automatically.
 
-### `listener` and `operator` pods never appear after Pass 3
+### `listener` and `operator` pods never appear after enabling LangSmith Deployment
 
 **Cause:** `config.deployment.url` was set but `config.deployment.enabled: true` was omitted. The chart silently skips creating `listener` and `operator` when `enabled` is false (the default).
 
@@ -358,10 +358,10 @@ service_accounts_for_workload_identity = [
   "${var.langsmith_release_name}-platform-backend",
   "${var.langsmith_release_name}-queue",
   "${var.langsmith_release_name}-ingest-queue",
-  "${var.langsmith_release_name}-host-backend",                 # Pass 3
-  "${var.langsmith_release_name}-listener",                     # Pass 3
-  "${var.langsmith_release_name}-agent-builder-tool-server",    # Pass 4
-  "${var.langsmith_release_name}-agent-builder-trigger-server", # Pass 4
+  "${var.langsmith_release_name}-host-backend",                 # LangSmith Deployment add-on
+  "${var.langsmith_release_name}-listener",                     # LangSmith Deployment add-on
+  "${var.langsmith_release_name}-agent-builder-tool-server",    # Agent Builder add-on
+  "${var.langsmith_release_name}-agent-builder-trigger-server", # Agent Builder add-on
 ]
 ```
 

@@ -47,7 +47,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | Variable | Default | Description |
 |---|---|---|
 | `default_node_pool_vm_size` | `Standard_D8s_v3` | AKS node VM size (8 vCPU, 32 GB). Use `Standard_D4s_v3` for light/demo only. |
-| `default_node_pool_min_count` | `1` | Min nodes for the default pool. Set to 3 for production. Set to 5 before enabling Pass 3. |
+| `default_node_pool_min_count` | `1` | Min nodes for the default pool. Set to 3 for production. Set to 5 before enabling the LangSmith Deployment add-on. |
 | `default_node_pool_max_count` | `10` | Max nodes for the autoscaler. |
 | `additional_node_pools` | `large: D16s_v3 0–2` | Extra node pools. Default includes a `large` pool (`Standard_D16s_v3`, 16 vCPU, 64 GB) scaled to zero when idle. Required for ClickHouse (15GB RAM request). |
 | `aks_service_cidr` | `10.0.64.0/20` | Kubernetes ClusterIP range. Must not overlap the VNet. |
@@ -123,16 +123,16 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | `enable_postgres_diag` | `false` | Create the PostgreSQL diagnostic setting. Set `true` when `postgres_source = "external"`. |
 | `create_bastion` | `false` | Enable a jump VM for private AKS cluster access with `az ssh vm`. No public IP required. |
 
-## Add-on pass flags
+## Add-on flags
 
 `init-values.sh` and `deploy.sh` read these flags; Terraform ignores them. The flags affect which Helm add-on overlay files the scripts generate.
 
 | Variable | Default | Description |
 |---|---|---|
-| `enable_deployments` | `false` | [Pass 3](/langsmith/self-host-terraform-azure-pass-3-deployments): enables LangSmith Deployment (host-backend, listener, operator). Scale `default_node_pool_min_count` to 5 first. |
-| `enable_agent_builder` | `false` | [Pass 4](/langsmith/self-host-terraform-azure-pass-4-agent-builder) — enable Agent Builder UI. Requires `enable_deployments = true`. |
-| `enable_insights` | `false` | [Pass 5](/langsmith/self-host-terraform-azure-pass-5-insights) — enable Insights / Clio analytics. Requires `enable_deployments = true`. |
-| `enable_polly` | `false` | [Pass 5](/langsmith/self-host-terraform-azure-pass-5-insights) — enable Polly AI eval agent. Requires `enable_deployments = true`. |
+| `enable_deployments` | `false` | Enables LangSmith Deployment (host-backend, listener, operator). See the [LangSmith Deployment add-on](/langsmith/self-host-terraform-azure-deploy#langsmith-deployment). Scale `default_node_pool_min_count` to 5 first. |
+| `enable_agent_builder` | `false` | Enable Agent Builder UI. Requires `enable_deployments = true`. See the [Agent Builder add-on](/langsmith/self-host-terraform-azure-deploy#agent-builder). |
+| `enable_insights` | `false` | Enable Insights / Clio analytics. Requires `enable_deployments = true`. See the [Insights and Polly add-on](/langsmith/self-host-terraform-azure-deploy#insights-and-polly). |
+| `enable_polly` | `false` | Enable Polly AI eval agent. Requires `enable_deployments = true`. See the [Insights and Polly add-on](/langsmith/self-host-terraform-azure-deploy#insights-and-polly). |
 
 ## Sensitive variables (set with `setup-env.sh`)
 
@@ -144,7 +144,7 @@ Reference for every input variable exposed by the [Azure Terraform modules](http
 | `langsmith_admin_password` | Initial org admin password. |
 | `langsmith_api_key_salt` | Salt for hashing API keys. Must stay stable after first deploy. |
 | `langsmith_jwt_secret` | JWT secret for Basic Auth sessions. |
-| `langsmith_deployments_encryption_key` | Fernet key for LangSmith Deployment (Pass 3). Must never change. |
-| `langsmith_agent_builder_encryption_key` | Fernet key for Agent Builder (Pass 4). Must never change. |
-| `langsmith_insights_encryption_key` | Fernet key for Insights (Pass 5). Must never change. |
+| `langsmith_deployments_encryption_key` | Fernet key for the LangSmith Deployment add-on. Must never change. |
+| `langsmith_agent_builder_encryption_key` | Fernet key for the Agent Builder add-on. Must never change. |
+| `langsmith_insights_encryption_key` | Fernet key for the Insights add-on. Must never change. |
 | `langsmith_polly_encryption_key` | Fernet key for Polly. Must never change. |

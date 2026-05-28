@@ -8,20 +8,20 @@ This page documents what the [Azure Terraform modules](https://github.com/langch
 
 ## Platform layers
 
-LangSmith on Azure deploys in up to five passes. Each pass adds a capability layer on top of the previous. All layers share the same AKS cluster and `langsmith` namespace.
+LangSmith on Azure deploys in stages. Each stage adds a capability layer on top of the previous. All layers share the same AKS cluster and `langsmith` namespace.
 
-<img src="/images/self-hosted-terraform/azure-architecture.png" alt="LangSmith on Azure deployment passes and service layout" className="block dark:hidden" />
-<img src="/images/self-hosted-terraform/azure-architecture-light.png" alt="LangSmith on Azure deployment passes and service layout" className="hidden dark:block" />
+<img src="/images/self-hosted-terraform/azure-architecture.png" alt="LangSmith on Azure service layout" className="block dark:hidden" />
+<img src="/images/self-hosted-terraform/azure-architecture-light.png" alt="LangSmith on Azure service layout" className="hidden dark:block" />
 
-| Pass | Layer | What it adds |
+| Stage | Layer | What it adds |
 |---|---|---|
-| 1 | Azure infrastructure | VNet, AKS, Postgres, Redis, Blob, Key Vault, cert-manager, KEDA, ingress controller |
-| 2 | LangSmith base | frontend, backend, platform-backend, queue, ingest-queue, ace-backend, clickhouse, playground |
-| 3 | LangSmith Deployment | host-backend, listener, operator + per-deployment pods |
-| 4 | Agent Builder | agent-builder-tool-server, agent-builder-trigger-server + deep-agent LGP |
-| 5 | Insights + Polly | Clio analytics (ClickHouse-backed), Polly eval agent (operator-managed, dynamic) |
+| Infrastructure | Azure infrastructure | VNet, AKS, Postgres, Redis, Blob, Key Vault, cert-manager, KEDA, ingress controller |
+| Application | LangSmith base | frontend, backend, platform-backend, queue, ingest-queue, ace-backend, clickhouse, playground |
+| LangSmith Deployment add-on | LangSmith Deployment | host-backend, listener, operator + per-deployment pods |
+| Agent Builder add-on | Agent Builder | agent-builder-tool-server, agent-builder-trigger-server + deep-agent LGP |
+| Insights + Polly add-on | Insights + Polly | Clio analytics (ClickHouse-backed), Polly eval agent (operator-managed, dynamic) |
 
-## Pass 2 deployment paths
+## Application deployment paths
 
 | Path | How | When to use |
 |---|---|---|
@@ -96,7 +96,7 @@ langsmith-vnet<identifier>
 
 All subnets are private. Postgres and Redis are accessible only from within the VNet via private DNS resolution. No public endpoints.
 
-## Pass 2 — core services
+## Application core services
 
 | Service | Purpose | Port | HPA | Workload Identity |
 |---|---|---|---|---|
@@ -121,7 +121,7 @@ In-cluster ClickHouse is dev/POC only (single pod, no replication, no backups). 
 | `langsmith-backend-ch-migrations` | ClickHouse schema migrations |
 | `langsmith-backend-auth-bootstrap` | Creates the initial org and admin account from `initial_org_admin_password` in `langsmith-config-secret` |
 
-## Pass 3 — LangSmith Deployment
+## LangSmith Deployment add-on
 
 | Service | Purpose | Workload Identity |
 |---|---|---|
@@ -129,7 +129,7 @@ In-cluster ClickHouse is dev/POC only (single pod, no replication, no backups). 
 | `langsmith-listener` | Watches host-backend for state changes, creates and updates `LangGraphPlatform` CRDs. | Yes |
 | `langsmith-operator` | Kubernetes operator. Azure-specific: injects `azure.workload.identity/use: "true"` + `langsmith-ksa` so every agent pod accesses Blob Storage via Workload Identity. | No |
 
-## Pass 4 — Agent Builder
+## Agent Builder add-on
 
 | Pod | Type | Role | Workload Identity |
 |---|---|---|---|
@@ -138,7 +138,7 @@ In-cluster ClickHouse is dev/POC only (single pod, no replication, no backups). 
 | `langsmith-agent-bootstrap` | Job | Registers the bundled Agent Builder agent | — |
 | `agent-builder-<hash>` + queue + redis + `lg-<hash>-0` | Dynamic | Agent Builder deployment, operator-managed | Inherited |
 
-## Pass 5 — Insights and Polly
+## Insights and Polly add-on
 
 **Insights/Clio:** No static pods. Deploys lazily as a dynamic LangGraph deployment via the operator on first UI invocation. Reads `insights_encryption_key` from `langsmith-config-secret`. Never rotate this key — it permanently breaks existing Insights data.
 
@@ -146,7 +146,7 @@ In-cluster ClickHouse is dev/POC only (single pod, no replication, no backups). 
 
 ## Azure managed services
 
-When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Pass 1 provisions:
+When `postgres_source = "external"` and `redis_source = "external"` (the recommended production setting), Terraform provisions:
 
 ### Azure DB for PostgreSQL Flexible Server
 
@@ -198,21 +198,21 @@ Every pod that reads blob storage env vars must have:
 2. The `azure.workload.identity/use: "true"` label on the Deployment.
 3. The `azure.workload.identity/client-id` annotation on the ServiceAccount.
 
-| Pod | Pass | Needs WI |
+| Pod | Stage | Needs WI |
 |---|---|---|
-| `langsmith-backend` | 2 | Yes |
-| `langsmith-platform-backend` | 2 | Yes |
-| `langsmith-queue` | 2 | Yes |
-| `langsmith-ingest-queue` | 2 | Yes |
-| `langsmith-host-backend` | 3 | Yes |
-| `langsmith-listener` | 3 | Yes |
-| `langsmith-agent-builder-tool-server` | 4 | Yes |
-| `langsmith-agent-builder-trigger-server` | 4 | Yes |
-| `langsmith-frontend` | 2 | No |
-| `langsmith-playground` | 2 | No |
-| `langsmith-ace-backend` | 2 | No |
-| `langsmith-clickhouse` | 2 | No |
-| `langsmith-operator` | 3 | No |
+| `langsmith-backend` | Application | Yes |
+| `langsmith-platform-backend` | Application | Yes |
+| `langsmith-queue` | Application | Yes |
+| `langsmith-ingest-queue` | Application | Yes |
+| `langsmith-host-backend` | LangSmith Deployment add-on | Yes |
+| `langsmith-listener` | LangSmith Deployment add-on | Yes |
+| `langsmith-agent-builder-tool-server` | Agent Builder add-on | Yes |
+| `langsmith-agent-builder-trigger-server` | Agent Builder add-on | Yes |
+| `langsmith-frontend` | Application | No |
+| `langsmith-playground` | Application | No |
+| `langsmith-ace-backend` | Application | No |
+| `langsmith-clickhouse` | Application | No |
+| `langsmith-operator` | LangSmith Deployment add-on | No |
 
 All federated credentials are registered in `modules/k8s-cluster/main.tf` under `service_accounts_for_workload_identity`. Adding a new pod that accesses blob storage requires adding its ServiceAccount name to that list and running `terraform apply -target=module.aks`.
 
@@ -230,7 +230,7 @@ The pod panics on startup — the ServiceAccount has no registered federated cre
 ## Secret flow
 
 ```txt
-Pass 1 — Infrastructure
+Infrastructure stage
 
   ./setup-env.sh   (read-only against Key Vault — never writes to KV directly)
     First run:  prompts for postgres password, license key, admin password.
@@ -246,7 +246,7 @@ Pass 1 — Infrastructure
             secrets.auto.tfvars (sensitive values — sole input for KV secret creation)
     Creates: Azure Key Vault + all secrets as KV secrets (Terraform is the sole KV writer)
 
-Pass 2 — Application
+Application stage
 
   ./setup-env.sh   (re-run on any machine to refresh secrets.auto.tfvars from Key Vault)
 

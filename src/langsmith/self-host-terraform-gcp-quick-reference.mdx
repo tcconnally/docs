@@ -6,20 +6,18 @@ description: Make targets, Terraform, kubectl, gcloud, and Helm commands for Lan
 
 Command cheat sheet for day-to-day operations against a GCP LangSmith deployment provisioned with the [GCP Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/gcp). All `make` targets run from `modules/gcp/`. Run `make help` for an inline summary.
 
-For the full deployment walkthrough, see the [GCP quickstart](/langsmith/self-host-terraform-gcp-quickstart).
-
 ## Deployment overview
 
-| Pass | What gets deployed | Command |
+| Stage | What gets deployed | Command |
 |---|---|---|
-| 1 | VPC + GKE + Cloud SQL + Memorystore + GCS + IAM + cert-manager + KEDA + Envoy Gateway | `make apply` |
-| 1.5 | Cluster credentials | `make kubeconfig` |
-| 2 | LangSmith base (frontend, backend, ingest, queue, clickhouse) | `make init-values && make deploy` |
-| 3 | LangSmith Deployment (host-backend, listener, operator) | `make apply && make init-values && make deploy` |
-| 4 | Agent Builder (tool-server, trigger-server + deep-agent LGP) | `make init-values && make deploy` |
-| 5 | Insights + Polly (Clio analytics, Polly eval agent) | `make init-values && make deploy` |
+| Infrastructure | VPC + GKE + Cloud SQL + Memorystore + GCS + IAM + cert-manager + KEDA + Envoy Gateway | `make apply` |
+| Cluster credentials | Kubeconfig wired to the new GKE cluster | `make kubeconfig` |
+| LangSmith base | Frontend, backend, ingest, queue, ClickHouse | `make init-values && make deploy` |
+| LangSmith Deployment add-on | host-backend, listener, operator | `make apply && make init-values && make deploy` |
+| Agent Builder add-on | tool-server, trigger-server + agent-builder LGP | `make init-values && make deploy` |
+| Insights + Polly add-on | Clio analytics, Polly eval agent | `make init-values && make deploy` |
 
-Each pass builds on the previous. Verify pods are healthy before enabling the next.
+Each stage builds on the previous. Verify pods are healthy before enabling the next.
 
 ## First-time setup
 
@@ -218,7 +216,7 @@ terraform refresh -var-file=terraform.tfvars
 
 - Uninstall Helm before `terraform destroy`. The Envoy Gateway load balancer references the VPC; leaving it blocks network deletion. Always run `make uninstall` first.
 - `config.deployment.url` must include `https://`. Without the protocol, operator-spawned agents stay stuck in `DEPLOYING`.
-- `config.deployment.enabled: true` is required for Pass 3. Setting only the URL without `enabled: true` silently skips `listener` and `operator`.
+- `config.deployment.enabled: true` is required for the LangSmith Deployment add-on. Setting only the URL without `enabled: true` silently skips `listener` and `operator`.
 - Encryption keys must never change after first enable. Rotating `insights_encryption_key` or `polly_encryption_key` permanently breaks existing encrypted data.
 - Roll the frontend after first Polly enable. `agentBootstrap` creates the `langsmith-polly-config` ConfigMap after registering; frontend pods started earlier do not pick it up.
 - Envoy Gateway IP changes on teardown. GCP releases the external IP when the Gateway is deleted. After `terraform destroy` and re-apply, update your DNS A record.
@@ -227,7 +225,7 @@ terraform refresh -var-file=terraform.tfvars
 ## Teardown
 
 ```bash
-# 1. Remove LangSmith Deployment resources (if Pass 3 was enabled)
+# 1. Remove LangSmith Deployment resources (if the add-on was enabled)
 kubectl delete lgp --all -n langsmith 2>/dev/null || true
 
 # 2. Uninstall LangSmith
@@ -242,5 +240,3 @@ make destroy
 gke_deletion_protection      = false
 postgres_deletion_protection = false
 ```
-
-For the full procedure, see the [GCP teardown guide](/langsmith/self-host-terraform-gcp-teardown).
