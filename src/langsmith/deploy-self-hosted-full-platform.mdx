@@ -176,10 +176,10 @@ We recommend storing each key in a predefined Kubernetes secret rather than sett
         polly:
           enabled: true
 
-        agentBuilderToolServer:
+        fleetToolServer:
           enabled: true
 
-        agentBuilderTriggerServer:
+        fleetTriggerServer:
           enabled: true
         ```
       </Tab>
@@ -199,23 +199,23 @@ We recommend storing each key in a predefined Kubernetes secret rather than sett
           enabled: true
           encryptionKey: "<polly-encryption-key>"
 
-        agentBuilderToolServer:
+        fleetToolServer:
           enabled: true
 
-        agentBuilderTriggerServer:
+        fleetTriggerServer:
           enabled: true
         ```
       </Tab>
     </Tabs>
 
     <Warning>
-    If you are migrating from the legacy `agentBootstrap` deployment model, disable `backend.agentBootstrap` and the old `config.agentBuilder`, `config.insights`, and `config.polly` flags. These are the flags under the `config` section, not the top-level `fleet`, `insights`, and `polly` flags shown above.
+    If you are migrating from the legacy `agentBootstrap` deployment model, disable `backend.agentBootstrap` and the old `config.agentBuilder` flag, and remove any `config.insights` and `config.polly` blocks (these are no longer supported and will cause templating to fail). These are the flags under the `config` section, not the top-level `fleet`, `insights`, and `polly` flags shown above.
 
     You must also manually delete the existing Fleet, Insights, and Polly deployments through the LangSmith Deployments UI. If you did not use an external PostgreSQL database for Fleet with the legacy `agentBootstrap` model and want to preserve existing Fleet agents, contact support@langchain.dev before applying this configuration.
     </Warning>
 
     <Note>
-    `agentBuilderToolServer` and `agentBuilderTriggerServer` are required for Fleet.
+    `fleetToolServer` and `fleetTriggerServer` are required for Fleet.
     </Note>
 
     Each feature deploys its own dedicated PostgreSQL and Redis instances by default. To use external databases instead, configure the `postgres.external` and `redis.external` sections under each feature. For example:
@@ -774,7 +774,7 @@ Setup involves creating a GitHub App, gathering its credentials, storing them as
             name: fleet-github-app
             key: state_jwt_secret
 
-    agentBuilderToolServer:
+    fleetToolServer:
       deployment:
         extraEnv:
           - name: FLEET_GITHUB_APP_ENABLED
