@@ -4,11 +4,11 @@ sidebarTitle: Architecture
 description: Platform layers, services, IRSA roles, networking, and module dependencies for LangSmith self-hosted on AWS EKS.
 ---
 
-This page documents what the [AWS Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/aws) provision and how the resulting deployment is wired together.
+This page documents what the [AWS Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/aws) provision and how the modules wire the resulting deployment together.
 
 ## Platform layers
 
-LangSmith on AWS deploys in up to three passes. Pass 1 provisions the cloud foundation. Pass 2 installs the LangSmith application via Helm. Pass 3 is opt-in and adds LangSmith Deployment for managing LangGraph applications from the UI.
+LangSmith on AWS deploys in up to three passes. Pass 1 provisions the cloud foundation. Pass 2 installs the LangSmith application with Helm. Pass 3 is opt-in and adds LangSmith Deployment for managing LangGraph applications from the UI.
 
 <img src="/images/self-hosted-terraform/aws-architecture.png" alt="LangSmith on AWS deployment passes and service layout" />
 

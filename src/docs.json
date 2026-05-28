@@ -864,6 +864,22 @@
                             "langsmith/self-host-terraform-gcp-troubleshooting",
                             "langsmith/self-host-terraform-gcp-teardown"
                           ]
+                        },
+                        {
+                          "group": "Azure",
+                          "pages": [
+                            "langsmith/self-host-terraform-azure-quickstart",
+                            "langsmith/self-host-terraform-azure-pass-1-infrastructure",
+                            "langsmith/self-host-terraform-azure-pass-2-langsmith",
+                            "langsmith/self-host-terraform-azure-pass-3-deployments",
+                            "langsmith/self-host-terraform-azure-pass-4-agent-builder",
+                            "langsmith/self-host-terraform-azure-pass-5-insights",
+                            "langsmith/self-host-terraform-azure-architecture",
+                            "langsmith/self-host-terraform-azure-quick-reference",
+                            "langsmith/self-host-terraform-azure-variables",
+                            "langsmith/self-host-terraform-azure-troubleshooting",
+                            "langsmith/self-host-terraform-azure-teardown"
+                          ]
                         }
                       ]
                     },

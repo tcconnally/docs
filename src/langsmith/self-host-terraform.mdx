@@ -5,7 +5,7 @@ description: Provision LangSmith self-hosted on AWS, Azure, GCP, or OpenShift us
 ---
 
 <Info>
-Self-hosted LangSmith is an add-on to the Enterprise plan designed for our largest, most security-conscious customers. See [pricing](https://www.langchain.com/pricing) for details, or [contact sales](https://www.langchain.com/contact-sales) to request a license key for trial.
+Self-hosted LangSmith is an add-on to the Enterprise plan designed for LangChain's largest, most security-conscious customers. See [pricing](https://www.langchain.com/pricing) for details, or [contact sales](https://www.langchain.com/contact-sales) to request a license key for trial.
 </Info>
 
 LangChain publishes production-ready Terraform modules for [LangSmith self-hosted](/langsmith/self-hosted) at [github.com/langchain-ai/terraform](https://github.com/langchain-ai/terraform). The modules provision the cloud foundation (network, cluster, database, cache, object storage, secrets, DNS) and install the LangSmith Helm chart with sensible defaults.
@@ -22,7 +22,7 @@ Use this path when you want infrastructure as code from day one. If you already 
   <Card title="AWS (EKS)" icon="brand-aws" href="/langsmith/self-host-terraform-aws-quickstart">
     Provision EKS, RDS PostgreSQL, ElastiCache, S3, and networking. Status: GA.
   </Card>
-  <Card title="Azure (AKS)" icon="brand-windows" href="https://github.com/langchain-ai/terraform/tree/main/modules/azure">
+  <Card title="Azure (AKS)" icon="brand-windows" href="/langsmith/self-host-terraform-azure-quickstart">
     Provision AKS, Azure Database for PostgreSQL, Azure Managed Redis, Blob Storage, and Key Vault. Status: GA.
   </Card>
   <Card title="GCP (GKE)" icon="brand-google" href="/langsmith/self-host-terraform-gcp-quickstart">
@@ -33,7 +33,7 @@ Use this path when you want infrastructure as code from day one. If you already 
   </Card>
 </CardGroup>
 
-The AWS and GCP paths are fully documented. Azure and OpenShift walkthroughs land here in subsequent releases. Until then, follow the README in each module directory linked above.
+AWS, Azure, and GCP paths are fully documented. The OpenShift walkthrough lands here in a future release; until then, follow the README in the [OCP module directory](https://github.com/langchain-ai/terraform/tree/main/modules/ocp).
 
 ## Prerequisites
 
@@ -61,11 +61,11 @@ Each provider module deploys in two passes:
     Terraform provisions the cloud foundation: virtual network, managed Kubernetes cluster, managed PostgreSQL, managed Redis or cache, blob storage bucket, secret store, and the IAM roles or identities that connect them. Expect 20 to 25 minutes for a clean run.
   </Step>
   <Step title="Pass 2 — LangSmith">
-    Helm installs the LangSmith chart against the cluster from Pass 1. Secrets sync from the cloud-native store via [External Secrets Operator](https://external-secrets.io/), so no credentials live in `tfvars` or git.
+    Helm installs the LangSmith chart against the cluster from Pass 1. Secrets sync from the cloud-native store through [External Secrets Operator](https://external-secrets.io/), so no credentials live in `tfvars` or git.
   </Step>
 </Steps>
 
-Azure offers additional optional passes for [LangSmith Deployment](/langsmith/deploy-self-hosted-full-platform), Agent Builder, and Insights. AWS and GCP cover the same optional add-ons in a single follow-up step.
+Azure offers optional passes for [LangSmith Deployment](/langsmith/deploy-self-hosted-full-platform), Agent Builder, and Insights. AWS and GCP cover the same optional add-ons in a single follow-up step.
 
 ## Deployment tiers
 
@@ -78,7 +78,7 @@ Pick a tier with a single Terraform variable. The modules size every dependent r
 | `production-large` | Cloud-managed, larger instance class | Cloud-managed, larger instance class | LangChain Managed ClickHouse | High-throughput production |
 
 <Warning>
-In-cluster ClickHouse is for development and POC only. Production deployments should use [LangChain Managed ClickHouse](/langsmith/langsmith-managed-clickhouse) or a self-managed external ClickHouse cluster. Blob storage is always required because trace payloads must not live in ClickHouse.
+In-cluster ClickHouse is for development and POC only. Production deployments must use [LangChain Managed ClickHouse](/langsmith/langsmith-managed-clickhouse) or a self-managed external ClickHouse cluster. Blob storage is always required because trace payloads must not live in ClickHouse.
 </Warning>
 
 ## What the modules provision

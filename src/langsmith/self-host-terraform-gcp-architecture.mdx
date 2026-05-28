@@ -4,7 +4,7 @@ sidebarTitle: Architecture
 description: Platform layers, services, Workload Identity, networking, and module dependencies for LangSmith self-hosted on GKE.
 ---
 
-This page documents what the [GCP Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/gcp) provision and how the resulting deployment is wired together.
+This page documents what the [GCP Terraform modules](https://github.com/langchain-ai/terraform/tree/main/modules/gcp) provision and how the modules wire the resulting deployment together.
 
 ## Platform layers
 
@@ -12,7 +12,7 @@ LangSmith on GCP deploys in up to five passes. Each pass adds a capability layer
 
 <img src="/images/self-hosted-terraform/gcp-architecture.png" alt="LangSmith on GCP deployment passes and service layout" />
 
-| Pass | Layer | What is added |
+| Pass | Layer | What it adds |
 |---|---|---|
 | 1 | GCP infrastructure | VPC, GKE, Cloud SQL, Memorystore, GCS, K8s bootstrap, cert-manager, KEDA, Envoy Gateway |
 | 2 | LangSmith base | frontend, backend, platform-backend, queue, ace-backend, clickhouse, playground |
@@ -32,8 +32,8 @@ LangSmith on GCP deploys in up to five passes. Each pass adds a capability layer
 | `k8s-bootstrap` | `modules/k8s-bootstrap/` | `langsmith` namespace, Kubernetes Secrets for Postgres and Redis URLs, cert-manager and KEDA Helm releases |
 | `ingress` | `modules/ingress/` | Envoy Gateway Helm release, GatewayClass, HTTPRoute, optional HTTPS Gateway listener |
 | `iam` | `modules/iam/` | GCP service accounts and Workload Identity bindings for GCS access (wired by default) |
-| `dns` | `modules/dns/` | Cloud DNS managed zone and managed cert (optional via `enable_dns_module`) |
-| `secrets` | `modules/secrets/` | Secret Manager secret bundle (optional via `enable_secret_manager_module`) |
+| `dns` | `modules/dns/` | Cloud DNS managed zone and managed cert (optional, enable with `enable_dns_module`) |
+| `secrets` | `modules/secrets/` | Secret Manager secret bundle (optional, enable with `enable_secret_manager_module`) |
 
 ## Deployment tiers
 
