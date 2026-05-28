@@ -12,6 +12,27 @@ rss: true
 [Self-hosted LangSmith](/langsmith/self-hosted) is an add-on to the Enterprise plan designed for our largest, most security-conscious customers. For more details, refer to [Pricing](https://www.langchain.com/pricing). [Contact our sales team](https://www.langchain.com/contact-sales) if you want to get a license key to trial LangSmith in your environment.
 
 
+<Update label="2026-05-28" tags={["self-hosted"]} rss={{ title: "2026-05-28 - self-hosted" }}>
+## langsmith-0.15.0
+
+- Fixed the frontend to recognize Anthropomorphic-style tool calls, improving UI tool compatibility.
+- Added support for extended stats in LLM judges, enhancing evaluative capabilities.
+- Fixed the frontend to rename rule logs' last executed label for clearer user interaction.
+- Improved the playground by routing evaluator LLM calls through the gateway, optimizing call handling.
+- Fixed datasets to reject sort_params with multiple session_ids in comparison view, ensuring accurate data representation.
+- Persisted custom date ranges in Insights and honored them at job execution for more flexible date filtering.
+- Made the Add-to-Dataset modal scrollable and migrated to design-system Dialog, enhancing user experience.
+- Fixed sessions to tolerate empty session ID filters, increasing robustness in session handling.
+- Added OAuth credential columns to playground_settings, improving OAuth integration.
+- Fixed issues with thread and traces table overflow behavior, ensuring consistent data display.
+- Fixed the frontend to handle truncation of run names in the runs table with proper alignment, improving UI clarity.
+- Added a tooltip with the full thread ID on truncated thread column cells for easier access to complete information.
+- Increased the contrast of disabled buttons to improve accessibility in the frontend.
+- Enhanced the sandbox UI with memory snapshot capture toggle and warm restore functionality.
+
+**Download the Helm chart:** [`langsmith-0.15.0.tgz`](https://github.com/langchain-ai/helm/releases/download/langsmith-0.15.0/langsmith-0.15.0.tgz)
+</Update>
+
 <Update label="2026-05-26" tags={["self-hosted"]} rss={{ title: "2026-05-26 - self-hosted" }}>
 ## langsmith-0.15.0-rc.17
 
