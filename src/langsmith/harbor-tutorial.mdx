@@ -22,7 +22,7 @@ Before you begin, install and configure:
 - Python 3.12 or later.
 - Docker, for Harbor's default local execution environment.
 - A [LangSmith API key](/langsmith/create-account-api-key).
-- A model provider API key if you plan to run a non-Oracle agent.
+- A model provider API key for your custom Deep Agents agent.
 
 <Note>
 The `harbor-langsmith` plugin requires `harbor>=0.13.0`.
@@ -181,23 +181,116 @@ The Oracle run should receive a reward of `1`. In LangSmith, the plugin creates 
 
 Each Harbor trial appears as a LangSmith run. The verifier reward is logged as feedback, and Harbor metadata such as the job ID, trial name, task name, agent, and model are attached to the run.
 
-## Run a real agent
+## Create a custom Deep Agents agent for Harbor
 
-After the Oracle run passes, run the same task with an agent you want to evaluate. Set any model provider keys required by that agent, then replace the agent and model placeholders:
+After the Oracle run passes, wire your own agent into Harbor. Harbor calls a Python class that implements its agent interface. Deep Agents builds the agent loop, tools, and filesystem access. The wrapper below connects the two systems by:
+
+- Installing Deep Agents inside the Harbor sandbox.
+- Creating a Deep Agents agent with a `LocalShellBackend` rooted at `/app`, the task work directory.
+- Passing Harbor's task instruction to the Deep Agents agent during each trial.
+
+Create `my_deepagent_agent.py` in the same directory where you run `harbor run`:
+
+```bash
+cat > my_deepagent_agent.py <<'PY'
+import shlex
+from textwrap import dedent
+
+from harbor.agents.installed.base import BaseInstalledAgent, with_prompt_template
+from harbor.environments.base import BaseEnvironment
+from harbor.models.agent.context import AgentContext
+
+
+class DeepAgentsHarborAgent(BaseInstalledAgent):
+    @staticmethod
+    def name() -> str:
+        return "deepagents-custom"
+
+    async def install(self, environment: BaseEnvironment) -> None:
+        await self.exec_as_root(
+            environment,
+            command="apt-get update && apt-get install -y python3 python3-pip",
+        )
+        await self.exec_as_agent(
+            environment,
+            command=(
+                "python3 -m pip install --user --break-system-packages "
+                "deepagents langchain-anthropic"
+            ),
+        )
+
+    @with_prompt_template
+    async def run(
+        self,
+        instruction: str,
+        environment: BaseEnvironment,
+        context: AgentContext,
+    ) -> None:
+        model = (self.model_name or "anthropic/claude-sonnet-4-6").replace("/", ":", 1)
+        runner = dedent(
+            """\
+            import os
+
+            from deepagents import create_deep_agent
+            from deepagents.backends import LocalShellBackend
+
+            agent = create_deep_agent(
+                model=os.environ["DEEPAGENTS_MODEL"],
+                backend=LocalShellBackend(
+                    root_dir="/app",
+                    virtual_mode=True,
+                    env={"PATH": os.environ.get("PATH", "/usr/bin:/bin")},
+                ),
+                system_prompt=(
+                    "You are a coding agent running inside a Harbor task sandbox. "
+                    "Complete the user's task by reading, writing, and executing files "
+                    "in /app."
+                ),
+            )
+
+            result = agent.invoke(
+                {
+                    "messages": [
+                        {"role": "user", "content": os.environ["DEEPAGENTS_INSTRUCTION"]}
+                    ]
+                }
+            )
+            print(result["messages"][-1].content)
+            """
+        )
+        command = (
+            "cat > /tmp/run_deepagent.py <<'PY'\n"
+            f"{runner}\n"
+            "PY\n"
+            f"DEEPAGENTS_MODEL={shlex.quote(model)} "
+            f"DEEPAGENTS_INSTRUCTION={shlex.quote(instruction)} "
+            "python3 /tmp/run_deepagent.py"
+        )
+        result = await self.exec_as_agent(environment, command=command)
+        context.metadata = {"answer_written": result.stdout}
+PY
+```
+
+This wrapper is intentionally small. Replace the `create_deep_agent(...)` call with the tools, system prompt, memory, skills, subagents, or middleware your agent uses. If you use a model provider other than Anthropic, install that provider package in `install()`, pass the corresponding API key with `--agent-env`, and set `--model` to that provider and model.
+
+## Run the custom Deep Agents agent
+
+Set the model provider key and pass it into the Harbor sandbox. Then run Harbor with `--agent-import-path`, which points to the custom class you created:
 
 ```bash
 export ANTHROPIC_API_KEY="<your-anthropic-api-key>"
 
 harbor run \
   --path harbor-langsmith-demo \
-  --agent "<agent-name>" \
-  --model "<provider/model-name>" \
+  --agent-import-path my_deepagent_agent:DeepAgentsHarborAgent \
+  --model anthropic/claude-sonnet-4-6 \
+  --agent-env ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
   --plugin langsmith \
   --plugin-kwarg dataset_name=harbor-langsmith-demo \
-  --plugin-kwarg experiment_name=harbor-agent-run
+  --plugin-kwarg experiment_name=harbor-deepagents-run
 ```
 
-For example, use an installed coding agent such as `claude-code`, `codex`, `openhands`, or another Harbor-supported agent that is configured in your environment. The same LangSmith dataset lets you compare the Oracle baseline and real agent runs against the same task.
+Harbor imports `DeepAgentsHarborAgent`, starts the task sandbox, calls `install()` once for the trial environment, and calls `run()` with the task instruction. Deep Agents then uses its filesystem and shell tools against `/app` to complete the task. The LangSmith plugin logs the trial as an experiment run, including Harbor metadata and verifier feedback.
 
 ## Scale beyond one task
 
@@ -213,8 +306,9 @@ For example, to run a registered dataset with LangSmith logging:
 ```bash
 harbor run \
   --dataset "<dataset@version>" \
-  --agent "<agent-name>" \
-  --model "<provider/model-name>" \
+  --agent-import-path my_deepagent_agent:DeepAgentsHarborAgent \
+  --model anthropic/claude-sonnet-4-6 \
+  --agent-env ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
   --n-concurrent 4 \
   --plugin langsmith \
   --plugin-kwarg experiment_name=harbor-benchmark-run
