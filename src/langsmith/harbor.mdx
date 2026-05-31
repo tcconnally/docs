@@ -1,0 +1,161 @@
+---
+title: Run Harbor evaluations with LangSmith
+sidebarTitle: Run Harbor evals
+description: Use the Harbor LangSmith plugin to sync Harbor jobs, datasets, experiment runs, and feedback to LangSmith.
+---
+
+[Harbor](https://github.com/harbor-framework/harbor) is a framework for evaluating agents and language models on benchmark tasks. The `harbor-langsmith` plugin connects Harbor jobs to LangSmith so you can inspect each Harbor trial as an experiment run, compare results, and review verifier feedback in LangSmith.
+
+Use this guide to install the plugin, run a Harbor job with LangSmith enabled, and configure how Harbor data maps to LangSmith datasets and experiments.
+
+<Note>
+The `harbor-langsmith` plugin requires `harbor>=0.13.0`.
+</Note>
+
+## Install Harbor with LangSmith support
+
+Install Harbor with the LangSmith extra:
+
+<CodeGroup>
+```bash pip
+pip install "harbor[langsmith]"
+```
+
+```bash uv
+uv tool install "harbor[langsmith]"
+```
+</CodeGroup>
+
+The plugin is published as `harbor-langsmith` and registers the `langsmith` Harbor plugin entry point.
+
+## Set LangSmith credentials
+
+Create a LangSmith API key, then export it before running Harbor:
+
+```bash
+export LANGSMITH_API_KEY="<your-langsmith-api-key>"
+```
+
+For self-hosted LangSmith or multi-workspace accounts, set the endpoint and workspace ID:
+
+```bash
+export LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+export LANGSMITH_WORKSPACE_ID="<workspace-id>"
+```
+
+## Run a Harbor job
+
+Pass `--plugin langsmith` to `harbor run`:
+
+```bash
+harbor run \
+  --dataset "<dataset@version>" \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --plugin langsmith
+```
+
+You can also pass the full import path:
+
+```bash
+harbor run \
+  --dataset "<dataset@version>" \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --plugin harbor_langsmith:LangSmithPlugin
+```
+
+After the job starts, the plugin creates a LangSmith experiment using the Harbor job name unless you override it. Each Harbor trial is logged as a root run in the experiment. Environment setup, agent execution, and verification are logged as child runs when those phases are emitted by Harbor.
+
+When the job finishes, the plugin logs trial outputs, token totals, cost, verifier rewards as feedback, and exceptions as `harbor_error` feedback.
+
+## Sync Harbor tasks to a LangSmith dataset
+
+By default, the plugin syncs Harbor tasks into a LangSmith dataset and links each trial run to the corresponding example. The default dataset name is based on the Harbor job:
+
+- A single Harbor dataset uses the dataset name, including the version when present.
+- A single task uses the task name.
+- Multiple ad hoc tasks use `harbor-adhoc-tasks`.
+
+Set a specific dataset name with an environment variable:
+
+```bash
+export HARBOR_LANGSMITH_DATASET="harbor-swe-bench-smoke-test"
+```
+
+Or pass it as a plugin kwarg:
+
+```bash
+harbor run \
+  --dataset "<dataset@version>" \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --plugin langsmith \
+  --plugin-kwarg dataset_name=harbor-swe-bench-smoke-test
+```
+
+To log experiment runs without creating or updating a LangSmith dataset, disable dataset syncing:
+
+```bash
+export HARBOR_LANGSMITH_SYNC_DATASET=false
+```
+
+## Name the LangSmith experiment
+
+Set `HARBOR_LANGSMITH_EXPERIMENT` to control the experiment name:
+
+```bash
+export HARBOR_LANGSMITH_EXPERIMENT="harbor-agent-comparison"
+```
+
+You can also pass `experiment_name` as a plugin kwarg:
+
+```bash
+harbor run \
+  --dataset "<dataset@version>" \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --plugin langsmith \
+  --plugin-kwarg experiment_name=harbor-agent-comparison
+```
+
+## Configure the plugin in a Harbor job file
+
+Use the `plugins` field when you prefer to keep LangSmith settings in a Harbor job config:
+
+```yaml
+plugins:
+  - import_path: langsmith
+    kwargs:
+      dataset_name: harbor-swe-bench-smoke-test
+      experiment_name: harbor-agent-comparison
+      sync_dataset: true
+      fail_fast: false
+```
+
+The `kwargs` values map to the `LangSmithPlugin` constructor. Supported keys are `dataset_name`, `experiment_name`, `endpoint`, `api_key`, `workspace_id`, `sync_dataset`, and `fail_fast`.
+
+## Configure error handling and timeouts
+
+By default, errors that happen while logging trial events to LangSmith do not stop the Harbor job. Set `fail_fast` to stop the job when plugin logging fails:
+
+```bash
+export HARBOR_LANGSMITH_FAIL_FAST=true
+```
+
+The plugin uses a 120-second request timeout by default. Override it with:
+
+```bash
+export HARBOR_LANGSMITH_REQUEST_TIMEOUT=30
+```
+
+## View results in LangSmith
+
+Open the experiment in LangSmith after the Harbor job completes. Use the experiment view to:
+
+- Compare trial outputs, rewards, token totals, and cost across agents or models.
+- Open a trial trace and inspect Harbor phase child runs.
+- Filter runs using Harbor metadata such as `harbor_job_id`, `harbor_trial_name`, `harbor_task_name`, `harbor_agent`, and `harbor_model`.
+- Review verifier rewards as LangSmith feedback scores.
+
+For more details about LangSmith experiments, see [Analyze experiment results](/langsmith/analyze-an-experiment). For more details about Harbor plugin options, see the [`harbor-langsmith` package](https://github.com/harbor-framework/harbor/tree/main/packages/harbor-langsmith).
