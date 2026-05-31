@@ -587,6 +587,7 @@
                       "pages": [
                         "langsmith/evaluate-chatbot-tutorial",
                         "langsmith/evaluate-rag-tutorial",
+                        "langsmith/harbor-tutorial",
                         "langsmith/test-react-agent-pytest",
                         "langsmith/evaluate-complex-agent",
                         "langsmith/run-backtests-new-agent"

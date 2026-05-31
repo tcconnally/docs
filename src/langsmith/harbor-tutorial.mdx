@@ -1,0 +1,233 @@
+---
+title: Evaluate an agent with Harbor and LangSmith
+sidebarTitle: Evaluate with Harbor
+description: Build a Harbor task from scratch and use LangSmith to inspect the resulting agent evaluation.
+---
+
+Harbor is a framework for running agent and model evaluations in sandboxed environments. A Harbor evaluation runs an agent against one or more tasks, verifies the result, and records a score for each trial. LangSmith stores the resulting datasets, experiment runs, traces, metadata, and feedback so you can inspect and compare those trials over time.
+
+Use Harbor with LangSmith when you need to:
+
+- Evaluate coding agents or tool-using agents in an isolated environment.
+- Run the same task against multiple agents, models, or attempts.
+- Scale benchmark runs locally or through sandbox providers such as Daytona and Modal.
+- Inspect each trial in LangSmith with inputs, outputs, phase traces, rewards, token totals, and cost.
+
+In this tutorial, you create a small Harbor task from scratch, verify it with Harbor's Oracle agent, and send the results to LangSmith.
+
+## Prerequisites
+
+Before you begin, install and configure:
+
+- Python 3.12 or later.
+- Docker, for Harbor's default local execution environment.
+- A [LangSmith API key](/langsmith/create-account-api-key).
+- A model provider API key if you plan to run a non-Oracle agent.
+
+<Note>
+The `harbor-langsmith` plugin requires `harbor>=0.13.0`.
+</Note>
+
+## Install Harbor with LangSmith support
+
+Install Harbor with the LangSmith plugin extra:
+
+<CodeGroup>
+```bash uv
+uv tool install "harbor[langsmith]"
+```
+
+```bash pip
+pip install "harbor[langsmith]"
+```
+</CodeGroup>
+
+Check that Harbor is available:
+
+```bash
+harbor --help
+```
+
+You can also list registered benchmarks and datasets:
+
+```bash
+harbor datasets list
+```
+
+## Set LangSmith credentials
+
+Export your LangSmith API key:
+
+```bash
+export LANGSMITH_API_KEY="<your-langsmith-api-key>"
+```
+
+If you use self-hosted LangSmith or need to target a specific workspace, also set:
+
+```bash
+export LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+export LANGSMITH_WORKSPACE_ID="<workspace-id>"
+```
+
+## Create a Harbor task
+
+A Harbor task is a directory that contains:
+
+- `task.toml`, which defines task metadata, resource limits, and timeouts.
+- `instruction.md`, which tells the agent what to do.
+- `environment/Dockerfile`, which defines the sandbox image.
+- `tests/test.sh`, which writes a numeric reward to `/logs/verifier/reward.txt`.
+- `solution/solve.sh`, which the Oracle agent uses as a reference solution.
+
+Create a demo task directory:
+
+```bash
+mkdir -p harbor-langsmith-demo/environment harbor-langsmith-demo/tests harbor-langsmith-demo/solution
+```
+
+Create `task.toml`:
+
+```bash
+cat > harbor-langsmith-demo/task.toml <<'EOF'
+version = "1.0"
+
+[task]
+name = "local/harbor-langsmith-demo"
+authors = []
+keywords = ["harbor", "langsmith", "demo"]
+
+[metadata]
+difficulty = "easy"
+category = "programming"
+tags = ["tutorial"]
+
+[verifier]
+timeout_sec = 120.0
+
+[agent]
+timeout_sec = 120.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048
+storage_mb = 10240
+gpus = 0
+EOF
+```
+
+Create the agent instruction:
+
+```bash
+cat > harbor-langsmith-demo/instruction.md <<'EOF'
+Create a file at /app/hello.txt with the exact content:
+
+Hello, Harbor!
+EOF
+```
+
+Create the Docker environment:
+
+```bash
+cat > harbor-langsmith-demo/environment/Dockerfile <<'EOF'
+FROM ubuntu:24.04
+
+WORKDIR /app
+EOF
+```
+
+Create the verifier. Harbor runs this script after the agent finishes. The script writes `1` for success or `0` for failure:
+
+```bash
+cat > harbor-langsmith-demo/tests/test.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+
+if [ -f /app/hello.txt ] && [ "$(cat /app/hello.txt)" = "Hello, Harbor!" ]; then
+  echo 1 > /logs/verifier/reward.txt
+else
+  echo 0 > /logs/verifier/reward.txt
+fi
+EOF
+chmod +x harbor-langsmith-demo/tests/test.sh
+```
+
+Create the Oracle solution. The Oracle agent runs this script so you can confirm the task and verifier are correct before using a real agent:
+
+```bash
+cat > harbor-langsmith-demo/solution/solve.sh <<'EOF'
+#!/bin/bash
+set -euo pipefail
+
+printf 'Hello, Harbor!\n' > /app/hello.txt
+EOF
+chmod +x harbor-langsmith-demo/solution/solve.sh
+```
+
+## Verify the task with the Oracle agent
+
+Run the task with Harbor's Oracle agent and the LangSmith plugin:
+
+```bash
+harbor run \
+  --path harbor-langsmith-demo \
+  --agent oracle \
+  --plugin langsmith \
+  --plugin-kwarg dataset_name=harbor-langsmith-demo \
+  --plugin-kwarg experiment_name=harbor-oracle-smoke-test
+```
+
+The Oracle run should receive a reward of `1`. In LangSmith, the plugin creates or updates a dataset named `harbor-langsmith-demo` and creates an experiment named `harbor-oracle-smoke-test`.
+
+Each Harbor trial appears as a LangSmith run. The verifier reward is logged as feedback, and Harbor metadata such as the job ID, trial name, task name, agent, and model are attached to the run.
+
+## Run a real agent
+
+After the Oracle run passes, run the same task with an agent you want to evaluate. Set any model provider keys required by that agent, then replace the agent and model placeholders:
+
+```bash
+export ANTHROPIC_API_KEY="<your-anthropic-api-key>"
+
+harbor run \
+  --path harbor-langsmith-demo \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --plugin langsmith \
+  --plugin-kwarg dataset_name=harbor-langsmith-demo \
+  --plugin-kwarg experiment_name=harbor-agent-run
+```
+
+For example, use an installed coding agent such as `claude-code`, `codex`, `openhands`, or another Harbor-supported agent that is configured in your environment. The same LangSmith dataset lets you compare the Oracle baseline and real agent runs against the same task.
+
+## Scale beyond one task
+
+The same workflow applies to larger Harbor runs:
+
+- Use `--dataset "<dataset@version>"` to run a registered benchmark.
+- Use `--path "<path-to-local-dataset>"` to run a directory of local tasks.
+- Use `--n-concurrent <count>` to run multiple trials concurrently.
+- Use `--env daytona` or another supported environment provider to run in cloud sandboxes.
+
+For example, to run a registered dataset with LangSmith logging:
+
+```bash
+harbor run \
+  --dataset "<dataset@version>" \
+  --agent "<agent-name>" \
+  --model "<provider/model-name>" \
+  --n-concurrent 4 \
+  --plugin langsmith \
+  --plugin-kwarg experiment_name=harbor-benchmark-run
+```
+
+## Inspect the results in LangSmith
+
+Open the LangSmith experiment after the Harbor job completes. Use the experiment view to:
+
+- Compare rewards across agents, models, attempts, or datasets.
+- Open each run to inspect Harbor phase child runs for environment setup, agent execution, and verification.
+- Filter runs by metadata such as `harbor_task_name`, `harbor_agent`, `harbor_model`, and `harbor_job_id`.
+- Review verifier rewards as feedback scores.
+- Track token totals and cost when Harbor reports them.
+
+For plugin configuration options, see [Run Harbor evaluations with LangSmith](/langsmith/harbor). For experiment analysis workflows, see [Analyze experiment results](/langsmith/analyze-an-experiment).
