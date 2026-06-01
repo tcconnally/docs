@@ -39,8 +39,7 @@ The `interrupt_on` parameter accepts a dictionary mapping tool names to interrup
 
 - **`True`**: Enable interrupts with default behavior (approve, edit, reject, respond allowed)
 - **`False`**: Disable interrupts for this tool
-- **`{"allowed_decisions": [...]}`**: Custom configuration with specific allowed decisions
-- **`InterruptOnConfig(..., when=<predicate>)`**: Conditionally interrupt based on a per-call predicate (Python only)
+- **`InterruptOnConfig(...)`**: Fine-grained control over decisions and conditional interrupt logic
 
 :::python
 <HitlBasicConfigPy />
@@ -50,7 +49,11 @@ The `interrupt_on` parameter accepts a dictionary mapping tool names to interrup
 <HitlBasicConfigJs />
 :::
 
-## Decision types
+## `InterruptOnConfig`
+
+`InterruptOnConfig` gives you precise control over how interrupts behave for a specific tool. You can restrict which decisions a human can make, add a description to the approval prompt, and conditionally skip the interrupt entirely based on the tool call arguments.
+
+### `allowed_decisions`
 
 The `allowed_decisions` list controls what actions a human can take when reviewing a tool call:
 
@@ -58,8 +61,6 @@ The `allowed_decisions` list controls what actions a human can take when reviewi
 - **`"edit"`**: Modify the tool arguments before execution
 - **`"reject"`**: Skip executing this tool call entirely
 - **`"respond"`**: Return the human's message directly as the tool result, skipping execution — for "ask user" style tools
-
-You can customize which decisions are available for each tool:
 
 :::python
 ```python
@@ -91,9 +92,9 @@ const interruptOn = {
 ```
 :::
 
-## Conditional interrupts with `when`
+### `when` (Python only)
 
-The `when` parameter on `InterruptOnConfig` lets you add a per-call predicate that dynamically controls whether an interrupt fires for a given tool invocation. When `when` returns `False`, the tool call is auto-approved and execution continues without prompting a human. When it returns `True` (or when `when` is omitted), the normal interrupt behaviour applies.
+The `when` parameter accepts a predicate that dynamically controls whether an interrupt fires for a given tool invocation. When `when` returns `False`, the tool call is auto-approved and execution continues without prompting a human. When it returns `True` (or when `when` is omitted), the normal interrupt behaviour applies.
 
 This is useful when you want to interrupt only for high-risk invocations of a tool, rather than every call.
 
@@ -117,12 +118,6 @@ agent = create_deep_agent(
     },
     checkpointer=checkpointer,
 )
-```
-:::
-
-:::js
-```typescript
-// The `when` predicate is currently only supported in Python.
 ```
 :::
 
