@@ -1019,7 +1019,8 @@
               "pages": [
                 "langsmith/fleet/workspace-admin",
                 "langsmith/fleet/agent-identity",
-                "langsmith/fleet/manage-agent-settings"
+                "langsmith/fleet/manage-agent-settings",
+                "langsmith/fleet/computer-use"
               ]
             },
             {
