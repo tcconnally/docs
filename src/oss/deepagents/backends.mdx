@@ -158,6 +158,12 @@ Use with caution and only in appropriate environments.
 - You can optionally set `virtual_mode=True` to sandbox and normalize paths under `root_dir`.
 - Uses secure path resolution, prevents unsafe symlink traversal when possible, can use ripgrep for fast `grep`.
 
+:::python
+<Note>
+For direct backend callers, `FilesystemBackend.ls()` returns `entries=None` with an `error` when the path does not exist, is not a directory, or cannot be resolved. An empty directory returns `error=None` and `entries=[]`, so callers can distinguish failures from empty listings. The agent-facing `ls` tool handles these errors through `FilesystemMiddleware`.
+</Note>
+:::
+
 **Best for:**
 - Local projects on your machine
 - CI sandboxes
@@ -1007,7 +1013,7 @@ Backends must implement @[`BackendProtocol`].
 
 Required methods:
 - `ls(path: str) -> LsResult`
-  - Return entries with at least `path`. Include `is_dir`, `size`, `modified_at` when available. Sort by `path` for deterministic output.
+  - Return entries with at least `path`. Include `is_dir`, `size`, `modified_at` when available. Sort by `path` for deterministic output. On failure, return `LsResult(error=..., entries=None)`. Return `entries=[]` only when the directory exists and is empty.
 - `read(file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult`
   - Return file data on success. On missing file, return `ReadResult(error="Error: File '/x' not found")`.
 - `grep(pattern: str, path: Optional[str] = None, glob: Optional[str] = None) -> GrepResult`
