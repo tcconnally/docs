@@ -458,7 +458,7 @@ See also our comprehensive guide on [context engineering](/oss/langchain/context
 
 The **names** and **descriptions** associated with subagents are the primary way the main agent knows which subagents to invoke. These are prompting levers—choose them carefully.
 
-* **Name**: How the main agent refers to the sub-agent. Keep it clear and action-oriented (e.g., `research_agent`, `code_reviewer`).
+* **Name**: how the main agent refers to the sub-agent. Keep it clear and action-oriented (e.g., `research_agent`, `code_reviewer`).
 * **Description**: What the main agent knows about the sub-agent's capabilities. Be specific about what tasks it handles and when to use it.
 
 For the [single dispatch tool](#single-dispatch-tool) design, you must additionally provide the main agent with information about the subagents it can invoke.
