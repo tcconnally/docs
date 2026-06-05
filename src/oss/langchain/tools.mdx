@@ -1191,7 +1191,7 @@ There are two approaches depending on whether tools are known ahead of time:
     :::
 
     This approach is best when:
-    - Tools are discovered at runtime (e.g., from an MCP server)
+    - Tools are discovered at runtime (e.g., from an [MCP server](/oss/python/langchain/mcp))
     - Tools are generated dynamically based on user data or configuration
     - You're integrating with external tool registries
 
@@ -1207,6 +1207,14 @@ There are two approaches depending on whether tools are known ahead of time:
 LangChain provides a large collection of prebuilt tools and toolkits for common tasks like web search, code interpretation, database access, and more. These ready-to-use tools can be directly integrated into your agents without writing custom code.
 
 See the [tools and toolkits](/oss/integrations/tools) integration page for a complete list of available tools organized by category.
+
+## MCP tools
+
+LangChain supports the [Model Context Protocol (MCP)](https://modelcontextprotocol.io), an open standard for connecting agents to external tools and data sources. With MCP, you can load tools from any MCP-compatible server — including local processes, remote APIs, and third-party tool providers — without writing custom integration code.
+
+<Card title="Model Context Protocol (MCP)" icon="plug" href="/oss/python/langchain/mcp">
+  Connect your agents to MCP servers to access a broad ecosystem of tools. See the full guide for setup, configuration, and examples.
+</Card>
 
 ## Server-side tool use
 
