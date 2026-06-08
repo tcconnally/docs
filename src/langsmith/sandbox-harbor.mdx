@@ -1,0 +1,129 @@
+---
+title: Run Harbor on LangSmith sandboxes
+sidebarTitle: Harbor
+description: Run Harbor benchmark trials on LangSmith managed sandboxes.
+---
+
+[Harbor](https://github.com/harbor-framework/harbor) can run benchmark trials on LangSmith sandboxes through its `langsmith` environment provider. Use this when you want Harbor to keep its normal agent, dataset, and verifier workflow while LangSmith manages the isolated runtime for each trial.
+
+Harbor support for LangSmith uses the sandbox APIs. For general sandbox usage, see the [sandboxes overview](/langsmith/sandboxes), [snapshot docs](/langsmith/sandbox-snapshots), and [SDK docs](/langsmith/sandbox-sdk).
+
+## Install and authenticate
+
+Install Harbor with the LangSmith extra:
+
+```bash
+pip install "harbor[langsmith]"
+```
+
+Authenticate with the LangSmith SDK profile or API key that Harbor should use:
+
+```bash
+export LANGSMITH_PROFILE=prod
+# Or use an API key directly:
+export LANGSMITH_API_KEY="<your-api-key>"
+```
+
+## Run a Harbor benchmark
+
+Set the Harbor environment provider to `langsmith`:
+
+```bash
+harbor run -d "terminal-bench@2.0"   -m "<model>"   -a "<agent>"   -e langsmith   -n 10   --yes
+```
+
+The `-n` value controls Harbor trial concurrency. Higher values create more sandbox work in parallel, so reduce it if the workspace reaches sandbox quota limits.
+
+## Configure task environments
+
+Harbor maps task environment settings onto LangSmith sandbox resources.
+
+| Harbor field | LangSmith sandbox field |
+| --- | --- |
+| `[environment].docker_image` | Snapshot `docker_image` |
+| `[environment].cpus` | Box `vcpus` |
+| `[environment].memory_mb` | Box `mem_bytes` |
+| `[environment].storage_mb` | Snapshot and box `fs_capacity_bytes` |
+| `[environment].allow_internet = false` | Box `proxy_config.access_control.deny_list = ["*"]` |
+
+Use `environment.kwargs` to pass LangSmith-specific provider options. For example:
+
+```toml
+[environment]
+type = "langsmith"
+docker_image = "python:3.12-slim"
+cpus = 2
+memory_mb = 4096
+storage_mb = 16384
+
+[environment.kwargs]
+idle_ttl_seconds = 0
+delete_after_stop_seconds = 7200
+```
+
+Useful provider kwargs include:
+
+- `create_snapshot`: Create a derived snapshot if one does not already exist.
+- `delete_snapshot`: Delete a snapshot that Harbor created during cleanup.
+- `registry_id`: Pull the Docker image through a configured LangSmith registry credential.
+- `idle_ttl_seconds`: Stop idle sandboxes after the configured number of seconds. Set `0` only when another cleanup path is responsible for stopping the sandbox.
+- `delete_after_stop_seconds`: Delete stopped sandboxes after the configured number of seconds.
+- `workdir`: Set the default working directory for sandbox commands.
+- `request_timeout_seconds`, `poll_interval_seconds`, and `startup_timeout_seconds`: Tune API waits for slow image pulls or large snapshots.
+
+## Use existing snapshots
+
+By default, Harbor derives a snapshot name from the environment name and Docker image, creates that snapshot when it does not exist, waits for it to become ready, and reuses it on later runs.
+
+To run from a pre-created LangSmith snapshot, set `environment.kwargs.snapshot_name`:
+
+```toml
+[environment]
+type = "langsmith"
+
+[environment.kwargs]
+snapshot_name = "ubuntu-24-04"
+```
+
+Create reusable snapshots from the LangSmith UI, SDK, or CLI. For details, see [Sandbox snapshots](/langsmith/sandbox-snapshots).
+
+## Use Dockerfile and Docker Compose tasks
+
+Harbor tasks that provide an `environment/Dockerfile` can build that Dockerfile into a LangSmith snapshot.
+
+Multi-container tasks that include `environment/docker-compose.yaml` run inside a LangSmith sandbox with Docker Compose. Harbor treats the `main` service as the primary task container for command execution and file operations.
+
+For Compose tasks, keep secrets in Harbor or LangSmith configuration rather than in the compose file. Use `allow_internet = false` only when the task does not need package downloads or external services during setup.
+
+## Run Deep Agents with Harbor
+
+Deep Agents can run as a Harbor agent while LangSmith provides the sandbox environment. Install the Harbor integration from a checkout of `langchain-ai/deepagents`:
+
+```bash
+pip install "harbor[langsmith]"
+pip install -e libs/harbor
+```
+
+Then run Harbor with the Deep Agents wrapper:
+
+```bash
+export LANGSMITH_PROFILE=prod
+export LANGSMITH_TRACING_V2=true
+export LANGSMITH_PROJECT=harbor-deepagents
+export ANTHROPIC_API_KEY="<anthropic-api-key>"
+
+harbor run -d "terminal-bench@2.0"   --agent-import-path deepagents_harbor:DeepAgentsWrapper   -e langsmith   -n 10   -l 10   --yes   --ek idle_ttl_seconds=0   --ek delete_after_stop_seconds=7200
+```
+
+Keep API keys in your shell environment or LangSmith secret management, not in committed Harbor job configs.
+
+## Troubleshoot
+
+| Problem | Fix |
+| --- | --- |
+| Harbor cannot import the LangSmith provider | Install `harbor[langsmith]`. |
+| Authentication fails | Set `LANGSMITH_PROFILE`, `LANGSMITH_API_KEY`, or `LANGCHAIN_API_KEY`. |
+| Snapshot not found | Check that `environment.kwargs.snapshot_name` exactly matches a ready snapshot, or allow Harbor to create one from `[environment].docker_image`. |
+| Startup is slow | Large images and first-time snapshot builds can take several minutes. Increase `startup_timeout_seconds` for large images. |
+| No network inside the task | Check `[environment].allow_internet`. Harbor sets a deny-all proxy config when it is `false`. |
+| Workspace quota is reached | Delete stopped sandboxes or lower Harbor concurrency with `-n`. |
