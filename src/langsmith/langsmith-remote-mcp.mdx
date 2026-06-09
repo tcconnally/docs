@@ -7,7 +7,7 @@ import SaasRegionUrls from '/snippets/langsmith/saas-region-urls.mdx';
 
 The LangSmith Remote MCP is a [Model Context Protocol](https://modelcontextprotocol.io/introduction) (MCP) server hosted by LangSmith. It exposes the same tools as the [standalone LangSmith MCP Server](/langsmith/langsmith-mcp-server) (conversation history, prompts, runs and traces, datasets, experiments, billing) but with OAuth-based authentication, so MCP-compatible clients connect directly without an API key, a separate deployment, or any header configuration.
 
-The Remote MCP is available on all LangSmith Cloud regions and on [self-hosted LangSmith](/langsmith/self-hosted) deployments running v0.15 or later. Self-hosted deployments on earlier versions should continue to use the [standalone LangSmith MCP Server](/langsmith/langsmith-mcp-server).
+The Remote MCP is available on all LangSmith Cloud regions and on [self-hosted LangSmith](/langsmith/self-hosted) deployments running v0.16 or later (self-hosted additionally requires configuring a signing JWKS—see [Self-hosted LangSmith](#self-hosted-langsmith) below). Self-hosted deployments on earlier versions should continue to use the [standalone LangSmith MCP Server](/langsmith/langsmith-mcp-server).
 
 ## Endpoints
 
@@ -130,6 +130,36 @@ If a client loses its session (for example, after revoking access in your LangSm
 
 ## Self-hosted LangSmith
 
-[Self-hosted LangSmith](/langsmith/self-hosted) deployments on v0.15 or later expose the Remote MCP at `https://<your-langsmith-host>/api/mcp`. Configuration, authentication, and tool surface are identical to LangSmith Cloud.
+[Self-hosted LangSmith](/langsmith/self-hosted) deployments on v0.16 or later expose the Remote MCP at `https://<your-langsmith-host>/api/mcp`. Once enabled, authentication and the tool surface are identical to LangSmith Cloud.
+
+### Enabling it
+
+The Remote MCP and its OAuth Authorization Server are wired automatically when `config.hostname` is set, but they stay **inert (404)** until you provide a signing JWKS. This is the one piece of configuration LangSmith Cloud handles for you. To enable it:
+
+1. **Generate an Ed25519 (OKP) JWKS.** RSA keys are rejected. For example, with [`step`](https://smallstep.com/docs/step-cli/):
+
+   ```bash
+   step crypto jwk create /dev/null /tmp/jwk.json --kty OKP --crv Ed25519 --no-password --insecure -f
+   jq -c '{keys:[.]}' /tmp/jwk.json   # wrap the single key in a JWKS
+   ```
+
+2. **Provide it to the chart** as `config.signingJwks` (stored in the chart secret), or as the key `langsmith_signing_jwks` in your [existing secret](/langsmith/self-host-using-an-existing-secret):
+
+   ```yaml
+   config:
+     hostname: "your-langsmith-host"
+     signingJwks: |
+       {"keys":[ ... ]}
+   ```
+
+   <Warning>
+   Do not set `LANGSMITH_SIGNING_JWKS` directly via `commonEnv` or `extraEnv`—the chart already wires it from the secret, and a manual copy fails the install with a duplicate environment-variable error. Use `config.signingJwks` or `config.existingSecretName` instead.
+   </Warning>
+
+After upgrading, the OAuth discovery endpoints and `/api/mcp` become live. Verify with:
+
+```bash
+curl https://<your-langsmith-host>/api/.well-known/oauth-protected-resource/mcp
+```
 
 For deployments on earlier versions, run the [standalone LangSmith MCP Server](/langsmith/langsmith-mcp-server) in your own environment and point its `LANGSMITH_ENDPOINT` at your self-hosted instance.
