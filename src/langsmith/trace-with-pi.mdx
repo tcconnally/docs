@@ -1,0 +1,138 @@
+---
+title: Trace Pi Coding Agent sessions
+sidebarTitle: Pi Coding Agent
+description: Capture Pi Coding Agent turns, tool calls, token usage, and LLM invocations in LangSmith.
+---
+
+The [`@langchain/langsmith-pi-extension`](https://github.com/langchain-ai/langsmith-pi-extension) sends [Pi Coding Agent](https://pi.dev) traces to LangSmith. Use it to observe turns, debug tool calls, track token usage, and inspect individual LLM invocations from your Pi workflows.
+
+## Prerequisites
+
+Before setting up tracing, ensure you have:
+
+- [Pi](https://pi.dev) installed and configured.
+- A [LangSmith API key](/langsmith/create-account-api-key).
+
+## Install and enable the extension
+
+Install the extension through Pi:
+
+```bash
+pi install npm:@langchain/langsmith-pi-extension
+```
+
+Tracing is disabled by default. Set the following environment variables to enable tracing and connect to your LangSmith account:
+
+```bash
+export TRACE_TO_LANGSMITH=true
+export LANGSMITH_PI_API_KEY="<your-langsmith-api-key>"
+```
+
+Run Pi as usual. When a session starts, the extension reports whether LangSmith tracing is enabled. By default, traces are written to the `pi-coding-agent` LangSmith project. To check the current session state from Pi, run:
+
+```text
+/langsmith-tracing
+```
+
+## Configure tracing
+
+Configuration can come from environment variables or JSON config files. Values are merged in this order, with later sources taking precedence:
+
+1. Defaults
+2. `~/.pi/langsmith.json`
+3. `<current-working-directory>/.pi/langsmith.json`
+4. Environment variables
+
+### Environment variables
+
+The extension reads Pi-specific variables first, then falls back to the generic LangSmith SDK variables when available.
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `TRACE_TO_LANGSMITH` | Yes | `false` | Enables tracing when set to `true`, `1`, `yes`, or `on`. Disables tracing when set to `false`, `0`, `no`, or `off`. |
+| `LANGSMITH_PI_API_KEY` | Conditional | - | LangSmith API key. Falls back to `LANGSMITH_API_KEY`. Required unless every replica provides its own API key. |
+| `LANGSMITH_PI_ENDPOINT` | No | LangSmith SDK default | LangSmith API URL for self-hosted or custom deployments. Falls back to `LANGSMITH_ENDPOINT`. |
+| `LANGSMITH_PI_PROJECT` | No | `pi-coding-agent` | LangSmith project name. Falls back to `LANGSMITH_PROJECT`. |
+| `LANGSMITH_PI_METADATA` | No | - | JSON object merged into root run metadata. Falls back to `LANGSMITH_METADATA`. |
+| `LANGSMITH_PI_RUNS_ENDPOINTS` | No | - | JSON array of replica run destinations. Falls back to `LANGSMITH_RUNS_ENDPOINTS`. |
+
+For example:
+
+```bash
+export TRACE_TO_LANGSMITH=true
+export LANGSMITH_PI_API_KEY="<your-langsmith-api-key>"
+export LANGSMITH_PI_PROJECT="pi-coding-agent-dev"
+export LANGSMITH_PI_METADATA='{"team":"infra","environment":"local"}'
+```
+
+### Config files
+
+Use `~/.pi/langsmith.json` for global settings or `.pi/langsmith.json` in a project for local overrides.
+
+```json
+{
+  "enabled": true,
+  "api_key": "<your-langsmith-api-key>",
+  "api_url": "https://api.smith.langchain.com",
+  "project": "pi-coding-agent",
+  "metadata": {
+    "environment": "local"
+  }
+}
+```
+
+| Field | Required | Default | Description |
+| --- | --- | --- | --- |
+| `enabled` | Yes | `false` | Set to `true` to enable tracing from the config file. |
+| `api_key` | Conditional | - | LangSmith API key. Required unless provided by environment variable or replicas. |
+| `api_url` | No | LangSmith SDK default | LangSmith API URL, usually `https://api.smith.langchain.com`. |
+| `project` | No | `pi-coding-agent` | LangSmith project name. |
+| `metadata` | No | - | Object merged into root trace metadata. |
+| `replicas` | No | - | Additional LangSmith destinations to replicate traces to. |
+
+Keep config files that include API keys out of version control.
+
+## Trace to multiple destinations
+
+Set `replicas` in `langsmith.json` or `LANGSMITH_PI_RUNS_ENDPOINTS` to send the same trace data to additional LangSmith workspaces or projects.
+
+```json
+{
+  "enabled": true,
+  "api_key": "<your-langsmith-api-key>",
+  "project": "pi-coding-agent",
+  "replicas": [
+    {
+      "api_url": "https://replica-langsmith.example.com",
+      "api_key": "<your-replica-langsmith-api-key>",
+      "project": "pi-coding-agent-replica",
+      "updates": {
+        "metadata": {
+          "replica": true
+        }
+      }
+    }
+  ]
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `api_url` | LangSmith API URL for the replica destination. |
+| `api_key` | API key for the destination workspace. |
+| `project` | Project name in the destination workspace. |
+| `updates` | Optional run fields to override on replicated runs, such as extra metadata or tags. |
+
+## View traces in LangSmith
+
+Open the configured LangSmith project, `pi-coding-agent` by default, and inspect the captured runs. Each trace surfaces Pi turns, tool calls, token usage, and individual LLM invocations as child runs.
+
+## Troubleshooting
+
+If traces do not appear in LangSmith:
+
+- Confirm tracing is enabled with `TRACE_TO_LANGSMITH=true` or `"enabled": true` in config. Run `/langsmith-tracing` in Pi to check the current session state.
+- Confirm the LangSmith API key is set in the same shell, project config, or global config used by Pi.
+- Confirm the extension is installed with `pi install npm:@langchain/langsmith-pi-extension`.
+- Check the selected LangSmith project. If no project is configured, traces go to `pi-coding-agent`.
+- Restart Pi after changing `langsmith.json` or environment variables.
