@@ -82,7 +82,7 @@ make keyvault delete <key>     # soft-delete (recoverable 90 days)
 
 ## Add-ons
 
-Add-on passes (3 to 5) are controlled by flags in `infra/terraform.tfvars`. Set the flags, re-run `init-values && deploy`. `init-values.sh` copies the matching example file into `helm/values/` automatically.
+Add-on stages (3 to 5) are controlled by flags in `infra/terraform.tfvars`. Set the flags, re-run `init-values && deploy`. `init-values.sh` copies the matching example file into `helm/values/` automatically.
 
 ```hcl
 # infra/terraform.tfvars

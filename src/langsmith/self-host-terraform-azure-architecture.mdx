@@ -10,8 +10,7 @@ This page documents what the [Azure Terraform modules](https://github.com/langch
 
 LangSmith on Azure deploys in stages. Each stage adds a capability layer on top of the previous. All layers share the same AKS cluster and `langsmith` namespace.
 
-<img src="/images/self-hosted-terraform/azure-architecture.png" alt="LangSmith on Azure service layout" className="block dark:hidden" />
-<img src="/images/self-hosted-terraform/azure-architecture-light.png" alt="LangSmith on Azure service layout" className="hidden dark:block" />
+<img src="/images/self-hosted-terraform/azure-architecture.png" alt="LangSmith on Azure service layout" />
 
 | Stage | Layer | What it adds |
 |---|---|---|
@@ -70,7 +69,7 @@ AKS Cluster
 
 Azure Managed Services
 ├── Azure DB for PostgreSQL Flexible Server (private VNet)
-├── Azure Cache for Redis Premium (private VNet)
+├── Azure Managed Redis (private VNet)
 ├── Azure Blob Storage (Workload Identity — no static keys)
 └── Azure Key Vault
 ```
@@ -91,7 +90,7 @@ langsmith-vnet<identifier>
 langsmith-vnet<identifier>
 ├── subnet-0              (AKS nodes)
 ├── subnet-postgres       (Azure DB for PostgreSQL Flexible Server)
-└── subnet-redis          (Azure Cache for Redis Premium)
+└── subnet-redis          (Azure Managed Redis)
 ```
 
 All subnets are private. Postgres and Redis are accessible only from within the VNet via private DNS resolution. No public endpoints.
@@ -151,17 +150,17 @@ When `postgres_source = "external"` and `redis_source = "external"` (the recomme
 ### Azure DB for PostgreSQL Flexible Server
 
 - Holds orgs, users, projects, API keys, settings.
-- PostgreSQL ≥ 14 required (Azure Flexible Server defaults to 16).
-- Extensions enabled automatically by the `postgres` module: `btree_gin`, `btree_gist`, `pgcrypto`, `citext`, `ltree`, `pg_trgm`.
+- PostgreSQL ≥ 14 required. The `postgres` module sets `postgres_version` to `14` by default.
+- Extensions enabled automatically by the `postgres` module: `btree_gin`, `btree_gist`, `pgcrypto`, `citext`, `pg_trgm`.
 - Private VNet only (`subnet-postgres`), SSL port 5432.
 - Secret: `langsmith-postgres-secret`, created by the `k8s-bootstrap` Terraform module.
 
-### Azure Cache for Redis Premium
+### Azure Managed Redis
 
 - Trace ingestion queue, pub/sub, short-lived cache.
-- Redis ≥ 5 required (Premium tier defaults to Redis 6).
+- Redis ≥ 5 required.
 - Each LangSmith installation must use its own dedicated Redis. Shared instances cause deployment tasks to route incorrectly.
-- Private VNet only (`subnet-redis`), TLS port 6380.
+- Private VNet only (`subnet-redis`), TLS port 10000.
 - Secret: `langsmith-redis-secret`, created by the `k8s-bootstrap` Terraform module.
 
 ### Azure Blob Storage

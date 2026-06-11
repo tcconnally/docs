@@ -8,11 +8,11 @@ This page documents what the [GCP Terraform modules](https://github.com/langchai
 
 ## Platform layers
 
-LangSmith on GCP deploys in up to five passes. Each pass adds a capability layer on top of the previous. All layers share the same GKE cluster and `langsmith` namespace.
+LangSmith on GCP deploys in up to five stages. Each stage adds a capability layer on top of the previous. All layers share the same GKE cluster and `langsmith` namespace.
 
-<img src="/images/self-hosted-terraform/gcp-architecture.png" alt="LangSmith on GCP deployment passes and service layout" />
+<img src="/images/self-hosted-terraform/gcp-architecture.png" alt="LangSmith on GCP deployment stages and service layout" />
 
-| Pass | Layer | What it adds |
+| Stage | Layer | What it adds |
 |---|---|---|
 | 1 | GCP infrastructure | VPC, GKE, Cloud SQL, Memorystore, GCS, K8s bootstrap, cert-manager, KEDA, Envoy Gateway |
 | 2 | LangSmith base | frontend, backend, platform-backend, queue, ace-backend, clickhouse, playground |
@@ -130,27 +130,27 @@ When `postgres_source = "external"` and `redis_source = "external"` (the recomme
 - Default size `db-custom-2-8192` (2 vCPU, 8 GB), private IP, port 5432.
 - REGIONAL availability with automatic failover.
 - Holds orgs, users, projects, API keys, settings.
-- Terraform writes the connection URL directly to the `langsmith-postgres` Kubernetes Secret.
+- Terraform writes the connection URL directly to the `langsmith-postgres-credentials` Kubernetes Secret.
 
 ### Memorystore Redis
 
 - Default 5 GB, STANDARD_HA tier, private IP, port 6379.
 - Trace ingestion queue, pub/sub, short-lived cache.
 - No auth token required. Access is controlled by VPC private IP only.
-- Terraform writes the connection URL directly to the `langsmith-redis` Kubernetes Secret.
+- Terraform writes the connection URL directly to the `langsmith-redis-credentials` Kubernetes Secret.
 
 ### Cloud Storage bucket
 
 - Trace payloads: large inputs and outputs, attachments.
-- Accessed via the S3-compatible API (`apiURL: https://storage.googleapis.com`, `engine: S3`).
-- HMAC keys are required for the S3-compatible API even with Workload Identity. Create one under Cloud Storage → Settings → Interoperability and pass them to Helm via `config.blobStorage.accessKey` and `config.blobStorage.accessKeySecret`.
+- The shipped Helm values use native GCS mode (`engine: GCS`, `apiURL: https://storage.googleapis.com`), authenticated through Workload Identity with no HMAC keys.
+- An S3-compatible mode (`engine: S3`) is also supported, shown in `helm/values/examples/langsmith-values.yaml`. It requires HMAC keys: create one under Cloud Storage → Settings → Interoperability and pass them to Helm via `config.blobStorage.accessKey` and `config.blobStorage.accessKeySecret`.
 - Lifecycle rules: `ttl_s/` prefix (14 days default), `ttl_l/` prefix (400 days default).
 - Always required.
 
 ### Secret Manager (optional module)
 
 - Stores Postgres password and generated secrets (LangSmith secret key, JWT secret) when `enable_secret_manager_module = true`.
-- Core secrets (`langsmith-postgres`, `langsmith-redis`) are always stored in Kubernetes Secrets by `k8s-bootstrap` regardless of this module. Secret Manager provides an additional durable store for secrets that must survive cluster recreation.
+- Core secrets (`langsmith-postgres-credentials`, `langsmith-redis-credentials`) are always stored in Kubernetes Secrets by `k8s-bootstrap` regardless of this module. Secret Manager provides an additional durable store for secrets that must survive cluster recreation.
 
 ## Cluster infrastructure
 
@@ -159,7 +159,6 @@ When `postgres_source = "external"` and `redis_source = "external"` (the recomme
 | Envoy Gateway | `envoy-gateway-system` | `ingress` module (`install_ingress = true`, default) | All ingress |
 | KEDA | `keda` | `k8s-bootstrap` module when `enable_langsmith_deployment = true` | LangSmith Deployment add-on and later |
 | cert-manager | `cert-manager` | `k8s-bootstrap` module when `tls_certificate_source = "letsencrypt"` or `install_cert_manager = true` | Let's Encrypt TLS |
-| External Secrets Operator | `external-secrets` | `k8s-bootstrap` module | Custom secret workflows (optional) |
 
 <Note>
 The `Gateway` resource is managed by Terraform; the `HTTPRoute` is managed by Helm. Do not delete the Gateway resource manually. GCP releases the external IP when the Gateway is deleted, and a new IP is issued on recreate.
@@ -189,7 +188,7 @@ GKE pod
 
 The GSA is defined by the `iam` module and output as `workload_identity_annotation`. `init-values.sh` writes these annotations into `values-overrides.yaml` automatically.
 
-GCS access via the S3-compatible API requires HMAC keys in addition to Workload Identity. Create the HMAC key under Cloud Storage → Settings → Interoperability and pass it to Helm.
+In native GCS mode (the shipped default), the GSA bindings above are sufficient. The optional S3-compatible mode (`engine: S3`) additionally requires HMAC keys: create one under Cloud Storage → Settings → Interoperability and pass it to Helm.
 
 ## Network topology
 
@@ -244,10 +243,11 @@ terraform.tfvars → terraform apply → kubernetes_secret (postgres, redis)
 With Secret Manager:
 
 ```txt
-terraform.tfvars → terraform apply → Secret Manager secrets
-                                       → ESO (External Secrets Operator)
-                                         → kubernetes_secret (langsmith namespace)
+terraform.tfvars → terraform apply ─┬─→ kubernetes_secret (postgres, redis)
+                                    └─→ Secret Manager (durable copy, survives cluster recreation)
 ```
+
+Terraform writes the Kubernetes Secrets directly in both cases. Enabling Secret Manager adds a durable copy of the Postgres password outside the cluster. Nothing syncs Secret Manager back into the cluster, so no External Secrets Operator is installed on GCP (unlike the AWS modules, which use it to sync from SSM Parameter Store).
 
 ## Terraform module graph
 

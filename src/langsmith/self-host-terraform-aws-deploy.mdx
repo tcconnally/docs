@@ -87,16 +87,15 @@ Two non-AWS items must be ready before `terraform apply`:
 
 ### Cluster sizing reference
 
-The Terraform modules pick instance types and node counts based on `sizing_profile`. Plan capacity for the target tier before deploying.
+Capacity has two independent levers:
 
-| Profile | EKS nodes | RDS instance | ElastiCache | Use case |
-|---|---|---|---|---|
-| `dev` | 2 × `m5.xlarge` | `db.t4g.medium` | `cache.t4g.small` | Demos, CI, short-lived POCs |
-| `production` | 3 × `m5.2xlarge` (HPA on) | `db.m6g.large` | `cache.m6g.large` | Standard production |
-| `production-large` | 6 × `m5.4xlarge` (HPA on) | `db.m6g.2xlarge` | `cache.m6g.xlarge` | High-volume, multi-tenant |
+- **Infrastructure capacity** sets instance types and node counts directly through the infra variables `eks_managed_node_groups`, `postgres_instance_type`, and `redis_instance_type`. The module defaults are one `m5.4xlarge` node group (min 3, max 10), `db.t3.large` for RDS, and `cache.m6g.xlarge` for ElastiCache.
+- **`sizing_profile`** selects the Helm sizing overlay (pod resource requests and limits). `init-values.sh` and `deploy.sh` read it; Terraform does not.
+
+Size the infrastructure for your target tier before deploying. See [Scaling guidance](/langsmith/self-host-scale) for per-tier recommendations.
 
 <Note>
-For production and `production-large`, also plan to provision external [LangChain Managed ClickHouse](/langsmith/langsmith-managed-clickhouse) or a self-managed external ClickHouse cluster. In-cluster ClickHouse is supported for `dev` only.
+For production workloads, also plan to provision external [LangChain Managed ClickHouse](/langsmith/langsmith-managed-clickhouse) or a self-managed external ClickHouse cluster. In-cluster ClickHouse is supported for dev/POC only.
 </Note>
 
 ## Rapid path
@@ -193,7 +192,7 @@ name_prefix = "acme"
 environment = "prod"
 region      = "us-west-2"
 
-eks_cluster_version = "1.31"
+eks_cluster_version = "1.33"
 eks_managed_node_groups = {
   default = {
     name           = "node-group-default"

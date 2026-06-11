@@ -324,9 +324,9 @@ gcloud projects add-iam-policy-binding <project-id> \
   --role="roles/secretmanager.admin"
 ```
 
-### `langsmith-postgres` or `langsmith-redis` Secret missing
+### `langsmith-postgres-credentials` or `langsmith-redis-credentials` Secret missing
 
-**Symptom:** Pods crash with database connection errors immediately after deploy, or `kubectl get secrets -n langsmith` does not list `langsmith-postgres` / `langsmith-redis`.
+**Symptom:** Pods crash with database connection errors immediately after deploy, or `kubectl get secrets -n langsmith` does not list `langsmith-postgres-credentials` / `langsmith-redis-credentials`.
 
 **Cause:** The `k8s-bootstrap` module creates these Secrets. They are absent if `terraform apply` was not run, failed partway through, or the namespace was deleted out-of-band.
 
@@ -335,8 +335,8 @@ gcloud projects add-iam-policy-binding <project-id> \
 ```bash
 terraform -chdir=infra apply -target=module.k8s_bootstrap
 
-kubectl get secret langsmith-postgres -n langsmith
-kubectl get secret langsmith-redis -n langsmith
+kubectl get secret langsmith-postgres-credentials -n langsmith
+kubectl get secret langsmith-redis-credentials -n langsmith
 ```
 
 ## Diagnostic commands
@@ -413,10 +413,10 @@ gcloud iam service-accounts list --project <project-id> --filter="displayName:la
 
 ```bash
 kubectl get secrets -n langsmith
-kubectl get secret langsmith-postgres -n langsmith
-kubectl get secret langsmith-redis -n langsmith
+kubectl get secret langsmith-postgres-credentials -n langsmith
+kubectl get secret langsmith-redis-credentials -n langsmith
 
-kubectl get secret langsmith-postgres -n langsmith \
+kubectl get secret langsmith-postgres-credentials -n langsmith \
   -o jsonpath='{.data.connection_url}' | base64 --decode
 
 gcloud secrets list --project <project-id> --filter="name:langsmith"
@@ -436,6 +436,6 @@ echo "=== Nodes ===" && kubectl get nodes
 echo "=== Pods ===" && kubectl get pods -n langsmith
 echo "=== Certificate ===" && kubectl get certificate -n langsmith
 echo "=== Gateway ===" && kubectl get gateway -n langsmith
-echo "=== Secrets ===" && kubectl get secrets -n langsmith | grep -E "langsmith-postgres|langsmith-redis"
+echo "=== Secrets ===" && kubectl get secrets -n langsmith | grep -E "langsmith-postgres-credentials|langsmith-redis-credentials"
 echo "=== Helm ===" && helm status langsmith -n langsmith 2>/dev/null | grep -E "STATUS|LAST DEPLOYED"
 ```

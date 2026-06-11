@@ -72,7 +72,7 @@ az quota update \
 az vm list-usage --location eastus --query "[?contains(name.value,'DSv3')]" -o table
 ```
 
-**Alternative, switch VM family if DSv3 quota is exhausted:** Use `Standard_DS4_v2` (default) + `Standard_DS5_v2` (large). Same vCPU, slightly less RAM. Validated for the full LangSmith install plus all add-ons.
+**Alternative, switch VM family if DSv3 quota is exhausted:** Use `Standard_DS4_v2` (baseline) + `Standard_DS5_v2` (large). Same vCPU, slightly less RAM. Validated for the full LangSmith install plus all add-ons.
 
 <Note>
 `max_pods` is immutable on an existing node pool. Set it before the first `terraform apply`.
@@ -245,7 +245,7 @@ make deploy
 
 ### Helm install times out
 
-**Cause:** `langsmith-backend-auth-bootstrap` runs DB migrations on every `helm upgrade`; first install takes up to 5 minutes. Without `--timeout 15m`, Helm reports failure even though the install eventually succeeds.
+**Cause:** `langsmith-backend-auth-bootstrap` runs DB migrations on every `helm upgrade`; first install takes up to 5 minutes. Without `--timeout 20m`, Helm reports failure even though the install eventually succeeds.
 
 **Fix:** `make deploy` already uses `--timeout 20m`. Running Helm manually, always include `--timeout 20m`.
 

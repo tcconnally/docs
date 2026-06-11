@@ -13,12 +13,12 @@ LangSmith on AWS deploys in two stages with one optional add-on. The infrastruct
 <img src="/images/self-hosted-terraform/aws-architecture.png" alt="LangSmith on AWS service layout" />
 
 ```txt
-LangSmith Deployment add-on  (enable_langsmith_deployments = true)
+LangSmith Deployment add-on  (enable_deployments = true)
   host-backend, listener, operator
   Per deployed graph: api-server, queue, redis, postgres (operator-managed)
   Requires: KEDA (installed alongside infrastructure via k8s-bootstrap)
 
-LangSmith application  (deploy_langsmith = true)
+LangSmith application
   backend, frontend, playground, queue, ace-backend, clickhouse
   Storage: RDS PostgreSQL (metadata) + S3 (trace blobs via VPC endpoint)
   Ingress: AWS ALB | NGINX | Envoy Gateway | Istio
@@ -75,7 +75,7 @@ The Helm chart runs three jobs at install and upgrade time:
 
 ## LangSmith Deployment add-on
 
-When `enable_langsmith_deployments = true`, three additional services are installed and a `LangGraphPlatform` CRD is registered. Each deployment the user creates in the LangSmith UI produces a Kubernetes Deployment in the `langsmith` namespace, managed by the operator.
+When `enable_deployments = true`, three additional services are installed and a `LangGraphPlatform` CRD is registered. Each deployment the user creates in the LangSmith UI produces a Kubernetes Deployment in the `langsmith` namespace, managed by the operator.
 
 | Service | Purpose |
 |---|---|
