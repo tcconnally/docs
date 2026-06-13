@@ -1540,7 +1540,6 @@
                 "pages": [
                   "langsmith/caching",
                   "langsmith/custom-store",
-                  "langsmith/configure-checkpointer",
                   "langsmith/custom-checkpointer",
                   "langsmith/custom-lifespan",
                   "langsmith/custom-middleware",
@@ -1557,6 +1556,7 @@
                   "langsmith/langgraph-js-ts-sdk",
                   "langsmith/smith-deployments-sdk",
                   "langsmith/cli",
+                  "langsmith/configure-checkpointer",
                   "langsmith/remote-graph",
                   "langsmith/env-var",
                   {
