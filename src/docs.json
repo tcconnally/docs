@@ -161,7 +161,6 @@
         "description": "Get started with LangChain and LangSmith",
         "pages": [
           "index",
-          "langsmith/home",
           "agent-lifecycle"
         ]
       },
@@ -2516,7 +2515,11 @@
     },
     {
       "source": "/langsmith",
-      "destination": "/langsmith/home"
+      "destination": "/langsmith/observability"
+    },
+    {
+      "source": "/langsmith/home",
+      "destination": "/langsmith/observability"
     },
     {
       "source": "/js/langchain",
@@ -2560,7 +2563,7 @@
     },
     {
       "source": "/langsmith/reference-overview",
-      "destination": "/langsmith/home"
+      "destination": "/langsmith/observability"
     },
     {
       "source": "/langsmith/hosting",
