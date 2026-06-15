@@ -160,9 +160,7 @@
         "icon": "home",
         "description": "Get started with LangChain and LangSmith",
         "pages": [
-          "index",
-          "langsmith/home",
-          "agent-lifecycle"
+          "index"
         ]
       },
       {
@@ -1554,19 +1552,30 @@
                     "group": "Agent Server API",
                     "pages": [
                       "langsmith/server-api-ref"
-                    ]
+                    ],
+                    "openapi": {
+                      "source": "langsmith/agent-server-openapi.json",
+                      "directory": "langsmith/agent-server-api"
+                    }
                   },
                   {
                     "group": "Control Plane API",
                     "pages": [
                       "langsmith/api-ref-control-plane"
-                    ]
+                    ],
+                    "openapi": {
+                      "source": "https://api.host.langchain.com/openapi.json"
+                    }
                   },
                   {
                     "group": "Managed Deep Agents API",
                     "pages": [
                       "langsmith/managed-deep-agents-api-overview"
-                    ]
+                    ],
+                    "openapi": {
+                      "source": "langsmith/managed-deep-agents-openapi.json",
+                      "directory": "langsmith/managed-deep-agents-api"
+                    }
                   },
                   "langsmith/agent-server-changelog"
                 ]
@@ -2516,7 +2525,11 @@
     },
     {
       "source": "/langsmith",
-      "destination": "/langsmith/home"
+      "destination": "/langsmith/observability"
+    },
+    {
+      "source": "/langsmith/home",
+      "destination": "/langsmith/observability"
     },
     {
       "source": "/js/langchain",
@@ -2560,7 +2573,7 @@
     },
     {
       "source": "/langsmith/reference-overview",
-      "destination": "/langsmith/home"
+      "destination": "/langsmith/observability"
     },
     {
       "source": "/langsmith/hosting",
