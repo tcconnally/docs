@@ -566,6 +566,38 @@ ai_msg.usage_metadata
     Without `cache_control` on message content blocks, the provider will not cache the prompt and these fields will not appear.
 </Note>
 
+#### Caching tool definitions
+
+You can also place a `cache_control` breakpoint on a tool definition to cache large tool schemas. Pass a full OpenAI-format tool dict to `bind_tools` with a top-level `cache_control` key:
+
+```python
+model = ChatOpenRouter(model="anthropic/claude-sonnet-4.5")
+
+model_with_tools = model.bind_tools(
+    [
+        {
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get the current weather in a given location",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "location": {"type": "string"},
+                    },
+                    "required": ["location"],
+                },
+            },
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+)
+```
+
+<Note>
+    `cache_control` on tools is only preserved when the tool is passed as a dict. Tools supplied as Pydantic models, LangChain `BaseTool` objects, or plain functions cannot carry a `cache_control` breakpoint.
+</Note>
+
 When streaming, aggregate token usage from the final chunk:
 
 ```python
