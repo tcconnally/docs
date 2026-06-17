@@ -206,6 +206,12 @@ class State(TypedDict):
 ```
 
 Higher values of `snapshot_frequency` reduce storage overhead but increase read latency. Lower values bound latency more tightly at the cost of larger checkpoints. `None` (the default) skips snapshots entirely—appropriate when reads are rare or threads are short.
+
+#### Version compatibility and rollbacks
+
+<Warning>
+**Rolling back to a version without `DeltaChannel` support is not supported.** Once you upgrade to `langgraph>=1.2` and start writing delta channel checkpoints, you cannot downgrade to an earlier version of LangGraph for threads that have used `DeltaChannel`. The older version does not understand the delta checkpoint format and cannot reconstruct the channel state. If you need to roll back, you must migrate or discard affected threads before downgrading.
+</Warning>
 :::
 
 ## Examples
