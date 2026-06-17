@@ -956,7 +956,7 @@ agent = create_deep_agent(
         # Retry model calls on rate limits, timeouts, and 5xx errors
         ModelRetryMiddleware(max_retries=3, backoff_factor=2.0, initial_delay=1.0),
         # If the primary model is fully down, fall back to an alternative
-        ModelFallbackMiddleware("gpt-5.4"),
+        ModelFallbackMiddleware("gpt-5.5"),
         # Retry specific tools that hit external APIs (not all tools)
         ToolRetryMiddleware(
             max_retries=2,
@@ -983,7 +983,7 @@ const agent = createAgent({
     // Retry model calls on rate limits, timeouts, and 5xx errors
     modelRetryMiddleware({ maxRetries: 3, backoffFactor: 2.0, initialDelayMs: 1000 }),
     // If the primary model is fully down, fall back to an alternative
-    modelFallbackMiddleware("gpt-5.4"),
+    modelFallbackMiddleware("gpt-5.5"),
     // Retry specific tools that hit external APIs (not all tools)
     toolRetryMiddleware({
       maxRetries: 2,
@@ -1053,13 +1053,9 @@ function App() {
   const stream = useStream<typeof agent>({
     apiUrl: "https://your-deployment.langsmith.dev",
     assistantId: "agent",
-    reconnectOnMount: true,    // Resume stream after page refresh or navigation
-    fetchStateHistory: true,   // Load full thread history on mount
   });
 }
 ```
-
-`reconnectOnMount` picks up an in-progress run automatically. If a user refreshes while the agent is working, they'll see it continue rather than a blank screen. `fetchStateHistory` loads the full conversation history for the thread, so returning users see previous messages.
 
 For deep agent workflows that spawn many subagents, set a high `recursionLimit` when submitting to avoid cutting off long-running executions:
 
