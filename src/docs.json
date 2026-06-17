@@ -1423,6 +1423,18 @@
                   "langsmith/deploy-google-adk",
                   "langsmith/deploy-other-frameworks"
                 ]
+              },
+              {
+                "group": "Frameworks and platforms",
+                "pages": [
+                  "langsmith/deploy-frameworks-and-platforms",
+                  "langsmith/deploy-vite-langsmith",
+                  "langsmith/deploy-nextjs",
+                  "langsmith/deploy-sveltekit",
+                  "langsmith/deploy-nuxt",
+                  "langsmith/deploy-cloudflare-workers",
+                  "langsmith/deploy-deno"
+                ]
               }
             ]
           },
@@ -2751,6 +2763,10 @@
     {
       "source": "/langgraph-platform/index",
       "destination": "/langsmith/deployment"
+    },
+    {
+      "source": "/langsmith/deploy-javascript-frameworks",
+      "destination": "/langsmith/deploy-frameworks-and-platforms"
     },
     {
       "source": "/langsmith/deployments",
