@@ -243,12 +243,9 @@ const workflow = entrypoint(
   }
 );
 
-const stream = await workflow.stream("cats", {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await workflow.streamEvents("cats", { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
 }
 ```
 </CodeGroup>
@@ -383,12 +380,9 @@ const workflow = entrypoint(
 );
 
 // Invoke
-const stream = await workflow.stream("cats", {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await workflow.streamEvents("cats", { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
 }
 ```
 </CodeGroup>
@@ -599,12 +593,9 @@ const workflow = entrypoint(
 );
 
 // Invoke
-const stream = await workflow.stream("Write me a joke about cats", {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await workflow.streamEvents("Write me a joke about cats", { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
 }
 ```
 </CodeGroup>
@@ -702,12 +693,9 @@ const workflow = entrypoint(
 );
 
 // Invoke
-const stream = await workflow.stream("Create a report on LLM scaling laws", {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await workflow.streamEvents("Create a report on LLM scaling laws", { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
 }
 ```
 </CodeGroup>
@@ -956,12 +944,9 @@ const workflow = entrypoint(
 );
 
 // Invoke
-const stream = await workflow.stream("Cats", {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await workflow.streamEvents("Cats", { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
   console.log("\n");
 }
 ```
@@ -1151,12 +1136,9 @@ const messages = [{
   content: "Add 3 and 4."
 }];
 
-const stream = await agent.stream([messages], {
-  streamMode: "updates",
-});
-
-for await (const step of stream) {
-  console.log(step);
+const stream = await agent.streamEvents([messages], { version: "v3" });
+for await (const snapshot of stream.values) {
+  console.log(snapshot);
 }
 ```
 </CodeGroup>
