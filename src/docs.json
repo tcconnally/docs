@@ -374,7 +374,7 @@
                     ]
                   },
                   {
-                    "group": "Deploy with LangSmith",
+                    "group": "Production",
                     "pages": [
                       "oss/python/langchain/deploy",
                       "oss/python/langchain/observability"
@@ -843,7 +843,7 @@
                     ]
                   },
                   {
-                    "group": "Deploy with LangSmith",
+                    "group": "Production",
                     "pages": [
                       "oss/javascript/langchain/deploy",
                       "oss/javascript/langchain/observability"
