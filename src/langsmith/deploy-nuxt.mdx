@@ -150,8 +150,8 @@ This example also implements endpoints for the thread-history sidebar. Omit them
 flowchart TB
   subgraph browser["Browser (Vue)"]
     SP["StreamProvider"]
-    HAA["HttpAgentServerAdapter"]
-    SP --- HAA
+    Adapter["HttpAgentServerAdapter"]
+    SP --- Adapter
   end
 
   subgraph nitro["Nitro route handlers"]
@@ -168,9 +168,9 @@ flowchart TB
     AGT["createDeepAgent + checkpointer"]
   end
 
-  HAA -->|POST| CMD
-  HAA -->|POST| STR
-  HAA -->|GET / POST| STA
+  Adapter -->|POST| CMD
+  Adapter -->|POST| STR
+  Adapter -->|GET / POST| STA
   CMD --> SRV
   STR --> SRV
   STA --> SRV

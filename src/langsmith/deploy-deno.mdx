@@ -90,8 +90,8 @@ The app exposes the Agent Streaming Protocol under `/api/threads/...`. Route han
 flowchart TB
   subgraph browser["Browser (Vite React SPA)"]
     SP["StreamProvider"]
-    HAA["HttpAgentServerAdapter"]
-    SP --- HAA
+    Adapter["HttpAgentServerAdapter"]
+    SP --- Adapter
   end
 
   subgraph deno["Deno.serve + Hono"]
@@ -108,9 +108,9 @@ flowchart TB
     AGT["createDeepAgent + checkpointer"]
   end
 
-  HAA -->|POST| CMD
-  HAA -->|POST| STR
-  HAA -->|GET / POST| STA
+  Adapter -->|POST| CMD
+  Adapter -->|POST| STR
+  Adapter -->|GET / POST| STA
   CMD --> SRV
   STR --> SRV
   STA --> SRV

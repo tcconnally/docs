@@ -75,8 +75,8 @@ The app exposes the Agent Streaming Protocol under `/api/threads/...`. Routes ar
 flowchart TB
   subgraph browser["Browser (Vite + React)"]
     SP["StreamProvider"]
-    HAA["HttpAgentServerAdapter"]
-    SP --- HAA
+    Adapter["HttpAgentServerAdapter"]
+    SP --- Adapter
   end
 
   subgraph worker["Cloudflare Worker (Hono)"]
@@ -95,9 +95,9 @@ flowchart TB
     AGT["createDeepAgent + MemorySaver"]
   end
 
-  HAA -->|POST| CMD
-  HAA -->|POST| STR
-  HAA -->|GET / POST| STA
+  Adapter -->|POST| CMD
+  Adapter -->|POST| STR
+  Adapter -->|GET / POST| STA
   CMD --> RUN
   RUN --> AGT
   RUN -->|publish events| LOG
