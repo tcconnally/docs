@@ -4,9 +4,7 @@ sidebarTitle: SvelteKit
 description: Deploy a LangChain deep agent in a SvelteKit project on Cloudflare Workers with streaming chat and thread history.
 ---
 
-An example app that deploys a LangChain **deep agent** inside a [SvelteKit](https://svelte.dev/docs/kit/introduction) project, built for [Cloudflare Workers](https://svelte.dev/docs/kit/adapter-cloudflare) with `@sveltejs/adapter-cloudflare`.
-
-It mirrors the Next.js example: a streaming chat UI, subagent detail views, thread history, and the Agent Streaming Protocol exposed under `/api/threads/...`. No separate backend process is required.
+An example app that deploys a LangChain **deep agent** inside a [SvelteKit](https://svelte.dev/docs/kit/introduction) project, built for [Cloudflare Workers](https://svelte.dev/docs/kit/adapter-cloudflare) with [`@sveltejs/adapter-cloudflare`](https://www.npmjs.com/package/@sveltejs/adapter-cloudflare): streaming chat UI, subagent detail views, thread history, and the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) exposed under `/api/threads/...`. No separate backend process is required.
 
 Source: [`js-sveltekit`](https://github.com/langchain-ai/deployment-cookbook/tree/main/js-sveltekit) in the deployment cookbook.
 
@@ -84,13 +82,13 @@ The app exposes the Agent Streaming Protocol under `/api/threads/...`. SvelteKit
 
 ## Production persistence
 
-Out of the box, the agent uses an in-memory `MemorySaver` checkpointer (`src/lib/server/agent/index.ts`). The per-thread SSE replay/session log lives in a Durable Object (`src/lib/server/durable-objects/thread-session.ts`) so streaming clients reconnect to one coordination point instead of a process-local map.
+Out of the box, the agent uses an in-memory `MemorySaver` checkpointer (`src/lib/server/agent/index.ts`). The per-thread SSE replay/session log lives in a [Durable Object](https://developers.cloudflare.com/durable-objects/) so streaming clients reconnect to one coordination point instead of a process-local map.
 
 The checkpointer is still isolate-local demo state. Cloudflare isolates are ephemeral and may scale horizontally, so checkpointed conversation state is **not durable** across deploys, cold starts, or isolates.
 
 For production:
 
-1. Swap in a durable checkpointer (for example Postgres via Hyperdrive, or a custom Durable Object-backed store).
+1. Swap in a durable checkpointer (for example [Postgres via Hyperdrive](https://developers.cloudflare.com/hyperdrive/examples/connect-to-postgres/), or a [custom Durable Object-backed store](https://developers.cloudflare.com/agents/model-context-protocol/apis/client-api/#custom-storage-backend)).
 2. Persist long-lived replay/history if clients need to reconnect after the Durable Object has been evicted from memory.
 
 ## Local development

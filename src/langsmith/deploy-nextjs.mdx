@@ -4,7 +4,7 @@ sidebarTitle: Next.js
 description: Deploy a LangChain deep agent in a Next.js App Router project with streaming chat, subagents, and thread history.
 ---
 
-An example app that deploys a LangChain **deep agent** entirely inside a Next.js App Router project: streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Next.js Route Handlers (HTTP + SSE). No separate backend process.
+An example app that deploys a LangChain **deep agent** entirely inside a [Next.js App](https://nextjs.org/) Router project: streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Next.js Route Handlers (HTTP + SSE). No separate backend process.
 
 Source: [`js-next`](https://github.com/langchain-ai/deployment-cookbook/tree/main/js-next) in the deployment cookbook.
 
@@ -118,9 +118,9 @@ For production, swap in a [durable checkpointer](/oss/langgraph/checkpointers#ch
 
 | Package | Backend |
 | --- | --- |
-| `@langchain/langgraph-checkpoint-redis` | Redis (`RedisSaver`) |
-| `@langchain/langgraph-checkpoint-postgres` | Postgres (`PostgresSaver`) |
-| `@langchain/langgraph-checkpoint-sqlite` | SQLite (`SqliteSaver`) |
+| [`@langchain/langgraph-checkpoint-redis`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-redis) | Redis (`RedisSaver`) |
+| [`@langchain/langgraph-checkpoint-postgres`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-postgres) | Postgres (`PostgresSaver`) |
+| [`@langchain/langgraph-checkpoint-sqlite`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-sqlite) | SQLite (`SqliteSaver`) |
 
 Replace `MemorySaver` in `lib/agent/index.ts` and pass the new checkpointer to `createDeepAgent`. The route handlers and `lib/server/threads.ts` helpers stay the same.
 

@@ -6,8 +6,6 @@ description: Deploy a LangChain deep agent in a Nuxt 4 app with Nitro server rou
 
 An example app that deploys a LangChain **deep agent** inside a [Nuxt 4](https://nuxt.com) project: streaming chat UI, subagent detail views, thread history, and reasoning-token streaming, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Nitro route handlers (HTTP + SSE). No separate backend process.
 
-It is a Vue/Nuxt port of the streaming-cookbook `react-custom-backend` example: the same protocol, served from Nitro instead of a standalone Hono process, and consumed with [`@langchain/vue`](https://www.npmjs.com/package/@langchain/vue) composables instead of React hooks.
-
 Source: [`js-nuxt`](https://github.com/langchain-ai/deployment-cookbook/tree/main/js-nuxt) in the deployment cookbook.
 
 ## Deploy
@@ -211,9 +209,9 @@ For production, swap in a [durable checkpointer](/oss/langgraph/checkpointers#ch
 
 | Package | Backend |
 | --- | --- |
-| `@langchain/langgraph-checkpoint-redis` | Redis (`RedisSaver`) |
-| `@langchain/langgraph-checkpoint-postgres` | Postgres (`PostgresSaver`) |
-| `@langchain/langgraph-checkpoint-sqlite` | SQLite (`SqliteSaver`) |
+| [`@langchain/langgraph-checkpoint-redis`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-redis) | Redis (`RedisSaver`) |
+| [`@langchain/langgraph-checkpoint-postgres`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-postgres) | Postgres (`PostgresSaver`) |
+| [`@langchain/langgraph-checkpoint-sqlite`](https://www.npmjs.com/package/@langchain/langgraph-checkpoint-sqlite) | SQLite (`SqliteSaver`) |
 
 Replace `MemorySaver` in `server/agent/index.ts` and pass the new checkpointer to `createDeepAgent`. The Nitro route handlers and `server/utils/threads.ts` helpers stay the same.
 

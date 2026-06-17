@@ -44,9 +44,7 @@ pnpm run deploy
 
 Wrangler uploads the Vite build (SPA) and the Worker script in one deploy. `nodejs_compat` and `nodejs_compat_populate_process_env` are enabled so LangChain can read `OPENAI_API_KEY` from the environment.
 
-`wrangler.jsonc` registers the `ThreadSession` Durable Object with `new_sqlite_classes`, which is required on the Workers **Free** plan (error `10097` if you use the legacy `new_classes` migration instead).
-
-Optionally enable LangSmith tracing by adding the variables from [`.env.example`](https://github.com/langchain-ai/deployment-cookbook/blob/main/js-cloudflare/.env.example) as Worker secrets or vars.
+`wrangler.jsonc` registers the `ThreadSession` [Durable Object](https://developers.cloudflare.com/durable-objects/) with `new_sqlite_classes`, which is required on the Workers **Free** plan.
 
 ## Required API endpoints
 
