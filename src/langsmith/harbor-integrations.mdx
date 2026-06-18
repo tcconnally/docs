@@ -8,17 +8,70 @@ description: Run Deep Agents, sandboxes, and evaluations on LangSmith with Harbo
 
 LangSmith integrates with Harbor at three points:
 
+- **LangSmith evals**: record every Harbor job to LangSmith as an experiment with `--plugin langsmith`.
 - **Deep Agents**: run a LangGraph or Deep Agents application as the Harbor agent with `--agent langgraph`.
 - **Sandboxes**: run each Harbor trial on a LangSmith sandbox with `--env langsmith`.
-- **LangSmith evals**: record every Harbor job to LangSmith as an experiment with `--plugin langsmith`.
+
+## LangSmith evals
+
+The LangSmith plugin records every Harbor job to LangSmith, so you can view and compare results under Datasets & Experiments. The plugin is model and agent agnostic: it works with any Harbor agent, not only Deep Agents. The plugin ships in the `harbor-langsmith` package, which is included in the `langsmith` extra. Enable it with `--plugin langsmith`:
+
+```bash
+harbor run -d "terminal-bench@2.0" \
+  --agent <agent> \
+  --model <provider:model> \
+  --plugin langsmith
+```
+
+Pass the full import path instead of the short name if needed:
+
+```bash
+harbor run ... --plugin harbor_langsmith:LangSmithPlugin
+```
+
+The plugin requires `LANGSMITH_API_KEY`.
+
+Choose an agent that traces to LangSmith to capture full agent traces alongside the experiment. If the agent does not trace to LangSmith, the plugin still creates the dataset and the experiment with results and feedback, only without the agent trace.
+
+### What the plugin records
+
+As the job runs, the plugin writes to LangSmith over the API:
+
+- **Dataset**: it syncs a reference dataset from the job. The default name comes from the dataset or task, for example `terminal-bench@2.0`. Each task becomes an example whose inputs are the task name, the instruction, and the task ID.
+- **Experiment**: it creates one experiment per job, named `<name>-<job-id-prefix>`, linked to the reference dataset.
+- **Runs**: it creates a root run per trial with inputs for the task name, instruction, agent, and model, plus child runs for the environment, agent, and verification phases.
+- **Feedback**: it attaches one feedback score per verifier reward key, such as `reward`, and a `harbor_error` feedback when a trial raises an exception.
+- **Outputs**: each trial run records token counts under `tokens` (`input`, `cache`, `output`) and the run cost under `cost_usd`.
+
+### View results in LangSmith
+
+Open [Datasets & Experiments](/langsmith/manage-datasets) in LangSmith, select the dataset the plugin synced, such as `terminal-bench@2.0`, then open the Experiments tab. Each Harbor job appears as an experiment, and you can [compare experiments](/langsmith/analyze-an-experiment) by the `reward` and `harbor_error` feedback, the token counts and cost recorded on each run, and latency.
+
+### Configure the plugin inputs
+
+The plugin reads each input from a constructor keyword argument first, then falls back to an environment variable. Set the inputs with environment variables:
+
+- **`HARBOR_LANGSMITH_DATASET`**: the dataset name. Defaults to a name derived from the job.
+- **`HARBOR_LANGSMITH_EXPERIMENT`**: the experiment base name. Defaults to the job name.
+- **`LANGSMITH_ENDPOINT`**: the LangSmith API endpoint. Defaults to `https://api.smith.langchain.com`.
+- **`LANGSMITH_WORKSPACE_ID`**: the target workspace.
+- **`HARBOR_LANGSMITH_SYNC_DATASET=false`**: disables dataset and example syncing.
+- **`HARBOR_LANGSMITH_FAIL_FAST=true`**: raises on a LangSmith API error instead of continuing the job.
+
+Or set the same inputs as plugin kwargs with `--pk` on the command line, or under `kwargs:` in a job config file. The kwargs mirror the constructor options: `dataset_name`, `experiment_name`, `endpoint`, `api_key`, `workspace_id`, `sync_dataset`, and `fail_fast`.
 
 ## Deep Agents
 
 The `langgraph` agent runs a LangGraph application, such as a Deep Agent, as the Harbor agent. Select it with `--agent langgraph`. Harbor stages your project into the sandbox, installs its dependencies, and runs the graph inside the container for each trial.
 
-`harbor run` is an alias for `harbor job start`. It builds a job, spins up the environment, and runs the LangGraph agent:
+Set your LangSmith and model credentials, then run Harbor. `harbor run` is an alias for `harbor job start`, which builds a job, spins up the environment, and runs the LangGraph agent:
 
 ```bash
+export LANGSMITH_PROFILE=prod
+export LANGSMITH_TRACING_V2=true
+export LANGSMITH_PROJECT=harbor-deepagents
+export ANTHROPIC_API_KEY="<ANTHROPIC_API_KEY>"
+
 harbor run \
   -t hello-world/hello-world \
   --agent langgraph \
@@ -29,6 +82,10 @@ harbor run \
 
 ### Choose what to evaluate against
 
+A task is one directory with a fixed layout: `task.toml` for configuration, `instruction.md` for the prompt, `environment/` for the Dockerfile the sandbox is built from, and `tests/` for the verifier that writes the reward. A dataset is many such task directories.
+
+A task or dataset can be local or remote: point Harbor at your own folder of task directories, or pull one from Harbor's registry.
+
 Three inputs select the tasks a job runs against:
 
 - **`-t org/name[@ref]`**: a single task from the registry. Remote tasks are fetched with a registry lookup, then cloned at the pinned commit into `~/.cache/harbor/tasks`.
@@ -37,7 +94,28 @@ Three inputs select the tasks a job runs against:
 
 Filter the selected tasks with `-i` and `-x` (glob include and exclude) and cap the count with `-l`.
 
-A task is one directory with a fixed layout: `task.toml` for configuration, `instruction.md` for the prompt, `environment/` for the Dockerfile the sandbox is built from, and `tests/` for the verifier that writes the reward. A dataset is many such task directories.
+A task directory has this layout:
+
+```text
+hello-world/
+├── task.toml         # timeouts, CPU, and memory
+├── instruction.md    # the prompt given to the agent
+├── environment/
+│   └── Dockerfile    # image the sandbox is built from
+├── tests/
+│   ├── test.sh       # writes the reward to /logs/verifier/reward.txt
+│   └── test_state.py # the assertions
+└── solution/         # optional, used only by the oracle agent
+```
+
+A dataset is a directory of task directories:
+
+```text
+terminal-bench/
+├── hello-world/      # each subdirectory is a full task
+├── fix-bug/          # (task.toml + instruction.md + environment/ + tests/)
+└── parse-csv/
+```
 
 ### Configure the agent
 
@@ -61,23 +139,37 @@ The agent loads graphs from the `langgraph.json` file in `project_path`. The fil
   "dependencies": [
     "./.local_deps/deepagents",
     "./.local_deps/deepagents-code",
-    "langchain>=1.3.9,<2.0.0",
     "langchain-anthropic>=1.4.6,<1.5.0",
     "langchain-openai>=1.3.0,<1.4.0"
   ],
   "graphs": {
-    "deepagent": "./langgraph_agent.py:make_graph",
-    "bare_deepagent": "./langgraph_agent.py:make_bare_graph"
+    "deep_agent": "./agent.py:make_graph",
+    "research_agent": "./agent.py:make_research_graph"
   }
 }
 ```
 
-The Deep Agents project exposes two graphs, selected with `--ak graph`:
+The project exposes two graphs, selected with `--ak graph`. Both build a Deep Agent with `create_deep_agent` and differ only in their inputs:
 
-- **`deepagent`** resolves to `make_graph`, which builds the agent through the Deep Agents Code CLI harness.
-- **`bare_deepagent`** resolves to `make_bare_graph`, which builds the agent through the raw Deep Agents SDK.
+- **`deep_agent`** resolves to `make_graph`, a Deep Agent created with only the model.
+- **`research_agent`** resolves to `make_research_graph`, the same Deep Agent with a research system prompt.
 
-Both graphs read the model from `--model` through `init_chat_model()`, read `model_kwargs` from `--ak`, and default the working directory to `/app`. The system prompt and the sandbox settings are fixed in the project file rather than passed on the command line.
+Each graph passes the model from `--model` (read from `configurable.model`) to `create_deep_agent`, which resolves it with `init_chat_model()`:
+
+```python
+from deepagents import create_deep_agent
+
+
+def make_graph(config):
+    return create_deep_agent(model=config["configurable"]["model"])
+
+
+def make_research_graph(config):
+    return create_deep_agent(
+        model=config["configurable"]["model"],
+        system_prompt="You are a research assistant.",
+    )
+```
 
 ### Run the agent inside the sandbox
 
@@ -95,9 +187,7 @@ For more information on building Deep Agents, see the [Deep Agents documentation
 
 ## Sandboxes
 
-[Harbor](https://harborframework.com/docs) is a framework for evaluating and optimizing agents and language models in sandboxed environments, from the creators of [Terminal-Bench](https://www.tbench.ai). Harbor runs each trial in an isolated container, so you can parallelize evaluations and rollouts across many environments at once.
-
-The `langsmith` Harbor environment runs those trials on LangSmith sandboxes. Select it with `-e langsmith` to execute Harbor jobs on LangSmith infrastructure, alongside providers such as Daytona, Modal, and E2B.
+The `langsmith` Harbor environment runs each trial on a LangSmith sandbox. Select it with `-e langsmith` to execute Harbor jobs on LangSmith infrastructure, alongside providers such as Daytona, Modal, and E2B.
 
 ### Prerequisites
 
@@ -163,107 +253,12 @@ harbor run -d "<org/name>" \
 - `idle_ttl_seconds`: stops an idle sandbox after this many seconds. Set `0` to disable the idle timeout.
 - `delete_after_stop_seconds`: deletes a stopped sandbox after this many seconds.
 
-### Run Deep Agents on LangSmith
-
-Deep Agents runs against the LangSmith environment as a custom Harbor agent. To build and run a Deep Agent, see the [Deep Agents documentation](/oss/deepagents/overview). The Harbor wrapper ships in the [`deepagents-evals` package](https://github.com/langchain-ai/deepagents/tree/main/libs/evals), which exposes `deepagents_harbor:DeepAgentsWrapper` and includes ready-made `make run-terminal-bench-*` targets. Install it in the same environment as Harbor:
-
-```bash
-pip install "harbor[langsmith]"
-
-# From a checkout of langchain-ai/deepagents:
-pip install -e libs/evals
-```
-
-Set your LangSmith and model credentials, then run Harbor with the wrapper:
-
-```bash
-export LANGSMITH_PROFILE=prod
-export LANGSMITH_TRACING_V2=true
-export LANGSMITH_PROJECT=harbor-deepagents
-export ANTHROPIC_API_KEY="<ANTHROPIC_API_KEY>"
-
-harbor run -d "terminal-bench@2.0" \
-  --agent-import-path deepagents_harbor:DeepAgentsWrapper \
-  --model anthropic:claude-opus-4-8 \
-  -e langsmith \
-  -n 10 \
-  -l 10 \
-  --yes \
-  --ek idle_ttl_seconds=0 \
-  --ek delete_after_stop_seconds=7200
-```
-
-Keep API keys in your shell environment rather than in a job config file.
-
-### Use a config file
-
-Capture the same run in a Harbor job config:
-
-```yaml
-jobs_dir: jobs/deepagents-langsmith
-n_attempts: 1
-n_concurrent_trials: 10
-environment:
-  type: langsmith
-  delete: true
-  kwargs:
-    idle_ttl_seconds: 0
-    delete_after_stop_seconds: 7200
-agents:
-  - import_path: deepagents_harbor:DeepAgentsWrapper
-    model_name: anthropic:claude-opus-4-8
-datasets:
-  - name: terminal-bench
-    version: "2.0"
-    n_tasks: 10
-```
-
 ### Multi-container tasks
 
-The LangSmith environment supports multi-container tasks. Include an `environment/docker-compose.yaml` file in your task definition to run several containers per trial. See the [Harbor sandbox documentation](https://harborframework.com/docs/run-jobs/cloud-sandboxes) for details.
+By default, a task runs in a single container built from its `environment/Dockerfile`, and the agent and verifier run inside that one container. A multi-container task instead runs several containers at once for the same trial.
 
-## LangSmith evals
+This is per trial, not per task: a trial is one agent attempt on one task, and "multi-container" describes the environment that trial runs in, not splitting the task across machines. Use it when a task needs more than the agent's own container, for example a database, a web server, or a second host the agent talks to.
 
-The LangSmith plugin records every Harbor job to LangSmith, so you can view and compare results under Datasets & Experiments. The plugin ships in the `harbor-langsmith` package, which is included in the `langsmith` extra. Enable it with `--plugin langsmith`:
+To define one, include an `environment/docker-compose.yaml` file in the task that declares each container as a Compose service. The agent and verifier run in the service named `main`, and the other services are auxiliary. All services share one Compose network, so the agent reaches the others by their service names, for example a `db` service at the hostname `db`.
 
-```bash
-harbor run -d "terminal-bench@2.0" \
-  --agent langgraph \
-  --model anthropic:claude-opus-4-8 \
-  --plugin langsmith
-```
-
-Pass the full import path instead of the short name if needed:
-
-```bash
-harbor run ... --plugin harbor_langsmith:LangSmithPlugin
-```
-
-The plugin requires `LANGSMITH_API_KEY`.
-
-### What the plugin records
-
-As the job runs, the plugin writes to LangSmith over the API:
-
-- **Dataset**: it syncs a reference dataset from the job. The default name comes from the dataset or task, for example `terminal-bench@2.0`. Each task becomes an example whose inputs are the task name, the instruction, and the task ID.
-- **Experiment**: it creates one experiment per job, named `<name>-<job-id-prefix>`, linked to the reference dataset.
-- **Runs**: it creates a root run per trial with inputs for the task name, instruction, agent, and model, plus child runs for the environment, agent, and verification phases.
-- **Feedback**: it attaches one feedback score per verifier reward key, such as `reward`, and a `harbor_error` feedback when a trial raises an exception.
-- **Outputs**: each trial run records token counts under `tokens` (`input`, `cache`, `output`) and the run cost under `cost_usd`.
-
-### View results in LangSmith
-
-Open [Datasets & Experiments](/langsmith/manage-datasets) in LangSmith, select the dataset the plugin synced, such as `terminal-bench@2.0`, then open the Experiments tab. Each Harbor job appears as an experiment, and you can [compare experiments](/langsmith/analyze-an-experiment) by the `reward` and `harbor_error` feedback, the token counts and cost recorded on each run, and latency.
-
-### Configure the plugin inputs
-
-The plugin reads each input from a constructor keyword argument first, then falls back to an environment variable. Set the inputs with environment variables:
-
-- **`HARBOR_LANGSMITH_DATASET`**: the dataset name. Defaults to a name derived from the job.
-- **`HARBOR_LANGSMITH_EXPERIMENT`**: the experiment base name. Defaults to the job name.
-- **`LANGSMITH_ENDPOINT`**: the LangSmith API endpoint. Defaults to `https://api.smith.langchain.com`.
-- **`LANGSMITH_WORKSPACE_ID`**: the target workspace.
-- **`HARBOR_LANGSMITH_SYNC_DATASET=false`**: disables dataset and example syncing.
-- **`HARBOR_LANGSMITH_FAIL_FAST=true`**: raises on a LangSmith API error instead of continuing the job.
-
-Or set the same inputs as plugin kwargs with `--pk` on the command line, or under `kwargs:` in a job config file. The kwargs mirror the constructor options: `dataset_name`, `experiment_name`, `endpoint`, `api_key`, `workspace_id`, `sync_dataset`, and `fail_fast`.
+For each trial, Harbor brings up the whole Compose stack, runs the agent in `main`, runs the verifier, then tears every container down together. See the [Harbor sandbox documentation](https://harborframework.com/docs/run-jobs/cloud-sandboxes) for details.
