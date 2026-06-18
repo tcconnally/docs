@@ -174,482 +174,152 @@
               "name": "brand-python",
               "style": "regular"
             },
-            {
-              "tab": "Observability",
-              "pages": [
-                "langsmith/observability",
-                "langsmith/observability-quickstart",
-                "langsmith/observability-concepts",
-                "langsmith/observability-llm-tutorial",
-                "langsmith/engine",
-                {
-                  "group": "Tracing setup",
-                  "pages": [
-                    {
-                      "group": "Integrations",
-                      "icon": "plug",
-                      "pages": [
-                        "langsmith/integrations",
-                        {
-                          "group": "LLM providers",
-                          "pages": [
-                            "langsmith/trace-anthropic",
-                            "langsmith/trace-bedrock",
-                            "langsmith/trace-deepseek",
-                            "langsmith/trace-with-google-gemini",
-                            "langsmith/trace-litellm",
-                            "langsmith/trace-with-mistral",
-                            "langsmith/trace-openai",
-                            "langsmith/trace-with-openai-compatible"
-                          ]
-                        },
-                        {
-                          "group": "Agent frameworks",
-                          "pages": [
-                            "langsmith/trace-with-autogen",
-                            "langsmith/trace-claude-agent-sdk",
-                            "langsmith/trace-with-crewai",
-                            "langsmith/trace-deep-agents",
-                            "langsmith/trace-with-google-adk",
-                            "langsmith/trace-with-langchain",
-                            "langsmith/trace-with-langgraph",
-                            "langsmith/trace-with-mastra",
-                            "langsmith/trace-with-microsoft-agent-framework",
-                            "langsmith/trace-with-openai-agents-sdk",
-                            "langsmith/trace-with-opentelemetry",
-                            "langsmith/trace-with-pydantic-ai",
-                            "langsmith/trace-with-semantic-kernel",
-                            "langsmith/trace-with-strands-agents",
-                            "langsmith/trace-with-vercel-ai-sdk"
-                          ]
-                        },
-                        {
-                          "group": "Voice AI frameworks",
-                          "pages": [
-                            "langsmith/trace-with-livekit",
-                            "langsmith/trace-with-pipecat"
-                          ]
-                        },
-                        {
-                          "group": "Developer tools",
-                          "pages": [
-                            "langsmith/trace-claude-code",
-                            "langsmith/trace-with-codex",
-                            "langsmith/trace-with-opencode",
-                            "langsmith/trace-with-instructor",
-                            "langsmith/trace-with-n8n",
-                            "langsmith/trace-with-temporal",
-                            "langsmith/trace-with-vscode-copilot"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "group": "Manual instrumentation",
-                      "pages": [
-                        "langsmith/annotate-code",
-                        "langsmith/trace-with-api",
-                        "langsmith/log-llm-trace",
-                        "langsmith/log-retriever-trace",
-                        "langsmith/ls-metadata-parameters",
-                        "langsmith/upload-files-with-traces"
-                      ]
-                    },
-                    {
-                      "group": "Messages view",
-                      "pages": [
-                        "langsmith/messages-view-integrations",
-                        "langsmith/messages-view-trace-format"
-                      ]
-                    },
-                    "langsmith/threads"
-                  ]
-                },
-                {
-                  "group":"Configuration & troubleshooting",
-                  "pages": [
-                    {
-                      "group": "Project & environment settings",
-                      "pages": [
-                        "langsmith/log-traces-to-project",
-                        "langsmith/trace-without-env-vars",
-                        "langsmith/conditional-tracing",
-                        "langsmith/sample-traces"
-                      ]
-                    },
-                    "langsmith/cost-tracking",
-                    {
-                      "group": "Advanced tracing techniques",
-                      "pages": [
-                        "langsmith/distributed-tracing",
-                        "langsmith/access-current-span",
-                        "langsmith/serverless-environments",
-                        "langsmith/log-multimodal-traces",
-                        "langsmith/trace-generator-functions"
-                      ]
-                    },
-                    {
-                      "group": "Data & privacy",
-                      "pages": [
-                        "langsmith/add-metadata-tags",
-                        "langsmith/mask-inputs-outputs",
-                        "langsmith/otel-gateway-trace-redaction"
-                      ]
-                    },
-                    {
-                      "group": "Troubleshooting guides",
-                      "pages": [
-                        "langsmith/nest-traces",
-                        "langsmith/troubleshooting-variable-caching"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Viewing & managing traces",
-                  "pages": [
-                    "langsmith/view-traces",
-                    "langsmith/filter-traces-in-application",
-                    "langsmith/configure-input-output-preview",
-                    "langsmith/manage-trace",
-                    "langsmith/export-traces",
-                    "langsmith/query-threads",
-                    "langsmith/langsmith-remote-mcp",
-                    "langsmith/langsmith-mcp-server",
-                    {
-                      "group": "Bulk export trace data",
-                      "pages": [
-                        "langsmith/data-export",
-                        "langsmith/data-export-destinations",
-                        "langsmith/data-export-monitor",
-                        "langsmith/data-export-downstream",
-                        "langsmith/big-query-bulk-export"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Automations",
-                  "pages": [
-                    "langsmith/rules",
-                    "langsmith/webhooks",
-                    "langsmith/engine-webhooks"
-                  ]
-                },
-                {
-                  "group": "Feedback & evaluation",
-                  "pages": [
-                    "langsmith/evaluators",
-                    "langsmith/attach-user-feedback",
-                    "langsmith/presigned-feedback-tokens",
-                    {
-                      "group": "Set up online evaluators",
-                      "pages": [
-                        "langsmith/online-evaluations-llm-as-judge",
-                        "langsmith/online-evaluations-multi-turn",
-                        "langsmith/online-evaluations-code",
-                        "langsmith/online-evaluations-composite"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Monitoring & alerting",
-                  "pages": [
-                    "langsmith/dashboards",
-                    "langsmith/alerts",
-                    "langsmith/insights"
-                  ]
-                },
-                {
-                  "group": "Data type reference",
-                  "pages": [
-                    "langsmith/run-data-format",
-                    "langsmith/feedback-data-format",
-                    "langsmith/trace-query-syntax"
-                  ]
-                }
-              ]
-            },
-            {
-              "tab": "Evaluation",
-              "pages": [
-                "langsmith/evaluation",
-                "langsmith/evaluation-quickstart",
-                "langsmith/evaluation-concepts",
-                "langsmith/evaluation-approaches",
-                "langsmith/polly-evaluation",
-                {
-                  "group": "Datasets",
-                  "pages": [
-                    {
-                      "group": "Create a dataset",
-                      "pages": [
-                        "langsmith/manage-datasets-in-application",
-                        "langsmith/manage-datasets-programmatically"
-                      ]
-                    },
-                    "langsmith/manage-datasets",
-                    "langsmith/custom-output-rendering"
-                  ]
-                },
-                {
-                  "group": "Set up evaluations",
-                  "pages": [
-                    {
-                      "group": "Run an evaluation",
-                      "pages": [
-                        "langsmith/evaluate-llm-application",
-                        "langsmith/evaluate-with-opentelemetry",
-                        "langsmith/run-evaluation-from-playground",
-                        "langsmith/run-evals-api-only"
-                      ]
-                    },
-                    {
-                      "group": "Evaluation types",
-                      "pages": [
-                        "langsmith/evaluation-types",
-                        {
-                          "group": "UI",
-                          "pages": [
-                            "langsmith/llm-as-judge",
-                            "langsmith/code-evaluator-ui",
-                            "langsmith/composite-evaluators-ui"
-                          ]
-                        },
-                        {
-                          "group": "SDK",
-                          "pages": [
-                            "langsmith/llm-as-judge-sdk",
-                            "langsmith/code-evaluator-sdk",
-                            "langsmith/composite-evaluators-sdk",
-                            "langsmith/summary",
-                            "langsmith/evaluate-pairwise"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "group": "Frameworks & integrations",
-                      "pages": [
-                        "langsmith/openevals",
-                        "langsmith/pytest",
-                        "langsmith/vitest-jest"
-                      ]
-                    },
-                    {
-                      "group": "Evaluation techniques",
-                      "pages": [
-                        {
-                          "group": "Define evaluation target",
-                          "pages": [
-                            "langsmith/define-target-function",
-                            "langsmith/evaluate-on-intermediate-steps",
-                            "langsmith/langchain-runnable",
-                            "langsmith/evaluate-graph",
-                            "langsmith/multi-turn-simulation",
-                            "langsmith/trajectory-evals"
-                          ]
-                        },
-                        {
-                          "group": "Scoring methods",
-                          "pages": [
-                            "langsmith/multiple-scores",
-                            "langsmith/metric-type"
-                          ]
-                        },
-                        {
-                          "group": "Experiment configuration",
-                          "pages": [
-                            "langsmith/experiment-configuration",
-                            "langsmith/evaluation-async",
-                            "langsmith/repetition",
-                            "langsmith/rate-limiting",
-                            "langsmith/bind-evaluator-to-dataset",
-                            "langsmith/evaluate-existing-experiment",
-                            "langsmith/local",
-                            "langsmith/read-local-experiment-results",
-                            "langsmith/evaluate-with-retry"
-                          ]
-                        },
-                        {
-                          "group": "Multimodal evaluations",
-                          "pages": [
-                            "langsmith/evaluate-with-attachments"
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "group": "Improve evaluators",
-                      "pages": [
-                        "langsmith/improve-judge-evaluator-feedback",
-                        "langsmith/create-few-shot-evaluators"
-                      ]
-                    },
-                    {
-                      "group": "Tutorials",
-                      "pages": [
-                        "langsmith/evaluate-chatbot-tutorial",
-                        "langsmith/evaluate-rag-tutorial",
-                        "langsmith/test-react-agent-pytest",
-                        "langsmith/evaluate-complex-agent",
-                        "langsmith/run-backtests-new-agent"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Analyze experiment results",
-                  "pages": [
-                    "langsmith/analyze-an-experiment",
-                    "langsmith/compare-experiment-results",
-                    "langsmith/filter-experiments-ui",
-                    "langsmith/fetch-perf-metrics-experiment",
-                    "langsmith/upload-existing-experiments"
-                  ]
-                },
-                {
-                  "group": "Annotation & human feedback",
-                  "pages": [
-                    "langsmith/annotation-queues",
-                    "langsmith/annotation-queues-sdk",
-                    "langsmith/assertions",
-                    "langsmith/set-up-feedback-criteria",
-                    "langsmith/annotate-traces-inline",
-                    "langsmith/audit-evaluator-scores"
-                  ]
-                },
-                {
-                  "group": "Common data types",
-                  "pages": [
-                    "langsmith/example-data-format",
-                    "langsmith/dataset-json-types",
-                    "langsmith/dataset-transformations"
-                  ]
-                }
-              ]
-            },
-            {
-              "tab": "Prompt engineering",
-              "pages": [
-                "langsmith/prompt-engineering",
-                "langsmith/prompt-engineering-quickstart",
-                "langsmith/prompt-engineering-concepts",
-                "langsmith/polly-prompt-engineering",
-                "langsmith/playground-model-providers",
-                {
-                  "group": "Create and update prompts",
-                  "pages": [
-                    "langsmith/create-a-prompt",
-                    "langsmith/manage-prompts",
-                    "langsmith/manage-prompts-programmatically",
-                    "langsmith/prompt-template-format",
-                    "langsmith/managing-model-configurations",
-                    "langsmith/use-tools",
-                    "langsmith/multimodal-content",
-                    "langsmith/write-prompt-with-ai",
-                    {
-                      "group": "Connect to models",
-                      "pages": [
-                        "langsmith/custom-openai-compliant-model",
-                        "langsmith/custom-endpoint"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Context engineering",
-                  "pages": [
-                    "langsmith/use-the-context-hub",
-                    "langsmith/manage-contexts-sdk",
-                    "langsmith/context-engineering-concepts"
-                  ]
-                },
-                {
-                  "group": "Tutorials",
-                  "pages": [
-                    "langsmith/optimize-classifier",
-                    "langsmith/prompt-commit",
-                    "langsmith/multiple-messages"
-                  ]
-                }
-              ]
-            },
-            {
-              "tab": "Agent deployment",
-              "pages": [
-                "langsmith/deployment",
-                "langsmith/deployment-quickstart-da",
-                "langsmith/deployment-quickstart",
-                "langsmith/local-dev-testing",
-                {
-                  "group": "Agent server",
-                  "pages": [
-                    "langsmith/agent-server",
-                    {
-                      "group": "Assistants",
-                      "pages": [
-                        "langsmith/assistants",
-                        "langsmith/configuration-cloud"
-                      ]
-                    },
-                    "langsmith/use-threads",
-                    {
-                      "group": "Runs",
-                      "pages": [
-                        "langsmith/runs",
-                        "langsmith/background-run",
-                        "langsmith/same-thread",
-                        "langsmith/stateless-runs",
-                        "langsmith/cancel-run"
-                      ]
-                    },
-                    "langsmith/cron-jobs",
-                    {
-                      "group": "Tutorials",
-                      "pages": [
-                        "langsmith/agent-server-feedback",
-                        "langsmith/deploy-other-frameworks",
-                        "langsmith/generative-ui-react"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Core capabilities",
-                  "pages": [
-                    "langsmith/core-capabilities",
-                    "langsmith/streaming",
-                    "langsmith/add-human-in-the-loop",
-                    "langsmith/human-in-the-loop-time-travel",
-                    "langsmith/server-mcp",
-                    "langsmith/server-a2a",
-                    "langsmith/agent-server-distributed-tracing",
-                    "langsmith/use-webhooks",
-                    {
-                      "group": "Double-texting",
-                      "pages": [
-                        "langsmith/double-texting",
-                        "langsmith/interrupt-concurrent",
-                        "langsmith/rollback-concurrent",
-                        "langsmith/reject-concurrent",
-                        "langsmith/enqueue-concurrent"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "group": "Develop agents",
-                  "pages": [
-                    "langsmith/application-structure",
-                    {
-                      "group": "Setup",
-                      "pages": [
-                        "langsmith/setup-app-requirements-txt",
-                        "langsmith/setup-pyproject",
-                        "langsmith/setup-javascript",
-                        "langsmith/monorepo-support"
+            "tabs": [
+              {
+                "tab": "Overview",
+                "pages": [
+                  "oss/python/build-overview",
+                  "langsmith/engine-link"
+                ]
+              },
+              {
+                "tab": "Deep Agents",
+                "pages": [
+                  "oss/python/deepagents/overview",
+                  {
+                    "group": "Get started",
+                    "pages": [
+                      "oss/python/deepagents/quickstart",
+                      "oss/python/deepagents/customization",
+                      "oss/python/deepagents/comparison",
+                      "oss/python/deepagents/changelog-py"
+                    ]
+                  },
+                  {
+                    "group": "Deployment",
+                    "pages": [
+                      "langsmith/managed-deep-agents",
+                      "oss/python/deepagents/going-to-production"
+                    ]
+                  },
+                  {
+                    "group": "Core capabilities",
+                    "pages": [
+                      "oss/python/deepagents/models",
+                      "oss/python/deepagents/tools",
+                      "oss/python/deepagents/context-engineering",
+                      "oss/python/deepagents/backends",
+                      "oss/python/deepagents/subagents",
+                      "oss/python/deepagents/async-subagents",
+                      "oss/python/deepagents/human-in-the-loop",
+                      "oss/python/deepagents/permissions",
+                      "oss/python/deepagents/memory",
+                      "oss/python/deepagents/skills",
+                      "oss/python/deepagents/sandboxes",
+                      {
+                        "group": "Interpreters",
+                        "tag": "Beta",
+                        "root": "oss/python/deepagents/interpreters",
+                        "expanded": true,
+                        "pages": [
+                          "oss/python/deepagents/programmatic-subagents"
+                        ]
+                      },
+                      "oss/python/deepagents/profiles",
+                      "oss/python/deepagents/event-streaming",
+                      "oss/python/deepagents/streaming",
+                      "oss/python/deepagents/rubric"
+                    ]
+                  },
+                  {
+                    "group": "Frontend",
+                    "pages": [
+                      "oss/python/deepagents/frontend/overview",
+                      {
+                        "group": "Patterns",
+                        "pages": [
+                          "oss/python/deepagents/frontend/subagent-streaming",
+                          "oss/python/deepagents/frontend/todo-list",
+                          "oss/python/deepagents/frontend/sandbox"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Protocols",
+                    "pages": [
+                      "oss/python/deepagents/acp",
+                      "oss/python/deepagents/mcp",
+                      "oss/python/deepagents/a2a"
+                    ]
+                  },
+                  {
+                    "group": "Code",
+                    "pages": [
+                      "oss/python/deepagents/code/overview",
+                      "oss/python/deepagents/code/memory-and-skills",
+                      "oss/python/deepagents/code/remote-sandboxes",
+                      "oss/python/deepagents/code/subagents",
+                      "oss/python/deepagents/code/providers",
+                      "oss/python/deepagents/code/configuration",
+                      "oss/python/deepagents/code/mcp-tools",
+                      "oss/python/deepagents/code/data-locations"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tab": "LangChain",
+                "pages": [
+                  "oss/python/langchain/overview",
+                  {
+                    "group": "Get started",
+                    "pages": [
+                      "oss/python/langchain/install",
+                      "oss/python/langchain/quickstart",
+                      "oss/python/langchain/changelog-py",
+                      "oss/python/langchain/philosophy"
+                    ]
+                  },
+                  {
+                    "group": "Core components",
+                    "pages": [
+                      "oss/python/langchain/agents",
+                      "oss/python/langchain/models",
+                      "oss/python/langchain/messages",
+                      "oss/python/langchain/tools",
+                      "oss/python/langchain/short-term-memory",
+                      "oss/python/langchain/event-streaming",
+                      "oss/python/langchain/streaming",
+                      "oss/python/langchain/structured-output"
+                    ]
+                  },
+                  {
+                    "group": "Middleware",
+                    "pages": [
+                      "oss/python/langchain/middleware/overview",
+                      "oss/python/langchain/middleware/built-in",
+                      "oss/python/langchain/middleware/custom"
+                    ]
+                  },
+                  {
+                    "group": "Frontend",
+                    "pages": [
+                      "oss/python/langchain/frontend/overview",
+                      {
+                        "group": "Patterns",
+                        "pages": [
+                          "oss/python/langchain/frontend/markdown-messages",
+                          "oss/python/langchain/frontend/tool-calling",
+                          "oss/python/langchain/frontend/headless-tools",
+                          "oss/python/langchain/frontend/human-in-the-loop",
+                          "oss/python/langchain/frontend/branching-chat",
+                          "oss/python/langchain/frontend/reasoning-tokens",
+                          "oss/python/langchain/frontend/structured-output",
+                          "oss/python/langchain/frontend/message-queues",
+                          "oss/python/langchain/frontend/join-rejoin",
+                          "oss/python/langchain/frontend/time-travel",
+                          "oss/python/langchain/frontend/generative-ui"
                         ]
                       },
                       {
@@ -2555,7 +2225,6 @@
   },
   "redirects": [
     {
-<<<<<<< HEAD
       "source": "/langsmith/env-var",
       "destination": "/langsmith/env-var-cloud"
     },
@@ -2574,10 +2243,6 @@
     {
       "source": "/langsmith/polly-evaluation",
       "destination": "/langsmith/chat#evaluation"
-=======
-      "source": "/langsmith/deploy-google-adk",
-      "destination": "/langsmith/deploy-other-frameworks#google-adk"
->>>>>>> 01014ec82 (draft updates for adk - need to check if ADK was right or should use functional api)
     },
     {
       "source": "/langsmith/prebuilt-evaluators",
