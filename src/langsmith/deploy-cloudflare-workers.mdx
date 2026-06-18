@@ -4,7 +4,7 @@ sidebarTitle: Cloudflare Workers
 description: Deploy a LangChain deep agent on Cloudflare Workers with Vite, React, Hono, and Durable Objects for SSE replay.
 ---
 
-An example app that deploys a LangChain **deep agent** on [Cloudflare Workers](https://developers.cloudflare.com/workers/): streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Worker routes (HTTP + SSE). The React SPA is served from the same Worker via [Workers Assets](https://developers.cloudflare.com/workers/static-assets/). No separate backend process: one Worker serves the SPA and the protocol API.
+The following page details an example app that deploys a LangChain **deep agent** on [Cloudflare Workers](https://developers.cloudflare.com/workers/): streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Worker routes (HTTP + SSE). The React SPA is served from the same Worker via [Workers Assets](https://developers.cloudflare.com/workers/static-assets/). No separate backend process: one Worker serves the SPA and the protocol API.
 
 Source: [`js-cloudflare`](https://github.com/langchain-ai/deployment-cookbook/tree/main/js-cloudflare) in the deployment cookbook.
 
@@ -161,10 +161,6 @@ pnpm typecheck
 
 ## Project layout
 
-<AccordionGroup>
-
-<Accordion title="Project structure">
-
 - `src/components/` — chat UI (`ChatApp`, `Chat`, `MessageThread`, `Subagents`, `ThreadHistory`, …).
 - `src/lib/chat/threads-client.ts` — browser thread bootstrap and sidebar helpers.
 - `worker/agent/` — deep agent (`createDeepAgent`) with `researcher` and `math-whiz` subagents and mock tools.
@@ -172,10 +168,6 @@ pnpm typecheck
 - `worker/durable-objects/thread-session.ts` — per-thread SSE event log (`StreamChannel` + `matchesSubscription`).
 - `worker/index.ts` — Hono app: protocol routes + Worker export.
 - `wrangler.jsonc` — Worker config: `nodejs_compat`, Durable Object bindings, SPA asset routing (`run_worker_first: ["/api/*"]`).
-
-</Accordion>
-
-</AccordionGroup>
 
 ## See also
 

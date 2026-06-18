@@ -4,7 +4,7 @@ sidebarTitle: Next.js
 description: Deploy a LangChain deep agent in a Next.js App Router project with streaming chat, subagents, and thread history.
 ---
 
-An example app that deploys a LangChain **deep agent** entirely inside a [Next.js App](https://nextjs.org/) Router project: streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Next.js Route Handlers (HTTP + SSE). No separate backend process.
+The following page details an example app that deploys a LangChain **deep agent** entirely inside a [Next.js App](https://nextjs.org/) Router project: streaming chat UI, subagents, and thread history, all backed by the [Agent Streaming Protocol](https://github.com/langchain-ai/agent-protocol/tree/main/streaming) implemented as Next.js Route Handlers (HTTP + SSE). No separate backend process.
 
 Source: [`js-next`](https://github.com/langchain-ai/deployment-cookbook/tree/main/js-next) in the deployment cookbook.
 
@@ -160,19 +160,11 @@ pnpm lint    # eslint
 
 ## Project layout
 
-<AccordionGroup>
-
-<Accordion title="Project structure">
-
-- `lib/agent/` — deep agent (`createDeepAgent`) with `researcher` and `math-whiz` subagents and mock tools. Marked `server-only`.
-- `lib/server/` — protocol server logic: `session.ts` (SSE runs), `threads.ts` (checkpointer-backed state), `serialize.ts`, `registry.ts`.
-- `app/api/threads/` — Route Handlers for the protocol endpoints above.
-- `lib/chat/threads-client.ts` — browser thread bootstrap and sidebar helpers.
-- `components/` — chat UI (`ChatApp`, `Chat`, `MessageList`, `Subagents`, `ThreadHistory`, …).
-
-</Accordion>
-
-</AccordionGroup>
+- `lib/agent/`: deep agent (`createDeepAgent`) with `researcher` and `math-whiz` subagents and mock tools. Marked `server-only`.
+- `lib/server/`: protocol server logic: `session.ts` (SSE runs), `threads.ts` (checkpointer-backed state), `serialize.ts`, `registry.ts`.
+- `app/api/threads/`: Route Handlers for the protocol endpoints above.
+- `lib/chat/threads-client.ts`: browser thread bootstrap and sidebar helpers.
+- `components/`: chat UI (`ChatApp`, `Chat`, `MessageList`, `Subagents`, `ThreadHistory`, …).
 
 ## See also
 
