@@ -1,7 +1,7 @@
 ---
 title: Deploy other frameworks
 sidebarTitle: Deploy other frameworks
-description: Deploy agents built with Claude Agent SDK, Strands, CrewAI, AutoGen, Google ADK, and other frameworks to LangSmith Deployment.
+description: Deploy agents built with Claude Agent SDK, Strands, CrewAI, AutoGen, and other frameworks to LangSmith Deployment.
 ---
 
 LangSmith Deployment runs any framework. For agents not built on Deep Agents, LangChain, or LangGraph, deploy using either the [`deployments-wrap-sdk`](https://pypi.org/project/deployments-wrap-sdk/) package (Google ADK) or the [LangGraph Functional API](/oss/langgraph/functional-api) (Claude Agent SDK, Strands, CrewAI, AutoGen, and other libraries).
@@ -14,40 +14,29 @@ For new builds, consider [Deep Agents](/oss/deepagents/overview), an open-source
 
 The following frameworks have end-to-end examples in this guide. Each example exports a LangGraph-compatible graph from `agent.py` that Agent Server can serve.
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-    <a href="#end-to-end-example" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/claude.svg" alt="" />
-        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/claude.svg" alt="" />
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/claude.svg" alt="" noZoom />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/claude.svg" alt="" noZoom />
         <span className="font-semibold">Claude Agent SDK</span>
     </a>
 
-    <a href="#end-to-end-example" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/bedrock.svg" alt="" />
-        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/bedrock.svg" alt="" />
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/bedrock.svg" alt="" noZoom />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/bedrock.svg" alt="" noZoom />
         <span className="font-semibold">Strands Agents</span>
     </a>
 
-    <a href="#end-to-end-example" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/crewai.svg" alt="" />
-        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/crewai.svg" alt="" />
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/crewai.svg" alt="" noZoom />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/crewai.svg" alt="" noZoom />
         <span className="font-semibold">CrewAI</span>
     </a>
 
-    <a href="#end-to-end-example" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/autogen.svg" alt="" />
-        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/autogen.svg" alt="" />
+    <a href="#general-deployment-pattern" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/autogen.svg" alt="" noZoom />
+        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/autogen.svg" alt="" noZoom />
         <span className="font-semibold">AutoGen</span>
-    </a>
-
-    <a href="/langsmith/deploy-google-adk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="block dark:hidden w-5 h-5" src="/images/providers/light/googleadk.svg" alt="" />
-        <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/googleadk.svg" alt="" />
-        <span className="font-semibold">Google ADK</span>
-    </a>
-
-    <a href="/oss/deepagents/overview" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
-        <img className="w-5 h-5" src="/images/brand/docs-favicon.png" alt="" />
-        <span className="font-semibold">Deep Agents</span>
     </a>
 </div>
 
@@ -55,11 +44,22 @@ The following frameworks have end-to-end examples in this guide. Each example ex
 Don't see your framework? The Functional API accepts any callable, so you can apply the same pattern shown in the following examples to any agent library. Wrap your agent's entrypoint with `@task` and `@entrypoint`, then deploy.
 </Note>
 
+## How the Functional API works
+
+When a run arrives on Agent Server for a Functional API-wrapped agent:
+
+1. The platform invokes your `@entrypoint`-decorated `agent` function with the run input and any saved state from prior turns on the same thread (passed as the `previous` argument).
+2. The entrypoint calls your `@task`-decorated function, which delegates to the framework agent (Claude Agent SDK, Strands, CrewAI, AutoGen, or another library).
+3. The entrypoint returns `entrypoint.final(value=..., save=...)`. The `value` is the response for this turn; `save` is the checkpointed state used as `previous` on the next turn.
+4. Agent Server persists the checkpoint, streams partial output when supported, and records traces when tracing is configured.
+
+This pattern preserves your framework's execution semantics while giving you standard Agent Server features: durable runs, multi-thread persistence, streaming endpoints, and LangSmith observability.
+
 ## Prerequisites
 
 Regardless of framework, you need:
 
-* Python 3.10+ for Functional API frameworks (Python 3.11+ for Google ADK; Strands Agents supports Python 3.9+)
+* Python 3.10+ for Functional API frameworks (Strands Agents supports Python 3.9+)
 * A [LangSmith API key](/langsmith/create-account-api-key)
 
 ## General deployment pattern
@@ -77,7 +77,7 @@ Install Python packages for your framework plus LangGraph and LangSmith.
 For [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview):
 
 ```bash
-pip install "langsmith[claude-agent-sdk]" langgraph langgraph-cli
+pip install "langsmith[claude-agent-sdk]" langgraph "langgraph-cli[inmem]"
 ```
 
 Set `ANTHROPIC_API_KEY` in your environment. For an Anthropic API key, refer to the [Claude console](https://claude.ai/login).
@@ -88,7 +88,7 @@ Set `ANTHROPIC_API_KEY` in your environment. For an Anthropic API key, refer to 
 For [Strands Agents](https://strandsagents.com/latest/documentation/docs/):
 
 ```bash
-pip install strands-agents strands-agents-tools langgraph "langsmith[strands-agents]" langgraph-cli
+pip install strands-agents strands-agents-tools langgraph "langsmith[strands-agents]" "langgraph-cli[inmem]"
 ```
 
 Configure AWS credentials if you use Amazon Bedrock as the model provider.
@@ -99,7 +99,7 @@ Configure AWS credentials if you use Amazon Bedrock as the model provider.
 For [CrewAI](https://docs.crewai.com/):
 
 ```bash
-pip install crewai langgraph langsmith opentelemetry-instrumentation-crewai opentelemetry-instrumentation-openai langgraph-cli
+pip install crewai langgraph langsmith opentelemetry-instrumentation-crewai opentelemetry-instrumentation-openai "langgraph-cli[inmem]"
 ```
 
 Set LLM provider credentials in your environment (for example `OPENAI_API_KEY` if you use OpenAI-backed models).
@@ -110,7 +110,7 @@ Set LLM provider credentials in your environment (for example `OPENAI_API_KEY` i
 For [AutoGen](https://microsoft.github.io/autogen/):
 
 ```bash
-pip install autogen-agentchat autogen-ext langgraph langsmith opentelemetry-instrumentation-openai langgraph-cli
+pip install autogen-agentchat autogen-ext langgraph langsmith opentelemetry-instrumentation-openai "langgraph-cli[inmem]"
 ```
 
 Set `OPENAI_API_KEY` (or your model provider credentials) in your environment.
@@ -526,13 +526,14 @@ Two things are essential for every example:
 
 ## Project layout
 
-A deployable project needs three files:
+A deployable project needs these files:
 
 ```
 my-agent/
 ├── agent.py              # exports the agent graph
 ├── langgraph.json        # Agent Server config
-└── pyproject.toml        # Python dependencies
+├── pyproject.toml        # Python dependencies
+└── .env                  # Provider credentials and LangSmith variables
 ```
 
 [`langgraph.json`](/langsmith/application-structure#configuration-file-concepts) points Agent Server at the exported symbol:
@@ -562,6 +563,13 @@ dependencies = [
 ]
 ```
 
+```bash .env
+LANGSMITH_API_KEY=your-langsmith-api-key
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=my-claude-agent
+ANTHROPIC_API_KEY=your-anthropic-api-key
+```
+
 </Tab>
 <Tab title="Strands Agents">
 
@@ -587,6 +595,16 @@ dependencies = [
     "langsmith[strands-agents]>=0.3.0",
     "langgraph>=0.4.0",
 ]
+```
+
+```bash .env
+LANGSMITH_API_KEY=your-langsmith-api-key
+LANGSMITH_TRACING=true
+LANGSMITH_PROJECT=my-strands-agent
+OTEL_EXPORTER_OTLP_ENDPOINT=https://api.smith.langchain.com/otel/v1/traces
+OTEL_EXPORTER_OTLP_HEADERS=x-api-key=your-langsmith-api-key,Langsmith-Project=my-strands-agent
+AWS_REGION=your-aws-region
+AWS_PROFILE=your-aws-profile
 ```
 
 </Tab>
@@ -617,6 +635,12 @@ dependencies = [
 ]
 ```
 
+```bash .env
+LANGSMITH_API_KEY=your-langsmith-api-key
+LANGSMITH_PROJECT=my-crewai-agent
+OPENAI_API_KEY=your-openai-api-key
+```
+
 </Tab>
 <Tab title="AutoGen">
 
@@ -645,6 +669,12 @@ dependencies = [
 ]
 ```
 
+```bash .env
+LANGSMITH_API_KEY=your-langsmith-api-key
+LANGSMITH_PROJECT=my-autogen-agent
+OPENAI_API_KEY=your-openai-api-key
+```
+
 </Tab>
 </Tabs>
 
@@ -656,6 +686,14 @@ From your project directory:
 pip install -e .
 ```
 
+## Enable tracing
+
+Use the framework-specific `.env` template in [Project layout](#project-layout). Agent Server loads this file when `"env": ".env"` is set in `langgraph.json`.
+
+Set `LANGSMITH_PROJECT` and your framework provider credentials in that file. For Claude Agent SDK and Strands Agents, also set `LANGSMITH_TRACING=true`. For CrewAI and AutoGen, tracing is enabled in `agent.py` through `OtelSpanProcessor()` and the framework instrumentors, so set `LANGSMITH_API_KEY` and `LANGSMITH_PROJECT` only.
+
+[Traces](/langsmith/observability) show agent invocations, tool calls, and LLM interactions in the [LangSmith UI](https://smith.langchain.com). For framework-specific tracing options, see the links in [Configure tracing](#configure-tracing) above.
+
 ## Run locally
 
 Start the local Agent Server with the [LangGraph CLI](/langsmith/cli):
@@ -664,10 +702,18 @@ Start the local Agent Server with the [LangGraph CLI](/langsmith/cli):
 langgraph dev
 ```
 
+<Note>
+If `langgraph dev` reports that `langgraph-api` is missing, install `langgraph-cli[inmem]` in the same environment.
+</Note>
+
 This serves the agent at `http://127.0.0.1:2024` and opens [LangSmith Studio](/langsmith/studio). Send a request with `curl`:
 
+<Note>
+`langgraph dev` may serve on a different port. Check the URL in the terminal output and update the `curl` commands below if needed.
+</Note>
+
 <Tabs>
-<Tab title="Functional API frameworks">
+<Tab title="Claude Agent SDK, CrewAI, AutoGen">
 
 ```bash
 # Create a thread
@@ -679,14 +725,42 @@ curl -s -X POST "http://127.0.0.1:2024/threads/$THREAD/runs/wait" \
   -H "Content-Type: application/json" \
   -d '{
     "assistant_id": "ASSISTANT_ID",
-    "input": {"messages": [{"role": "user", "content": "Hello"}]}
+    "input": [{"role": "user", "content": "Hello"}]
   }'
 ```
 
-Replace `ASSISTANT_ID` with the graph name from your `langgraph.json` (for example `claude_agent`). For Strands Agents, pass messages in the format your entrypoint expects (see the Strands Agents tab in the [end-to-end example](#end-to-end-example)).
+</Tab>
+<Tab title="Strands Agents">
+
+```bash
+# Create a thread
+THREAD=$(curl -s -X POST http://127.0.0.1:2024/threads \
+  -H "Content-Type: application/json" -d '{}' | python -c "import sys, json; print(json.load(sys.stdin)['thread_id'])")
+
+# Run the agent and wait for the final response
+curl -s -X POST "http://127.0.0.1:2024/threads/$THREAD/runs/wait" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assistant_id": "ASSISTANT_ID",
+    "input": [
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "Hello"}
+        ]
+      }
+    ]
+  }'
+```
+
+<Note>
+If this request fails with `NoCredentialsError`, configure AWS credentials for your model provider (for example `AWS_PROFILE` or `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`) and restart `langgraph dev`.
+</Note>
 
 </Tab>
 </Tabs>
+
+Replace `ASSISTANT_ID` with the graph key from your `langgraph.json` `graphs` object. For example, if your config is `"graphs": {"claude_agent": "./agent.py:agent"}`, use `claude_agent`; if your config is `"graphs": {"strands_agent": "./agent.py:agent"}`, use `strands_agent`.
 
 <Note>
 [Verify that the LangGraph API runs locally](/langsmith/local-dev-testing) before deploying. If `langgraph dev` fails, deployment to LangSmith will fail as well.
@@ -701,65 +775,3 @@ langgraph deploy --name my-agent
 ```
 
 For environment configuration, deployment types, and revision management, see [Deploy to cloud](/langsmith/deploy-to-cloud). For self-hosted setups, see [Self-hosted deployments](/langsmith/self-hosted). For Docker-only hosting without the control plane, see [Deploy standalone](/langsmith/deploy-standalone-server).
-
-## Enable tracing
-
-Set framework credentials and LangSmith tracing variables in `.env`. Agent Server loads this file when `"env": ".env"` is set in `langgraph.json`.
-
-<Tabs>
-<Tab title="Claude Agent SDK">
-
-```bash .env
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=my-claude-agent
-ANTHROPIC_API_KEY=your-anthropic-api-key
-```
-
-</Tab>
-<Tab title="Strands Agents">
-
-```bash .env
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=my-strands-agent
-OTEL_EXPORTER_OTLP_ENDPOINT=https://api.smith.langchain.com/otel/v1/traces
-OTEL_EXPORTER_OTLP_HEADERS=x-api-key=your-langsmith-api-key,Langsmith-Project=my-strands-agent
-AWS_REGION=your-aws-region
-```
-
-</Tab>
-<Tab title="CrewAI">
-
-```bash .env
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=my-crewai-agent
-OPENAI_API_KEY=your-openai-api-key
-```
-
-</Tab>
-<Tab title="AutoGen">
-
-```bash .env
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=my-autogen-agent
-OPENAI_API_KEY=your-openai-api-key
-```
-
-</Tab>
-</Tabs>
-
-[Traces](/langsmith/observability) show agent invocations, tool calls, and LLM interactions in the [LangSmith UI](https://smith.langchain.com). For framework-specific tracing options, see the links in [Configure tracing](#configure-tracing) above.
-
-## How the Functional API works
-
-When a run arrives on Agent Server for a Functional API-wrapped agent:
-
-1. The platform invokes your `@entrypoint`-decorated `agent` function with the run input and any saved state from prior turns on the same thread (passed as the `previous` argument).
-2. The entrypoint calls your `@task`-decorated function, which delegates to the framework agent (Claude Agent SDK, Strands, CrewAI, AutoGen, or another library).
-3. The entrypoint returns `entrypoint.final(value=..., save=...)`. The `value` is the response for this turn; `save` is the checkpointed state used as `previous` on the next turn.
-4. Agent Server persists the checkpoint, streams partial output when supported, and records traces when tracing is configured.
-
-This pattern preserves your framework's execution semantics while giving you standard Agent Server features: durable runs, multi-thread persistence, streaming endpoints, and LangSmith observability. For Google ADK session bridging and streaming, see [How ADK deployment works](#how-adk-deployment-works).
