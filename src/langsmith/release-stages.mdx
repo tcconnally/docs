@@ -9,10 +9,10 @@ LangSmith ships features through three release stages: alpha, beta, and generall
 
 A feature advances through the stages as it matures, though smaller features may skip alpha or beta and launch directly as GA. The following table summarizes each stage.
 
-| Stage | Availability | Stability | Self-hosted / BYOC | Support |
+| Stage | Availability | Changes | Self-hosted / BYOC | Support |
 |-------|-------------|-----------|----------------------|---------|
-| [Alpha](#alpha) | Design partners only | Breaking changes expected; the feature may change significantly or never ship | Not guaranteed | No SLA |
-| [Beta](#beta) | Public or a private group | Breaking changes possible; GA expected within a few months | Not guaranteed, but typically added during beta | No SLA |
+| [Alpha](#alpha) | Design partners only | Breaking changes expected; the feature may change significantly or never ship | Not guaranteed | No formal SLA |
+| [Beta](#beta) | Public or a private group | Interface or behavior may still change; GA expected within a few months | Typically added during beta | Actively maintained; SLA varies by feature |
 | [GA](#generally-available-ga) | Public | Stable; breaking changes require a deprecation period | Supported | Fully supported |
 
 ## Alpha
@@ -20,7 +20,7 @@ A feature advances through the stages as it matures, though smaller features may
 Alpha is the earliest release stage, used to validate a feature with a small audience before wider release.
 
 - **Availability**: Available to design partners only. Alpha features are not publicly announced.
-- **Stability**: Breaking changes are expected. The feature may change significantly, and it may never ship as GA.
+- **Changes**: Breaking changes are expected. The feature may change significantly, and it may never ship as GA.
 - **Pricing**: No pricing commitment.
 - **Deployments**: Not necessarily available in self-hosted or BYOC environments.
 - **Support**: No SLA applies.
@@ -36,7 +36,7 @@ Beta makes a feature available for real use while its interface and behavior are
 - **Changes**: The interface or behavior may still change before the feature reaches GA, which is expected within a few months.
 - **Pricing**: Pricing may be available, but is not yet finalized.
 - **Deployments**: Support for self-hosted and BYOC environments is typically added during beta.
-- **Support**: No formal SLA applies, but beta features are actively maintained and refined based on feedback.
+- **Support**: Beta features are actively maintained and refined based on feedback. SLA coverage varies by feature.
 
 Beta is optional. Smaller features may skip this stage.
 
@@ -45,7 +45,7 @@ Beta is optional. Smaller features may skip this stage.
 GA features are stable and fully supported for production use.
 
 - **Availability**: Publicly available.
-- **Stability**: API behavior is stable. Breaking changes require a deprecation period.
+- **Changes**: API behavior is stable. Breaking changes require a deprecation period.
 - **Pricing**: Pricing is finalized.
 - **Deployments**: Supported in all environments, including self-hosted and BYOC.
 - **Support**: Fully supported and thoroughly documented.
