@@ -1262,7 +1262,7 @@
                           "langsmith/experiment-configuration",
                           "langsmith/evaluation-async",
                           "langsmith/repetition",
-                          "langsmith/rate-limiting",
+                          "langsmith/handle-model-rate-limiting",
                           "langsmith/bind-evaluator-to-dataset",
                           "langsmith/evaluate-existing-experiment",
                           "langsmith/local",
@@ -2225,6 +2225,10 @@
     }
   },
   "redirects": [
+    {
+      "source": "/langsmith/rate-limiting",
+      "destination": "/langsmith/handle-model-rate-limiting"
+    },
     {
       "source": "/langsmith/env-var",
       "destination": "/langsmith/env-var-cloud"
