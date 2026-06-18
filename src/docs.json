@@ -2026,7 +2026,8 @@
                 "pages": [
                   "langsmith/changelog",
                   "langsmith/self-hosted-changelog",
-                  "langsmith/release-versions"
+                  "langsmith/release-versions",
+                  "langsmith/release-stages"
                 ]
               }
             ]
