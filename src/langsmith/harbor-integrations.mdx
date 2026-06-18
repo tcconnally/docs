@@ -137,8 +137,7 @@ The agent loads graphs from the `langgraph.json` file in `project_path`. The fil
 ```json
 {
   "dependencies": [
-    "./.local_deps/deepagents",
-    "./.local_deps/deepagents-code",
+    "deepagents>=0.6.10,<0.7.0",
     "langchain-anthropic>=1.4.6,<1.5.0",
     "langchain-openai>=1.3.0,<1.4.0"
   ],
@@ -252,13 +251,3 @@ harbor run -d "<org/name>" \
 
 - `idle_ttl_seconds`: stops an idle sandbox after this many seconds. Set `0` to disable the idle timeout.
 - `delete_after_stop_seconds`: deletes a stopped sandbox after this many seconds.
-
-### Multi-container tasks
-
-By default, a task runs in a single container built from its `environment/Dockerfile`, and the agent and verifier run inside that one container. A multi-container task instead runs several containers at once for the same trial.
-
-This is per trial, not per task: a trial is one agent attempt on one task, and "multi-container" describes the environment that trial runs in, not splitting the task across machines. Use it when a task needs more than the agent's own container, for example a database, a web server, or a second host the agent talks to.
-
-To define one, include an `environment/docker-compose.yaml` file in the task that declares each container as a Compose service. The agent and verifier run in the service named `main`, and the other services are auxiliary. All services share one Compose network, so the agent reaches the others by their service names, for example a `db` service at the hostname `db`.
-
-For each trial, Harbor brings up the whole Compose stack, runs the agent in `main`, runs the verifier, then tears every container down together. See the [Harbor sandbox documentation](https://harborframework.com/docs/run-jobs/cloud-sandboxes) for details.
