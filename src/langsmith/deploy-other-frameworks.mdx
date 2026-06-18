@@ -39,7 +39,7 @@ The following frameworks have end-to-end examples in this guide. Each example ex
         <span className="font-semibold">AutoGen</span>
     </a>
 
-    <a href="#google-adk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
+    <a href="/langsmith/deploy-google-adk" className="flex items-center justify-center gap-1.5 p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 no-underline ">
         <img className="block dark:hidden w-5 h-5" src="/images/providers/light/googleadk.svg" alt="" />
         <img className="hidden dark:block w-5 h-5" src="/images/providers/dark/googleadk.svg" alt="" />
         <span className="font-semibold">Google ADK</span>
@@ -55,158 +55,12 @@ The following frameworks have end-to-end examples in this guide. Each example ex
 Don't see your framework? The Functional API accepts any callable, so you can apply the same pattern shown in the following examples to any agent library. Wrap your agent's entrypoint with `@task` and `@entrypoint`, then deploy.
 </Note>
 
-## Google ADK
-
-Deploy [Google Agent Development Kit (ADK)](https://github.com/google/adk-python) agents on [LangSmith Agent Server](/langsmith/agent-server) using the [`deployments-wrap-sdk`](https://pypi.org/project/deployments-wrap-sdk/) package.
-
-`deployments-wrap-sdk` provides a thin wrapper that turns a configured ADK `Runner` into a LangGraph-compatible graph, so you can deploy ADK agents without writing Functional API glue. The wrapper:
-
-- Bridges ADK sessions to Agent Server's [checkpoint persistence](/langsmith/agent-server#persistence), so session state survives restarts and resumes across runs.
-- Forwards ADK token events through LangGraph's streaming pipeline, so partial tokens show up in [`stream_mode="messages"`](/langsmith/streaming) and in [LangSmith Studio](/langsmith/studio).
-- Automatically enables [LangSmith tracing](/langsmith/trace-with-google-adk) for ADK when `LANGSMITH_TRACING` is set.
-
-Google ADK requires Python 3.11+, a [LangSmith API key](/langsmith/create-account-api-key), and a Google AI API key if you use Gemini models (see [Google AI Studio](https://aistudio.google.com/api-keys)).
-
-### Install
-
-Install the package with the `google-adk` extra. The extra pulls in `google-adk` and other dependencies needed for the wrapper:
-
-```bash
-pip install "deployments-wrap-sdk[google-adk]"
-```
-
-<Note>
-The PyPI distribution name is `deployments-wrap-sdk`, but the Python import path is `saf_sdk`. Both refer to the same package.
-</Note>
-
-### Quickstart
-
-This minimal example builds an agent that returns the input as its response and does not require a model API key. The agent bypasses the LLM call so you can verify that the deployment works correctly before connecting a real model.
-
-Create `agent.py`:
-
-```python agent.py
-from google.adk.agents import Agent
-from google.adk.models.llm_response import LlmResponse
-from google.adk.runners import Runner
-from google.genai.types import Content, Part
-from saf_sdk.adk import LangsmithSessionService, wrap
-
-
-def echo_callback(callback_context, llm_request):
-    """Return the user's message instead of calling a real model."""
-    user_text = ""
-    if callback_context.user_content and callback_context.user_content.parts:
-        for part in callback_context.user_content.parts:
-            if part.text:
-                user_text += part.text
-    return LlmResponse(
-        content=Content(role="model", parts=[Part(text=f"echo: {user_text}")])
-    )
-
-
-agent = wrap(
-    Runner(
-        agent=Agent(
-            name="echo_agent",
-            model="gemini-2.0-flash",
-            instruction="Echo the user message.",
-            before_model_callback=echo_callback,
-        ),
-        app_name="adk_echo",
-        session_service=LangsmithSessionService(),
-    )
-)
-```
-
-Two things are essential:
-
-1. **Pass `LangsmithSessionService()`** as the runner's `session_service`. `wrap()` raises a `TypeError` if you forget. Agent Server needs this hook to load and save ADK session state through its checkpointer.
-2. **Export the wrapped `agent`** as a module-level variable. Agent Server imports this symbol when serving the graph.
-
-For a real agent, drop the `before_model_callback` and configure a model directly. For example, use Gemini by setting `model="gemini-2.0-flash"` with `GOOGLE_API_KEY` set, or use Claude/OpenAI via ADK's LiteLLM adapter (`google.adk.models.lite_llm.LiteLlm`, available through `google-adk[extensions]`).
-
-Use the [project layout](#project-layout), [run locally](#run-locally), and [deploy to LangSmith](#deploy-to-langsmith) sections below with the Google ADK tab selected. For tracing, see the Google ADK tab in [Enable tracing](#enable-tracing).
-
-### API reference
-
-#### `wrap(runner)`
-
-Wraps a configured `google.adk.runners.Runner` and returns a LangGraph `Pregel` graph that can be exported from your module and served by Agent Server.
-
-| Argument | Type | Description |
-|---|---|---|
-| `runner` | `google.adk.runners.Runner` | A configured ADK Runner. Its `session_service` **must** be a `LangsmithSessionService`. |
-
-**Returns:** A `Pregel` graph whose name is `runner.app_name`.
-
-**Raises:** `TypeError` if `runner.session_service` is not a `LangsmithSessionService`.
-
-If `runner.agent` defines an `output_key`, that key's value is also exposed on the graph's output, in addition to `messages`. This is what makes ADK structured-output agents (`output_schema=...`, `output_key=...`) work with Studio and the `/runs/wait` response.
-
-#### `LangsmithSessionService`
-
-A `google.adk.sessions.BaseSessionService` implementation backed by Agent Server's checkpoint store. The wrapper manages session lifecycle automatically. It creates a session on the first turn of a thread, loads it from the checkpoint on subsequent turns, and writes the updated session back when the run completes.
-
-Use a fresh instance per `Runner`:
-
-```python
-session_service = LangsmithSessionService()
-```
-
-You should not need to call its methods directly; `wrap()` drives them through ADK's normal session lifecycle.
-
-#### `ADKInput`
-
-The default input schema for a wrapped agent.
-
-| Field | Type | Description |
-|---|---|---|
-| `messages` | `list[AnyMessage]` | (Required) Conversation messages; the wrapper sends `messages[-1].content` to the ADK runner as the new user message. |
-| `state_delta` | `dict[str, Any] \| None` | (Optional) Passed through to `runner.run_async(state_delta=...)` to mutate ADK session state for this turn. |
-
-#### `ADKOutput`
-
-The default output schema for a wrapped agent.
-
-| Field | Type | Description |
-|---|---|---|
-| `messages` | `list[AnyMessage]` | The agent's response messages, appended to the thread via LangGraph's `add_messages` reducer. |
-
-Exposing `messages` as a typed field (rather than a plain `dict`) is what lets Studio detect the graph as chat-compatible and enable the chat-mode toggle.
-
-### How ADK deployment works
-
-When a run arrives:
-
-1. The wrapped graph reads `thread_id` from the run config and uses it as the ADK `session_id`. If [authentication](/langsmith/auth) is enabled, the authenticated user's id becomes the ADK `user_id`; otherwise the user id is `"anonymous"`.
-2. The wrapper loads the previous session (if any) from the LangGraph checkpoint into `LangsmithSessionService`, then asks the runner to handle the latest message.
-3. The runner emits ADK events. The wrapper forwards partial-token events through LangGraph's async callback manager so they stream out via `stream_mode="messages"`, and collects final text for the response message.
-4. When the run finishes, the wrapper serializes the ADK session and saves it to the checkpoint via `entrypoint.final(save=...)`. The next run on the same thread resumes from that state.
-
-This means ADK's own session/state semantics are preserved end-to-end while the deployment gets the standard Agent Server features: durable runs, streaming, multi-thread persistence, and tracing.
-
-## Why the Functional API?
-
-The [Functional API](/oss/langgraph/functional-api) lets you integrate and deploy agents built with frameworks other than LangChain. Deploying to LangSmith provides:
-
-* Production deployment: Run your agent on [LangSmith Deployment](/langsmith/deployment) with horizontal scaling, durable execution, and 30+ endpoints including MCP, A2A, and Agent Protocol.
-* Enhanced features: Add [persistence](/oss/langgraph/persistence), [streaming](/langsmith/streaming), [short and long-term memory](/oss/concepts/memory), and [human-in-the-loop](/langsmith/add-human-in-the-loop) to your existing agent with minimal code changes.
-* Multi-agent systems: Compose [multi-agent systems](/oss/langchain/multi-agent) where individual agents are built with different frameworks.
-
-It uses two key building blocks:
-
-* @[`@entrypoint`]: Marks a function as the starting point of a workflow, encapsulating logic and managing execution flow, including handling long-running tasks and interrupts.
-* @[`@task`]: Represents a discrete unit of work, such as an API call or data processing step, that can be executed asynchronously within an entrypoint. Tasks return a future-like object that can be awaited or resolved synchronously.
-
 ## Prerequisites
 
 Regardless of framework, you need:
 
 * Python 3.10+ for Functional API frameworks (Python 3.11+ for Google ADK; Strands Agents supports Python 3.9+)
-* [LangGraph CLI](/langsmith/cli) for local development and deployment
 * A [LangSmith API key](/langsmith/create-account-api-key)
-* Credentials for your agent's model provider (see framework tabs below)
 
 ## General deployment pattern
 
@@ -218,23 +72,12 @@ Follow the same steps for each framework. Choose your stack in the tabs inside e
 Install Python packages for your framework plus LangGraph and LangSmith.
 
 <Tabs>
-<Tab title="Google ADK">
-
-For [Google ADK](https://github.com/google/adk-python), install the wrap SDK (see [Google ADK](#google-adk) for the full quickstart):
-
-```bash
-pip install "deployments-wrap-sdk[google-adk]"
-```
-
-Set `GOOGLE_API_KEY` if you use Gemini models.
-
-</Tab>
 <Tab title="Claude Agent SDK">
 
 For [Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview):
 
 ```bash
-pip install "langsmith[claude-agent-sdk]" langgraph
+pip install "langsmith[claude-agent-sdk]" langgraph langgraph-cli
 ```
 
 Set `ANTHROPIC_API_KEY` in your environment. For an Anthropic API key, refer to the [Claude console](https://claude.ai/login).
@@ -245,7 +88,7 @@ Set `ANTHROPIC_API_KEY` in your environment. For an Anthropic API key, refer to 
 For [Strands Agents](https://strandsagents.com/latest/documentation/docs/):
 
 ```bash
-pip install strands-agents strands-agents-tools langgraph "langsmith[strands-agents]"
+pip install strands-agents strands-agents-tools langgraph "langsmith[strands-agents]" langgraph-cli
 ```
 
 Configure AWS credentials if you use Amazon Bedrock as the model provider.
@@ -256,7 +99,7 @@ Configure AWS credentials if you use Amazon Bedrock as the model provider.
 For [CrewAI](https://docs.crewai.com/):
 
 ```bash
-pip install crewai langgraph langsmith opentelemetry-instrumentation-crewai opentelemetry-instrumentation-openai
+pip install crewai langgraph langsmith opentelemetry-instrumentation-crewai opentelemetry-instrumentation-openai langgraph-cli
 ```
 
 Set LLM provider credentials in your environment (for example `OPENAI_API_KEY` if you use OpenAI-backed models).
@@ -267,7 +110,7 @@ Set LLM provider credentials in your environment (for example `OPENAI_API_KEY` i
 For [AutoGen](https://microsoft.github.io/autogen/):
 
 ```bash
-pip install autogen-agentchat autogen-ext langgraph langsmith opentelemetry-instrumentation-openai
+pip install autogen-agentchat autogen-ext langgraph langsmith opentelemetry-instrumentation-openai langgraph-cli
 ```
 
 Set `OPENAI_API_KEY` (or your model provider credentials) in your environment.
@@ -695,30 +538,6 @@ my-agent/
 [`langgraph.json`](/langsmith/application-structure#configuration-file-concepts) points Agent Server at the exported symbol:
 
 <Tabs>
-<Tab title="Google ADK">
-
-```json langgraph.json
-{
-  "$schema": "https://langgra.ph/schema.json",
-  "dependencies": ["."],
-  "graphs": {
-    "adk_echo": "./agent.py:agent"
-  },
-  "env": ".env"
-}
-```
-
-```toml pyproject.toml
-[project]
-name = "my-adk-agent"
-version = "0.0.1"
-requires-python = ">=3.11"
-dependencies = [
-    "deployments-wrap-sdk[google-adk]>=0.0.1",
-]
-```
-
-</Tab>
 <Tab title="Claude Agent SDK">
 
 ```json langgraph.json
@@ -848,25 +667,6 @@ langgraph dev
 This serves the agent at `http://127.0.0.1:2024` and opens [LangSmith Studio](/langsmith/studio). Send a request with `curl`:
 
 <Tabs>
-<Tab title="Google ADK">
-
-```bash
-# Create a thread
-THREAD=$(curl -s -X POST http://127.0.0.1:2024/threads \
-  -H "Content-Type: application/json" -d '{}' | python -c "import sys, json; print(json.load(sys.stdin)['thread_id'])")
-
-# Run the agent and wait for the final response
-curl -s -X POST "http://127.0.0.1:2024/threads/$THREAD/runs/wait" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "assistant_id": "adk_echo",
-    "input": {"messages": [{"type": "human", "content": "Hello"}]}
-  }'
-```
-
-Use the graph name from your `langgraph.json` as `assistant_id` (for example `adk_echo`).
-
-</Tab>
 <Tab title="Functional API frameworks">
 
 ```bash
@@ -907,20 +707,6 @@ For environment configuration, deployment types, and revision management, see [D
 Set framework credentials and LangSmith tracing variables in `.env`. Agent Server loads this file when `"env": ".env"` is set in `langgraph.json`.
 
 <Tabs>
-<Tab title="Google ADK">
-
-`wrap()` calls `langsmith.integrations.google_adk.configure_google_adk()` automatically whenever LangSmith tracing is enabled:
-
-```bash .env
-LANGSMITH_API_KEY=your-langsmith-api-key
-LANGSMITH_TRACING=true
-LANGSMITH_PROJECT=my-adk-agent
-GOOGLE_API_KEY=your-google-api-key
-```
-
-For more on the underlying tracing integration, see [Trace Google ADK applications](/langsmith/trace-with-google-adk).
-
-</Tab>
 <Tab title="Claude Agent SDK">
 
 ```bash .env
