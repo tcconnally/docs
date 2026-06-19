@@ -1,0 +1,200 @@
+---
+title: Isolate store data per user
+sidebarTitle: Isolate store per user
+description: Scope long-term store data to each authenticated user in LangSmith Deployment using auth handlers.
+---
+
+Every [LangSmith Deployment](/langsmith/deployment) includes a Postgres-backed [store](/oss/langgraph/stores) for long-term memory and cross-thread data. By default, store namespaces are shared across all callers. To give each user their own isolated store, configure [custom authentication](/langsmith/custom-auth) and add a store [authorization handler](/langsmith/auth#authorization) that rewrites namespaces to include the authenticated user's identity.
+
+This guide shows how to configure that isolation in LangSmith Deployment (LSD). The same pattern works for [self-hosted](/langsmith/self-hosted) deployments with custom auth enabled.
+
+## How it works
+
+Store items are organized by a **namespace** tuple (for example, `("memories", "preferences")`) and a **key**. Unlike threads and assistants, store namespaces are defined by your application, so authorization works differently:
+
+1. Your `@auth.authenticate` handler validates the caller and returns a unique `identity` for each user.
+2. Your `@auth.on.store` handler **rewrites** the namespace on every store operation by prepending the user's identity.
+3. The server uses the rewritten namespace for the actual read or write.
+
+A user who writes to namespace `("memories",)` actually stores data at `("user-123", "memories")`. Another user cannot read or overwrite that data because their requests are scoped to `("user-456", ...)`.
+
+<Note>
+Store authorization handlers receive a **mutable** `value` dict. Changes to `value["namespace"]` take effect on the operation. You do not return a metadata filter like you do for threads.
+</Note>
+
+## Prerequisites
+
+- A LangSmith Deployment with [custom authentication](/langsmith/set-up-custom-auth) configured.
+- An `@auth.authenticate` handler that returns a stable, unique `identity` for each end user.
+
+## Configure auth in LangSmith Deployment
+
+Point your deployment at your auth module in [`langgraph.json`](/langsmith/application-structure#configuration-file-concepts):
+
+```json
+{
+  "dependencies": ["."],
+  "graphs": {
+    "agent": "./src/agent/graph.py:graph"
+  },
+  "auth": {
+    "path": "./src/security/auth.py:auth"
+  }
+}
+```
+
+The `auth` object must expose an instance of `langgraph_sdk.Auth` (commonly named `auth`).
+
+## Add a store authorization handler
+
+In your auth module, register a handler for the `store` resource. The handler prepends the authenticated user's identity to every namespace:
+
+```python
+from langgraph_sdk import Auth
+
+auth = Auth()
+
+# ... your @auth.authenticate handler ...
+
+@auth.on.store
+async def scope_store(
+    ctx: Auth.types.AuthContext,
+    value: Auth.types.on.store.value,
+):
+    """Isolate store data per user by rewriting namespaces."""
+    namespace = tuple(value["namespace"]) if value.get("namespace") else ()
+    if not namespace or namespace[0] != ctx.user.identity:
+        namespace = (ctx.user.identity, *namespace)
+    value["namespace"] = namespace
+```
+
+This single handler covers all store actions: `put`, `get`, `search`, `delete`, and `list_namespaces`. You do not need to add separate handlers for each action.
+
+When a client calls `list_namespaces` without a prefix, `value["namespace"]` is empty. The handler above treats an empty namespace as `(ctx.user.identity,)`, so the user only sees their own namespaces. You only need action-specific handlers such as `@auth.on.store.put` if you want different rules per operation.
+
+<Tip>
+If you use a global `@auth.on` handler that denies unhandled requests, register `@auth.on.store` explicitly so store operations are allowed. See the [Auth reference](https://reference.langchain.com/python/langgraph-sdk/auth/Auth) for action-specific handler names.
+</Tip>
+
+## Use logical namespaces in agent code
+
+Your graph code uses **logical** namespaces without the user prefix. The auth layer adds the user scope automatically at request time. Put the following in your graph nodes or tools (for example, `graph.py`):
+
+```python
+from langgraph.store.base import BaseStore
+
+async def save_preference(state: State, *, store: BaseStore):
+    await store.aput(
+        ("memories", "preferences"),  # logical namespace
+        "settings",
+        {"theme": "dark"},
+    )
+
+async def load_preference(state: State, *, store: BaseStore):
+    item = await store.aget(
+        ("memories", "preferences"),
+        "settings",
+    )
+    return item.value if item else {}
+```
+
+When User A calls the store API, the server persists data at `("user-a", "memories", "preferences")`. User B's requests never reach that namespace.
+
+### Deep Agents and StoreBackend
+
+If you use [Deep Agents](/oss/deepagents/overview) with a @[`StoreBackend`], align your namespace factory with the auth-scoped layout. When auth prepends `ctx.user.identity`, use logical namespaces in the backend and let auth handle user isolation:
+
+:::python
+```python
+from deepagents.backends import StoreBackend
+
+StoreBackend(
+    namespace=lambda rt: ("memories",),  # auth adds user identity
+)
+```
+:::
+
+:::js
+```typescript
+import { StoreBackend } from "deepagents";
+
+new StoreBackend({
+  namespace: () => ["memories"],  // auth adds user identity
+});
+```
+:::
+
+Alternatively, if you scope by user inside the graph (for example, with `rt.server_info.user.identity`), ensure your auth handler does not double-prefix namespaces. Pick one scoping layer: auth rewriting **or** application-level namespaces, not both.
+
+For more on namespace design, see [Deep Agents backends](/oss/deepagents/backends#namespace-factories) and [user-scoped memory](/oss/deepagents/memory#user-scoped-memory).
+
+## Test store isolation
+
+With `langgraph dev` running and two test users configured in your auth handler, verify that store data does not leak across users:
+
+```python
+import asyncio
+
+from langgraph_sdk import get_client
+
+
+async def main():
+    alice = get_client(
+        url="http://localhost:60058",
+        headers={"Authorization": "Bearer user1-token"},
+    )
+    bob = get_client(
+        url="http://localhost:60058",
+        headers={"Authorization": "Bearer user2-token"},
+    )
+
+    # Alice writes a store item
+    await alice.store.put_item(
+        ["memories"],
+        key="note",
+        value={"text": "Alice private note"},
+    )
+
+    # Bob cannot read Alice's item
+    bob_item = await bob.store.get_item(["memories"], key="note")
+    if bob_item is None or bob_item["value"]["text"] != "Alice private note":
+        print("✅ Bob correctly denied access to Alice's item")
+    else:
+        print("❌ Bob should not see Alice's store item")
+
+    # Bob writes his own item at the same logical namespace
+    await bob.store.put_item(
+        ["memories"],
+        key="note",
+        value={"text": "Bob private note"},
+    )
+
+    alice_item = await alice.store.get_item(["memories"], key="note")
+    bob_item = await bob.store.get_item(["memories"], key="note")
+    assert alice_item["value"]["text"] == "Alice private note"
+    assert bob_item["value"]["text"] == "Bob private note"
+    print("✅ Each user sees only their own store data")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+## Combine with thread isolation
+
+Store isolation and [thread isolation](/langsmith/resource-auth) solve different problems:
+
+| Concern | Mechanism | Scopes |
+| --- | --- | --- |
+| Conversation history | Thread metadata filters (`owner`) | Per-thread checkpoints and messages |
+| Long-term memory | Store namespace rewriting | Cross-thread memories, preferences, and documents |
+
+For multi-user agents, configure both. See [Make conversations private](/langsmith/resource-auth) for thread and run scoping.
+
+## See also
+
+- [Authentication and access control](/langsmith/auth)
+- [Set up custom authentication](/langsmith/set-up-custom-auth)
+- [Make conversations private](/langsmith/resource-auth)
+- [Semantic search in deployments](/langsmith/semantic-search)
+- [LangGraph stores](/oss/langgraph/stores)
