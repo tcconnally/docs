@@ -31,9 +31,13 @@ To enable LangSmith tracing for your Claude Agent SDK application, call `configu
 
 <ExampleQuickstart/>
 
-Once configured, all Claude Agent SDK operations will be automatically traced to LangSmith, including:
+Once configured, all `ClaudeSDKClient` operations will be automatically traced to LangSmith, including:
 
 -   Agent queries and responses
 -   Tool invocations and results
 -   Claude model interactions
 -   MCP server operations
+
+<Warning>
+  The LangSmith integration works automatically when using `ClaudeSDKClient`. If you use the `query` API directly on the Agent SDK (without `ClaudeSDKClient`), tracing will **not** be applied automatically. Use `ClaudeSDKClient` to ensure your traces appear in LangSmith.
+</Warning>
