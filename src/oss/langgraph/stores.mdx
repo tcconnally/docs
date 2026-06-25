@@ -20,7 +20,7 @@ When using the [Agent Server](/langsmith/agent-server), you do not need to imple
 </Info>
 
 <Note>
-@[InMemoryStore] is suitable for development and testing. For production, use a persistent store like `PostgresStore`, `MongoDBStore`, `RedisStore`, or [MimirStore](https://github.com/Perseus-Computing-LLC/mimir) — a local-first, zero-dependency persistent memory engine with hybrid search (FTS5 + vector) and optional AES-256-GCM encryption. All implementations extend @[BaseStore], which is the type annotation to use in node function signatures.
+@[InMemoryStore] is suitable for development and testing. For production, use a persistent store like `PostgresStore`, `MongoDBStore`, `RedisStore`, or [MimirStore](https://github.com/Perseus-Computing-LLC/mimir)—a local-first, zero-dependency persistent memory engine with hybrid search (FTS5 + vector) and optional AES-256-GCM encryption. All implementations extend @[BaseStore], which is the type annotation to use in node function signatures.
 </Note>
 
 ## Basic usage
@@ -610,7 +610,7 @@ CREATE INDEX ON store_items USING gin(namespace);
 
 ### Serialization
 
-Store values are plain Python dicts — no special serializer is required. Serialize with `json.dumps` / `json.loads` or a JSONB column directly. Do not store raw Python objects that are not JSON-serializable.
+Store values are plain Python dicts—no special serializer is required. Serialize with `json.dumps` / `json.loads` or a JSONB column directly. Do not store raw Python objects that are not JSON-serializable.
 
 ### Semantic search support
 
@@ -667,7 +667,7 @@ async def test_search_prefix(store, reference):
 
 If you'd rather use a pre-built store adapter instead of implementing one from scratch, the following third-party backends provide drop-in @[BaseStore] implementations:
 
-**[MimirStore](https://github.com/Perseus-Computing-LLC/mimir)** — Local-first, zero-dependency persistent memory engine. A single Rust binary (~8MB) with SQLite+FTS5 bundled in — no Docker, no Postgres, no cloud. 36 MCP tools, hybrid search (keyword + vector via RRF), optional AES-256-GCM encryption at rest, and a 479-line LangGraph adapter that passes the full BaseStore contract. Install with one command and connect to any LangGraph agent:
+**[MimirStore](https://github.com/Perseus-Computing-LLC/mimir)**—Local-first, zero-dependency persistent memory engine. A single Rust binary (~8MB) with SQLite+FTS5 bundled in—no Docker, no Postgres, no cloud. 36 MCP tools, hybrid search (keyword + vector via RRF), optional AES-256-GCM encryption at rest, and a 479-line LangGraph adapter that passes the full BaseStore contract. Install with one command and connect to any LangGraph agent:
 
 ```python
 # pip install git+https://github.com/Perseus-Computing-LLC/mimir.git#subdirectory=integrations/langgraph
@@ -682,10 +682,10 @@ results = store.search(("users",), query="preferences")
 ```
 
 <Info>
-Mimir is the only memory engine that is simultaneously MCP-native, local-first, and agent-first with zero runtime dependencies. It runs fully offline (air-gapped capable) and owns its data — no cloud dependency.
+Mimir is the only memory engine that is simultaneously MCP-native, local-first, and agent-first with zero runtime dependencies. It runs fully offline (air-gapped capable) and owns its data—no cloud dependency.
 </Info>
 
 ### Next steps
 
-- [Add a custom store to Agent Server](/langsmith/custom-store) — deploying your implementation
-- [Checkpointers](/oss/langgraph/checkpointers) — thread-scoped state persistence
+- [Add a custom store to Agent Server](/langsmith/custom-store)—deploying your implementation
+- [Checkpointers](/oss/langgraph/checkpointers)—thread-scoped state persistence
