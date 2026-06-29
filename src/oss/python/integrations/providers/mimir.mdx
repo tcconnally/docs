@@ -1,0 +1,28 @@
+---
+title: "Mimir integration"
+description: "Integrate with Mimir using LangChain Python."
+---
+
+[Mimir](https://github.com/Perseus-Computing-LLC/mimir) is a local-first, encrypted, MIT-licensed persistent-memory MCP server. The `langchain-mimir` package integrates Mimir with LangChain, exposing it as tools and as a retriever so agents can store and recall memories from a local, encrypted store.
+
+## Installation and setup
+
+<CodeGroup>
+```bash pip
+pip install langchain-mimir
+```
+
+```bash uv
+uv add langchain-mimir
+```
+</CodeGroup>
+
+Mimir runs as a local `mimir` binary. Download a release from the [Mimir releases page](https://github.com/Perseus-Computing-LLC/mimir/releases), or build from source with `cargo build --release`, and put the `mimir` executable on your `PATH`.
+
+## Tools
+
+For more information on the available tools, see the [Mimir tools documentation](/oss/integrations/tools/mimir).
+
+## Retrievers
+
+For more information on the available retrievers, see the [Mimir retriever documentation](/oss/integrations/retrievers/mimir).

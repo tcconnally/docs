@@ -1,0 +1,58 @@
+---
+title: "Mimir integration"
+description: "Integrate with the MimirRetriever retriever using LangChain Python."
+---
+
+# MimirRetriever
+
+This will help you get started with the Mimir [retriever](/oss/langchain/retrieval). `MimirRetriever` queries a local, encrypted Mimir memory store and returns matching `Document` objects. For the Mimir tools, see the [Mimir tools documentation](/oss/integrations/tools/mimir).
+
+### Integration details
+
+Bring-your-own data (index and search a local corpus of memories):
+
+| Retriever | Self-host | Cloud offering | Package |
+| :--- | :--- | :---: | :---: |
+| `MimirRetriever` | ✅ | ❌ | `langchain-mimir` |
+
+## Setup
+
+Mimir runs as a local `mimir` binary. Download a release from the [Mimir releases page](https://github.com/Perseus-Computing-LLC/mimir/releases), or build from source with `cargo build --release`, and put the `mimir` executable on your `PATH`. Alternatively, pass an absolute path to the binary through the `MimirClient` constructor.
+
+### Installation
+
+This retriever lives in the `langchain-mimir` package:
+
+```python
+pip install -qU langchain-mimir
+```
+
+## Instantiation
+
+Create a `MimirClient`, then construct the retriever:
+
+```python
+from langchain_mimir import MimirClient, MimirRetriever
+
+client = MimirClient(db_path="~/.langchain/mimir.db")
+retriever = MimirRetriever(client=client, k=5)
+```
+
+## Usage
+
+Store memories through the client, then query them with the retriever:
+
+```python
+from langchain_mimir import MimirClient, MimirRetriever
+
+client = MimirClient(db_path="~/.langchain/mimir.db")
+client.remember("The capital of France is Paris.")
+
+retriever = MimirRetriever(client=client, k=5)
+docs = retriever.invoke("What is the capital of France?")
+print(docs[0].page_content)
+```
+
+## API reference
+
+For detailed documentation of all Mimir features and configurations, head to the [langchain-mimir repository](https://github.com/Perseus-Computing-LLC/langchain-mimir).

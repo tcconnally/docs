@@ -1,0 +1,90 @@
+---
+title: "Mimir integration"
+description: "Integrate with the Mimir memory tools using LangChain Python."
+---
+
+This guide provides a quick overview for getting started with the Mimir [tools](/oss/langchain/tools). Mimir is a local-first, encrypted, MIT-licensed persistent-memory MCP server. The `langchain-mimir` package exposes Mimir as LangChain tools (`mimir_remember` and `mimir_recall`) and as a [retriever](/oss/integrations/retrievers/mimir).
+
+## Overview
+
+### Details
+
+| Class | Package | Serializable | Downloads | Version |
+| :--- | :--- | :---: | :---: | :---: |
+| `create_mimir_tools` | [`langchain-mimir`](https://pypi.org/project/langchain-mimir/) | ❌ | ![PyPI - Downloads](https://img.shields.io/pypi/dm/langchain-mimir?style=flat-square&label=%20) | ![PyPI - Version](https://img.shields.io/pypi/v/langchain-mimir?style=flat-square&label=%20) |
+
+### Features
+
+- `mimir_remember`: store text in local, encrypted memory.
+- `mimir_recall`: retrieve relevant memories for a query.
+
+## Setup
+
+Mimir runs as a local `mimir` binary. Download a release from the [Mimir releases page](https://github.com/Perseus-Computing-LLC/mimir/releases), or build from source with `cargo build --release`, and put the `mimir` executable on your `PATH`. Alternatively, pass an absolute path to the binary through the `MimirClient` constructor.
+
+### Installation
+
+The Mimir tools live in the `langchain-mimir` package:
+
+<CodeGroup>
+    ```bash pip
+    pip install -U langchain-mimir
+    ```
+    ```bash uv
+    uv add langchain-mimir
+    ```
+</CodeGroup>
+
+## Instantiation
+
+Create a `MimirClient`, then build the tools with `create_mimir_tools`:
+
+```python
+from langchain_mimir import MimirClient, create_mimir_tools
+
+client = MimirClient(db_path="~/.langchain/mimir.db")
+tools = create_mimir_tools(client)  # [mimir_remember, mimir_recall]
+```
+
+If the `mimir` binary is not on your `PATH`, pass its absolute location:
+
+```python
+client = MimirClient(db_path="~/.langchain/mimir.db", mimir_binary="/usr/local/bin/mimir")
+```
+
+## Invocation
+
+### Within an agent
+
+Bind the tools to a tool-calling model so the model can store and retrieve memories:
+
+```python
+from langchain.chat_models import init_chat_model
+from langchain_mimir import MimirClient, create_mimir_tools
+
+client = MimirClient(db_path="~/.langchain/mimir.db")
+tools = create_mimir_tools(client)
+
+llm = init_chat_model("anthropic:claude-sonnet-4-6")
+llm_with_memory = llm.bind_tools(tools)
+
+response = llm_with_memory.invoke("Remember that my favorite language is Rust.")
+```
+
+### Direct client access
+
+The underlying `MimirClient` exposes `remember` and `recall` directly:
+
+```python
+from langchain_mimir import MimirClient
+
+client = MimirClient(db_path="~/.langchain/mimir.db")
+client.remember("Project deadline is July 15.", tags=["project", "deadline"])
+
+items = client.recall("when is the deadline")
+print(items[0]["text"])
+```
+
+## API reference
+
+For detailed documentation of all Mimir features and configurations, head to the [langchain-mimir repository](https://github.com/Perseus-Computing-LLC/langchain-mimir).
