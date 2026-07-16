@@ -799,7 +799,7 @@ packages:
   downloads_updated_at: '2026-06-29T00:28:24.152325+00:00'
 - name: langchain-perseus-vault
   name_title: Perseus Vault
-  repo: Perseus-Computing-LLC/langchain-mimir
+  repo: Perseus-Computing-LLC/langchain-perseus-vault
   js: "n/a"
   downloads: 0
   downloads_updated_at: "1970-01-01T00:00:00+00:00"
